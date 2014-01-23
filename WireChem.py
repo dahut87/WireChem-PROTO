@@ -46,7 +46,7 @@ def loaditems(n,file):
 		return len(liste)-1
 		
 def initgrid(x,y):
-	global sizeworld,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,items,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,names,thecolors,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	global adirection,sizeworld,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,items,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,names,thecolors,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -58,6 +58,7 @@ def initgrid(x,y):
 	direction[(+1,-1)]=[(-1,+1),(+0,+1),(-1,+0),(+1,+1),(-1,-1),(+1,+0),(+0,-1),(+1,-1)]
 	direction[(+1,+0)]=[(-1,+0),(-1,+1),(-1,-1),(+0,+1),(+0,-1),(+1,+1),(+1,-1),(+1,+0)]
 	direction[(+1,+1)]=[(-1,-1),(-1,+0),(+0,-1),(-1,+1),(+1,-1),(+0,+1),(+1,+0),(+1,+1)]
+	adirection=[(-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)]
 	items = {}
 	sizeworld=loaditems(int("0x40000", 16),"data/worlds.dat")	
 	loaditems(int("0x30000", 16),"data/elements2.dat")	
@@ -94,7 +95,7 @@ def initgrid(x,y):
 
 def readpref(file):
 	global finished
-	with open(file, 'rb') as f:
+	with open(file, 'a+') as f:
 		try:
 			finished=list(csv.reader(f,delimiter=';'))[0]
 			f.close()
@@ -103,7 +104,7 @@ def readpref(file):
 							
 def writepref(file):
 	global finished
-	with open(file, 'wb') as f:
+	with open(file, 'wb+') as f:
 		writer = csv.writer(f, delimiter=';', quotechar='', quoting=csv.QUOTE_NONE)
 		writer.writerow(finished)
 		f.close()		
@@ -357,7 +358,8 @@ def drawworld():
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world:
-			readlittlegrid(ele['file'],items[int("0x40000",16)+i])
+			if 'cout' not in ele:
+				readlittlegrid(ele['file'],items[int("0x40000",16)+i])
 			if items[int("0x40000",16)+i] not in finished and not (ele['world']==0 and ele['grid']==0):
 				glColor3ub(60,60,60)
 				acolor=(90,90,90,255)
@@ -572,7 +574,7 @@ def levels(dummy1,dummy2,dummy3,dummy4):
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world and ele['grid']==level:
-			writegrid(ele['file']+".user")
+			writegrid("user/"+ele['file'])
 	level=-1
 
 def exits(dummy1,dummy2,dummy3,dummy4):
@@ -642,6 +644,7 @@ def retriern():
 				world_art[x][y]=items['triern'+idtri+"-"+idtri+acttri]['value']
 
 def swap():
+	global adirection
 	for dx,dy in direction:
 		if random.randint(0,100)>50: 
 			temps=direction[(dx,dy)][1]
@@ -655,7 +658,16 @@ def swap():
 			temps=direction[(dx,dy)][5]
 			direction[(dx,dy)][5]=direction[(dx,dy)][6]
 			direction[(dx,dy)][6]=temps
-
+	bdirection=copy.deepcopy(adirection)
+	adirection[0]=bdirection[1]
+	adirection[1]=bdirection[2]
+	adirection[2]=bdirection[3]
+	adirection[3]=bdirection[4]
+	adirection[4]=bdirection[5]
+	adirection[5]=bdirection[6]
+	adirection[6]=bdirection[7]
+	adirection[7]=bdirection[0]
+	
 def gameover_ok():
 	global over,level,sizeworld
 	for i in range(sizeworld):
@@ -663,7 +675,7 @@ def gameover_ok():
 		if ele['world']==world and ele['grid']==level:
 			readcondgrid(ele['file'])
 			erase()
-			writegrid(ele['file']+".user")
+			writegrid("user/"+ele['file'])
 	clock.schedule_once(menu,2,level)
 			
 def itsvictory_ok():
@@ -673,9 +685,9 @@ def itsvictory_ok():
 		if ele['world']==world and ele['grid']==level:
 			readcondgrid(ele['file'])
 			erase()
-			writegrid(ele['file']+".user")
+			writegrid("user/"+ele['file'])
 			finished.extend(ele['validate'])
-			writepref('data/pref.dat')
+			writepref('user/pref.dat')
 	clock.schedule_once(menu,2,-1)
 	
 def gameover(x):
@@ -793,7 +805,7 @@ def isdroite(n):
 	return n[0]==-1 and n[1]==0
 
 def nextgrid():
-	global play,cycle,temp,rayon,nrj,current
+	global play,cycle,temp,rayon,nrj,current,adirection
 	world_old=copy.deepcopy(world_new)
 	swap()
 	for x in range(1,sizex-1):
@@ -813,7 +825,7 @@ def nextgrid():
 			if world_old[x][y] == items['headp']['value']:
 				world_new[x][y]=items['tailp']['value']
 			elif world_old[x][y] >= items['head']['value']:
-				for dx,dy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)):
+				for dx,dy in adirection:
 						if world_old[x+dx][y+dy]>=value>>8:
 							break
 				for ex,ey in direction[(dx,dy)]:
@@ -983,7 +995,7 @@ ambiance = pyglet.media.Player()
 sound = pyglet.media.Player()
 ambiance.queue(pyglet.resource.media("music/ambiance1.mp3"))
 ambiance.play()
-readpref('data/pref.dat')
+readpref('user/pref.dat')
 world=0
 for i in range(sizeworld):
 	if items[int("0x40000",16)+i] in finished and items[items[int("0x40000",16)+i]]['world']>world:
@@ -1019,7 +1031,7 @@ def on_key_press(symbol, modifiers):
 
 @win.event	
 def on_mouse_motion(x, y, dx, dy):
-	global world,selected,allcout,over,level,sizeworld
+	global world,selected,allcout,over,level,sizeworld,finished
 	if level>=0: 
 		realx=(x-decx)/zoom
 		realy=(y-decy)/zoom
@@ -1039,7 +1051,7 @@ def on_mouse_motion(x, y, dx, dy):
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world:
-			if x>ele['coordx']+20 and x<ele['coordx']+100 and y>ele['coordy']+0 and y<ele['coordy']+110 :
+			if x>ele['coordx']+20 and x<ele['coordx']+100 and y>ele['coordy']+0 and y<ele['coordy']+110 and (items[ele['value']] in finished or items[ele['value']]=="level0-0"):
 				selected=ele
 	if x>940 and y>win.height-100 and x<1024 and y<win.height:
 		selected=-2
@@ -1096,7 +1108,7 @@ def on_mouse_press(x, y, button, modifiers):
 			world=world+1
 		elif selected>-1:
 			level=selected['grid']
-			if readgrid(selected['file']+".user")==False : readgrid(selected['file'])
+			if readgrid("user/"+selected['file'])==False : readgrid(selected['file'])
 			if selected['tuto']!="":
 				player.queue(pyglet.resource.media(selected['tuto']))
 				player.play()
