@@ -216,7 +216,7 @@ def refresh(dt):
 	global world,level
 	if player.source and player.source.video_format:
 		glColor3ub(255,255,255)
-		player.get_texture().blit(0,0)
+		player.get_texture().blit(0,0,width=win.width,height=win.height)
 		return
 	if level!=-1:
 		drawgrid(zoom)
@@ -227,7 +227,10 @@ def refresh(dt):
 ''' Affichage																													 '''	
 
 def drawsquare(x,y,x2,y2,full,color):
-	glColor3ub(color[0],color[1],color[2]) 
+	if len(color)==4:
+		glColor4ub(color[0],color[1],color[2],color[3]) 	
+	else:
+		glColor3ub(color[0],color[1],color[2]) 
 	if full>0:
 		glBegin(GL_QUADS)
 	else:
@@ -239,7 +242,10 @@ def drawsquare(x,y,x2,y2,full,color):
 	glEnd()
 	
 def drawsemisquare(x,y,x2,y2,color):
-	glColor3ub(color[0],color[1],color[2]) 
+	if len(color)==4:
+		glColor4ub(color[0],color[1],color[2],color[3]) 	
+	else:
+		glColor3ub(color[0],color[1],color[2]) 
 	glBegin(GL_LINES)
 	thezoom=y2-y
 	glVertex2i(x,y)
@@ -260,16 +266,38 @@ def drawsemisquare(x,y,x2,y2,color):
 	glVertex2i(x2-thezoom/4,y)
 	glEnd()
 	
+def drawtriangles(x,y,x2,y2,color):
+	if len(color)==4:
+		glColor4ub(color[0],color[1],color[2],color[3]) 	
+	else:
+		glColor3ub(color[0],color[1],color[2]) 
+	glBegin(GL_TRIANGLES)
+	thezoom=y2-y
+	glVertex2i(x,y)
+	glVertex2i(x,y+thezoom/4)
+	glVertex2i(x+thezoom/4,y)
+	glVertex2i(x2,y2)
+	glVertex2i(x2,y2-thezoom/4)
+	glVertex2i(x2-thezoom/4,y2)
+	glVertex2i(x,y2)
+	glVertex2i(x,y2-thezoom/4)
+	glVertex2i(x+thezoom/4,y2)
+	glVertex2i(x2,y)
+	glVertex2i(x2,y+thezoom/4)
+	glVertex2i(x2-thezoom/4,y)
+	glEnd()
+
+	
 def drawitdem(x,y,art,thezoom,activation):	
 	if 'text' in art:
 		if art['activable']==0:
-			drawsquare(x+1,y+1,x+thezoom-1,y+thezoom-1,0,[255,255,255])
 			label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(art['color'][0],art['color'][1],art['color'][2],255))
 		else:
-			drawsemisquare(x+1,y+1,x+thezoom-1,y+thezoom-1,[255,255,255])
 			if activation!=0:
+				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[art['color'][0],art['color'][1],art['color'][2],55+200*activation/10])
 				label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(art['color'][0],art['color'][1],art['color'][2],55+200*activation/10))
 			else:
+				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[255,255,255])
 				label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(255,255,255,255))
 		label.draw()
 			
@@ -345,7 +373,7 @@ def drawworld():
 		if ele['world']==world:
 			glBegin(GL_LINES)
 			for n in ele['validate']:
-				if items[n]['world']==world:
+				if n!="" and items[n]['world']==world:
 					glVertex2i(ele['coordx']+50,ele['coordy']+50)
 					glVertex2i(items[n]['coordx']+50,items[n]['coordy']+50)
 					glVertex2i(ele['coordx']+51,ele['coordy']+50)
@@ -413,7 +441,7 @@ def drawworld():
 			label.draw()
 	
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play
+	global temp,debug,over,allcout,play,element
 	glClear(GL_COLOR_BUFFER_BIT)
 	drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,255,255])
 	if play>0:
@@ -443,7 +471,7 @@ def drawgrid(zoom):
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])
 					cat=art['cat']
 	drawsquare(615,win.height-45,655,win.height-5,1,[255,255,255])
-	label=pyglet.text.Label(element,font_size=20,x=636-len(element)*10,y=win.height-35,bold=False,italic=False,color=(0, 0, 0,255))
+	label=pyglet.text.Label(element,font_size=20,x=636-len(element)*10,y=win.height-35,font_name='Liberation Mono',bold=False,italic=False,color=(0, 0, 0,255))
 	label.draw()
 	if tech>3:	
 		for i in range(4):
@@ -615,7 +643,7 @@ def zoomp(x,y,dummy1,dummy2):
 ''' Fonctions gestion du monde																		'''
 
 def reallystop():
-	global play,sizeworld,level
+	global play,sizeworld,level,stat
 	items['run']['icon']="picture/stop.png"
 	play=0
 	clock.unschedule(calculate)
@@ -625,6 +653,7 @@ def reallystop():
 			readcondgrid(ele['file'])
 			erase()
 			retriern()
+	stat=[0,0,0,0,0,0,0,0]
 				
 def reallyrun():
 		global play,sizeworld
@@ -670,6 +699,7 @@ def swap():
 	
 def gameover_ok():
 	global over,level,sizeworld
+	reallystop()
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world and ele['grid']==level:
@@ -680,6 +710,7 @@ def gameover_ok():
 			
 def itsvictory_ok():
 	global over,level,finished,sizeworld
+	reallystop()
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world and ele['grid']==level:
@@ -692,18 +723,18 @@ def itsvictory_ok():
 	
 def gameover(x):
 	global over
-	reallystop()
 	over=x
 	sound.queue(pyglet.resource.media("sound/gameover.mp3"))
 	sound.play()
+	clock.unschedule(calculate)
 
 def itsvictory():
 	global over
-	reallystop()
 	label=pyglet.text.Label("ViCTOIRE !",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
 	over=-1
 	sound.queue(pyglet.resource.media("sound/victoire.mp3"))
 	sound.play()
+	clock.unschedule(calculate)
 
 def infos():
 	global stat,sizex,sizey,cycle,thecout,victory,current
@@ -736,13 +767,14 @@ def infos():
 def erase():
 	for x in range(1,sizex-1):
 		for y in range(1,sizey-1):
+			unactive(x,y)
 			if world_new[x][y]==items['headp']['value'] or world_new[x][y]==items['tailp']['value']:
 				world_new[x][y]=items['fiber']['value']
 			elif world_new[x][y]>=items['tail']['value']:
 				world_new[x][y]=items['copper']['value']
 			elif world_new[x][y]>=items['prot']['value']:
 				world_new[x][y]=items['nothing']['value']
-				
+
 def wart(x,y):
 	return world_art[x][y] & int("0xFFFFFF",16)
 	
@@ -755,6 +787,9 @@ def isactive(x,y):
 def desactive(x,y):
 	if world_art[x][y]>int("0x1000000",16):
 		world_art[x][y]=world_art[x][y]-int("0x1000000",16)
+	
+def unactive(x,y):
+	world_art[x][y]=world_art[x][y] & int("0x00FFFFFF",16)
 		
 def active(x,y):		
 	world_art[x][y]=world_art[x][y] | int("0x0A000000",16)
@@ -886,18 +921,17 @@ def nextgrid():
 								world_new[x+ex][y+ey-1]=items['prot']['value']
 							elif art==items['reactor']['value'] and value==items['head2']['value'] and isactive(x+ex,y+ey):				
 								world_new[x+ex][y+ey]=items['copper']['value']
-								value=items['copper']['value']
 								world_new[x+ex][y+ey-1]=items['neut']['value']
-							elif art==items['senserK']['value'] and value==items['headr']['value'] and isactive(x+ex,y+ey):
+							elif art==items['senserK']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=items['copper']['value']
 								current[7]=current[7]+1
-							elif art==items['senserL']['value'] and value==items['headr']['value'] and isactive(x+ex,y+ey):
+							elif art==items['senserL']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=items['copper']['value']
 								current[8]=current[8]+1
-							elif art==items['senserM']['value'] and value==items['headr']['value'] and isactive(x+ex,y+ey):
+							elif art==items['senserM']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=items['copper']['value']
 								current[9]=current[9]+1
-							elif art==items['senserN']['value'] and value==items['headr']['value'] and isactive(x+ex,y+ey):
+							elif art==items['senserN']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=items['copper']['value']
 								current[10]=current[10]+1
 							elif art==items['sensere']['value'] and value==items['head']['value']:
@@ -985,7 +1019,8 @@ def nextgrid():
 def main():
    pyglet.app.run()
    
-win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)
+'''win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)'''
+win = pyglet.window.Window(fullscreen=True)
 
 initgrid(30,20)
 win.set_caption("Wirechem: The new chemistry game")
@@ -993,6 +1028,8 @@ clock.schedule(refresh)
 player = pyglet.media.Player()
 ambiance = pyglet.media.Player()
 sound = pyglet.media.Player()
+player.queue(pyglet.resource.media("movie/intro.mp4"))
+player.play()
 ambiance.queue(pyglet.resource.media("music/ambiance1.mp3"))
 ambiance.play()
 readpref('user/pref.dat')
