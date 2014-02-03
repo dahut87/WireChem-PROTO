@@ -1,4 +1,4 @@
-Protons;p;Générer deux protons sur le senseur en utilisant un réacteur et un super-positron. Le réacteur est un élément qui nécessite l'activation.;0;60;-32;108;2;370;[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2];[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];0;0;0;0;99999;99999;99999;99999
+Protons;p;Générer deux protons sur le senseur en utilisant un réacteur et un super-positron. Le réacteur est un élément qui nécessite l'activation.;0;99;-32;108;2;370;[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2];[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];0;0;0;0;99999;99999;99999;99999
 0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0
 0;0;0;0;0;0;0;0;0;1;1;1;0;1;1;1;0;0
 0;0;0;0;0;0;0;0;0;1;1;1;1;2;2;1;0;0
