@@ -36,7 +36,9 @@ def loaditems(n,file):
 				elif liste[i][j][:1]=="&":
 					items[liste[i][0]][liste[0][j]]=float(liste[i][j][1:])
 				elif liste[i][j][:1]=="@":
-					items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]			
+					items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]		
+				elif liste[i][j][:1]=="%":					
+					items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
 				else:
 					items[liste[i][0]][liste[0][j]]=liste[i][j]
 			if n!=0:
@@ -149,8 +151,16 @@ def readgrid(file):
 			descriptif=liste[0][2]
 			debug=int(liste[0][3])
 			zoom=int(liste[0][4])
-			decx=int(liste[0][5])
-			decy=int(liste[0][6])
+			if zoom==99:
+				if sizex<sizey:
+					zoom=(win.height)/(sizey-2)
+				else:
+					zoom=win.width/(sizex-2)			
+				decx=-zoom+(win.width-zoom*(sizex-2))/2
+				decy=-zoom+(win.height-zoom*(sizey-2))/2
+			else:
+				decx=int(liste[0][5])
+				decy=int(liste[0][6])
 			tech=int(liste[0][7])
 			cout=int(liste[0][8])		
 			victemp=liste[0][9][1:len(liste[0][9])-1].split(",")
@@ -218,6 +228,7 @@ def refresh(dt):
 		glColor3ub(255,255,255)
 		player.get_texture().blit(0,0,width=win.width,height=win.height)
 		return
+	win.clear()
 	if level!=-1:
 		drawgrid(zoom)
 	else:
@@ -240,6 +251,14 @@ def drawsquare(x,y,x2,y2,full,color):
 	glVertex2i(x2,y2)
 	glVertex2i(x,y2)
 	glEnd()
+	if full==2:
+		glColor3ub(color[0],color[1],color[2])
+		glBegin(GL_LINE_LOOP)
+		glVertex2i(x,y)
+		glVertex2i(x2,y)
+		glVertex2i(x2,y2)
+		glVertex2i(x,y2)
+		glEnd()
 	
 def drawsemisquare(x,y,x2,y2,color):
 	if len(color)==4:
@@ -288,19 +307,25 @@ def drawtriangles(x,y,x2,y2,color):
 	glEnd()
 
 	
-def drawitdem(x,y,art,thezoom,activation):	
+def drawitdem(x,y,art,thezoom,activation):
 	if 'text' in art:
+		txt_item=pyglet.text.Label("",font_name='Liberation Mono',font_size=2,x=0,y=0)
+		txt_item.text=art['text'].decode('utf-8')
+		txt_item.font_size=thezoom
+		txt_item.x=x+thezoom/10
+		txt_item.y=y+thezoom/10
 		if art['activable']==0:
-			label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(art['color'][0],art['color'][1],art['color'][2],255))
+			txt_item.color=(art['color'][0],art['color'][1],art['color'][2],255)
 		else:
 			if activation!=0:
 				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[art['color'][0],art['color'][1],art['color'][2],55+200*activation/10])
-				label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(art['color'][0],art['color'][1],art['color'][2],55+200*activation/10))
+				txt_item.color=(art['color'][0],art['color'][1],art['color'][2],55+200*activation/10)
 			else:
 				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[255,255,255])
-				label=pyglet.text.Label(art['text'].decode('utf-8'),font_name='Liberation Mono',font_size=thezoom,x=x+thezoom/10,y=y+thezoom/10,color=(255,255,255,255))
-		label.draw()
-			
+				txt_item.color=(255,255,255,255)
+		txt_item.draw()
+		del txt_item
+		
 def drawstat(x,y,x2,y2,color):
 	global thecolors,stat
 	drawsquare(x,y,x2,y2,0,color)
@@ -312,8 +337,10 @@ def drawstat(x,y,x2,y2,color):
 			newx=oldx
 		drawsquare(int(oldx),y,int(newx),y2,1,thecolors[i])
 		oldx=newx
-	label=pyglet.text.Label(str(stat[7]),font_size=24,x=x+(x2-x)/2-(len(str(stat[7])))*12,y=y-(y-24)/2,bold=False,italic=False,color=(255, 255, 255,255))
-	label.draw()
+	txt_stat.text=str(stat[7])
+	txt_stat.x=x+(x2-x)/2-(len(str(stat[7])))*12
+	txt_stat.y=y-(y-24)/2
+	txt_stat.draw()
 	
 def drawvictory(x,y,x2,y2,color):
 	global thecolors,victory,current,names
@@ -325,48 +352,38 @@ def drawvictory(x,y,x2,y2,color):
 			drawsquare(x+size*i,y,x+size*(i+1),y2,0,[90,90,90])
 			drawsquare(x+size*i,y,x+size*(i+1),int(y+float(current[i])/victory[i]*(y2-y)),1,[0,0,0])
 			if victory[i]-current[i]>=0:
-				label=pyglet.text.Label(str(victory[i]-current[i]),font_size=24,x=x+size*i,y=y,bold=False,italic=False,color=(255, 255, 255,255))
-				label.draw()
-			label=pyglet.text.Label(names[i],font_size=10,x=x+size*i,y=y2-10,bold=False,italic=False,color=(255, 255, 255,255))
-			label.draw()
-			
-def drawtxt(x):
-	text="{font_name 'Liberation Mono'}{font_size 22}{color (255, 255, 255, 255)}"+x+"}".encode('utf8')
-	label=pyglet.text.layout.TextLayout(pyglet.text.decode_attributed(text),dpi=72,multiline=True,width=732,height=140)
-	label.x=8
-	label.y=8	
-	label.draw()	
+				txt_victory1.text=str(victory[i]-current[i])
+				txt_victory1.x=x+size*i
+				txt_victory1.y=y
+				txt_victory1.draw()
+			txt_victory2.text=names[i]
+			txt_victory2.x=x+size*i
+			txt_victory2.y=y2-10
+			txt_victory2.draw()
 			
 def drawworld():
 	global selected,victory,finished
-	glClear(GL_COLOR_BUFFER_BIT)
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	drawsquare(740,148,1016,8,1,[40,40,40])
 	drawsquare(8,148,1016,8,0,[90,90,90])
 	glColor3ub(255,255,255)
-	pic=image.load("picture/logo.png")
-	pic.blit(185,win.height-200)
-	pic=image.load("picture/logo2.png")
-	pic.blit(45,win.height-160)
+	pic_logo.blit(185,win.height-200)
+	pic_logo2.blit(45,win.height-160)
 	if selected==-2:
 		glColor3ub(255,0,0)
 	else:
 		glColor3ub(255,255,255)
-	pic=image.load("picture/exit2.png")
-	pic.blit(940,win.height-100)
+
+	pic_exit2.blit(940,win.height-100)
 	if selected==-3:
 		glColor3ub(255,0,0)
 	else:
 		glColor3ub(255,255,255)
-	pic=image.load("picture/arrows.png")
-	pic.blit(840,150)
+	pic_arrows.blit(840,150)
 	if selected==-4:
 		glColor3ub(255,0,0)
 	else:
 		glColor3ub(255,255,255)
-	pic=image.load("picture/arrows2.png")
-	pic.blit(920,150)
+	pic_arrows2.blit(920,150)
 	glColor3ub(255,255,255)	
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
@@ -374,14 +391,14 @@ def drawworld():
 			glBegin(GL_LINES)
 			for n in ele['validate']:
 				if n!="" and items[n]['world']==world:
-					glVertex2i(ele['coordx']+50,ele['coordy']+50)
-					glVertex2i(items[n]['coordx']+50,items[n]['coordy']+50)
-					glVertex2i(ele['coordx']+51,ele['coordy']+50)
-					glVertex2i(items[n]['coordx']+51,items[n]['coordy']+50)
-					glVertex2i(ele['coordx']+50,ele['coordy']+51)
-					glVertex2i(items[n]['coordx']+50,items[n]['coordy']+51)
-					glVertex2i(ele['coordx']+51,ele['coordy']+51)
-					glVertex2i(items[n]['coordx']+51,items[n]['coordy']+51)
+					glVertex2i(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50))
+					glVertex2i(items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50))
+					glVertex2i(ele['coordx']+51,int(ele['coordy']/768.0*win.height+50))
+					glVertex2i(items[n]['coordx']+51,int(items[n]['coordy']/768.0*win.height+50))
+					glVertex2i(ele['coordx']+50,int(ele['coordy']/768.0*win.height+51))
+					glVertex2i(items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+51))
+					glVertex2i(ele['coordx']+51,int(ele['coordy']/768.0*win.height+51))
+					glVertex2i(items[n]['coordx']+51,int(items[n]['coordy']/768.0*win.height+51))
 			glEnd()				
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
@@ -396,53 +413,54 @@ def drawworld():
 				acolor=(90,90,90,255)
 			else:
 				acolor=(255,255,255,255)
-				drawtxt(ele['description'].decode('utf-8'))
+				document=pyglet.text.decode_attributed("{font_name 'Liberation Mono'}{font_size 22}{color (255, 255, 255, 255)}"+ele['description'].decode('utf-8')+"}".encode('utf8'))
+				txt_description.document=document
+				txt_description.draw()
+				document=None
 				glColor3ub(255,255,255)
 				if ele['cout']>0:
-					pic=image.load('picture/cout.png')
-					pic.blit(740,110)
-					label=pyglet.text.Label(str(ele['cout']),font_size=15,x=780,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['cout']['icon'].blit(740,110)
+					txt_cout2.text=str(ele['cout'])
+					txt_cout2.draw()
 				if ele['maxcycle']<90000:
-					pic=image.load('picture/cycle.png')
-					pic.blit(740,65)
-					label=pyglet.text.Label(str(ele['maxcycle']),font_size=15,x=780,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['cycle']['icon'].blit(740,65)
+					txt_maxcycle2.text=str(ele['maxcycle'])
+					txt_maxcycle2.draw()
 				if ele['tech']>0:	
-					pic=image.load('picture/tech.png')
-					pic.blit(940,110)
-					label=pyglet.text.Label(str(ele['tech']),font_size=15,x=980,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['tech']['icon'].blit(940,110)
+					txt_tech2.text=str(ele['tech'])
+					txt_tech2.draw()
 				if ele['maxrayon']<90000:	
-					pic=image.load('picture/rayon.png')
-					pic.blit(940,65)
-					label=pyglet.text.Label(str(ele['maxrayon']),font_size=15,x=970,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['rayon']['icon'].blit(940,65)
+					txt_maxrayon2.text=str(ele['maxrayon'])
+					txt_maxrayon2.draw()
 				if ele['maxtemp']<90000:	
-					pic=image.load('picture/temp.png')
-					pic.blit(850,110)
-					label=pyglet.text.Label(str(ele['maxtemp']),font_size=15,x=875,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['temp']['icon'].blit(850,110)
+					txt_maxtemp2.text=str(ele['maxtemp'])
+					txt_maxtemp2.draw()
 				if ele['maxnrj']<90000:	
-					pic=image.load('picture/nrj.png')
-					pic.blit(850,65)
-					label=pyglet.text.Label(str(ele['maxnrj']),font_size=15,x=875,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-					label.draw()
+					items['nrj']['icon'].blit(850,65)
+					txt_maxnrj2.text=str(ele['maxnrj'])
+					txt_maxnrj2.draw()
 				victory=ele['victory']
 				drawvictory(742,12,1016,50,[40,40,40])
 				glColor3ub(255,0,0)
-			pic=image.load("picture/levels2.png")
-			pic.blit(ele['coordx'],ele['coordy'])
-			label=pyglet.text.Label(ele['element'],font_name='Liberation Mono',font_size=15,x=ele['coordx']+50,y=ele['coordy']+70,bold=True,italic=False,color=(int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150),255))
-			label.draw()
+			pic_levels2.blit(ele['coordx'],ele['coordy']/768.0*win.height)
+			txt_element2.text=ele['element']
+			txt_element2.x=ele['coordx']+50
+			txt_element2.y=ele['coordy']/768.0*win.height+70
+			txt_element2.color=(int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150),255)
+			txt_element2.draw()
 			calc=(len(ele['nom'])*16-76)/2
-			drawsquare(ele['coordx']+28-calc,ele['coordy']+2,ele['coordx']+28-calc+len(ele['nom'])*15,ele['coordy']-18,1,[40,int(ele['coordx']/1024.0*135),int(ele['coordx']/1024.0*100)])			
-			label=pyglet.text.Label(ele['nom'].decode('utf-8'),font_name='Liberation Mono',font_size=16,x=ele['coordx']+38-calc,y=ele['coordy']-15,bold=True,italic=False,color=acolor)
-			label.draw()
+			drawsquare(ele['coordx']+28-calc,int(ele['coordy']/768.0*win.height+2),ele['coordx']+28-calc+len(ele['nom'])*15,int(ele['coordy']/768.0*win.height-18),1,[40,int(ele['coordx']/1024.0*135),int(ele['coordx']/1024.0*100)])			
+			txt_nom2.text=ele['nom'].decode('utf-8')
+			txt_nom2.x=ele['coordx']+38-calc
+			txt_nom2.y=ele['coordy']/768.0*win.height-15
+			txt_nom2.color=acolor
+			txt_nom2.draw()
 	
 def drawgrid(zoom):
 	global temp,debug,over,allcout,play,element
-	glClear(GL_COLOR_BUFFER_BIT)
 	drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,255,255])
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])
@@ -452,6 +470,28 @@ def drawgrid(zoom):
 		for y in range(1,sizey-1):
 			if y*zoom+decy>win.height: break
 			drawsquare(x*zoom+decx,y*zoom+decy,(x+1)*zoom+decx,(y+1)*zoom+decy,1,items[items[world_new[x][y]]]['color'])
+			glBegin(GL_QUADS)
+			if world_new[x-1][y-1]>0 or (world_new[x-1][y]>0 and world_new[x][y-1]>0):
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+			else:
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+			glVertex2i(x*zoom+decx,y*zoom+decy)
+			if world_new[x+1][y-1]>0 or (world_new[x+1][y]>0 and world_new[x][y-1]>0):
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+			else:
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+			glVertex2i((x+1)*zoom+decx,y*zoom+decy)
+			if world_new[x+1][y+1]>0 or (world_new[x][y+1]>0 and world_new[x+1][y]>0):
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+			else:
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+			glVertex2i((x+1)*zoom+decx,(y+1)*zoom+decy)
+			if world_new[x-1][y+1]>0 or (world_new[x][y+1]>0 and world_new[x-1][y]>0):
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+			else:
+				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+			glVertex2i(x*zoom+decx,(y+1)*zoom+decy)
+			glEnd()
 			drawitdem(x*zoom+decx,y*zoom+decy,items[items[wart(x,y)]],zoom,getactive(x,y))
 	drawsquare(0,win.height,win.width,win.height-50,1,[40,40,40])
 	drawsquare(0,50,win.width,0,1,[40,40,40])
@@ -471,25 +511,41 @@ def drawgrid(zoom):
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])
 					cat=art['cat']
 	drawsquare(615,win.height-45,655,win.height-5,1,[255,255,255])
-	label=pyglet.text.Label(element,font_size=20,x=636-len(element)*10,y=win.height-35,font_name='Liberation Mono',bold=False,italic=False,color=(0, 0, 0,255))
-	label.draw()
-	if tech>3:	
-		for i in range(4):
+	txt_element.text=element
+	txt_element.x=636-len(element)*10
+	txt_element.y=win.height-35
+	txt_element.draw()
+	for i in range(4):
+		if (i==0 and tech>0):
 			glColor3ub(255,255,255)
-			pic=image.load(items[items[int("0x10000",16)+i]]['icon'])
-			pic.blit(10+i*150,win.height-45)
-			label=pyglet.text.Label(str(eval(items[int("0x10000",16)+i])),font_size=24,x=50+i*150,y=win.height-29,bold=True,italic=False,color=(110, 110, 110,255))
-			label.draw()
-			label=pyglet.text.Label(str(eval("max"+items[int("0x10000",16)+i])),font_size=12,x=50+i*150,y=win.height-47,bold=True,italic=True,color=(110, 110, 110,255))
-			label.draw()
+			items[items[int("0x10000",16)+i]]['icon'].blit(10+i*150,win.height-45)
+			if (tech>5):
+				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.x=50+i*150
+				txt_temp.y=win.height-29
+				txt_temp.color=(110, 110, 110,255)
+				txt_temp.font_size=24
+				txt_temp.draw()
+				txt_temp.text=str(eval("max"+items[int("0x10000",16)+i]))
+				txt_temp.x=50+i*150
+				txt_temp.y=win.height-47
+				txt_temp.color=(200, 110, 110,255)
+				txt_temp.font_size=12
+				txt_temp.draw()
+			else:
+				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.x=50+i*150
+				txt_temp.y=y=win.height-38
+				txt_temp.color=(110, 110, 110,255)
+				txt_temp.font_size=24
+				txt_temp.draw()
 	drawvictory(660,win.height-45,1020,win.height-5,[90,90,90])
 	for i in range(15):
 		glColor3ub(255,255,255)
 		if items[items[int("0x20000",16)+i]]['icon']=="/":
 			drawitdem(10+i*45,8,items[items[int("0x20000",16)+i]]['ref'],36,10)
 		elif items[items[int("0x20000",16)+i]]['icon']!="":
-			pic=image.load(items[items[int("0x20000",16)+i]]['icon'])
-			pic.blit(10+i*45,8)
+			items[items[int("0x20000",16)+i]]['icon'].blit(10+i*45,8)
 		else:
 			drawsquare(10+i*45,8,46+i*45,44,1,items[items[int("0x20000",16)+i]]['color'])
 		if i==11 or i==6:
@@ -498,48 +554,54 @@ def drawgrid(zoom):
 			drawsquare(45+i*45,8,49+i*45,44,1,[0,0,0])
 			drawsquare(45+i*45,8,49+i*45,44*10*len(str(play))/100,1,[255,0,0])	
 		if (mousel==i):
-			selectcolor=[255,0,0] 
+			selectcolor=[255,0,0,40] 
 		elif (mouser==i):
-			selectcolor=[0,255,0]  
+			selectcolor=[0,255,0,40]  
 		elif (mousem==i):
-			selectcolor=[0,0,255] 
+			selectcolor=[0,0,255,40] 
 		else:
-			selectcolor=[40,40,40] 	
-		drawsquare(10+i*45,8,46+i*45,44,0,selectcolor)
-		drawsquare(9+i*45,7,47+i*45,45,0,selectcolor)
+			selectcolor=[40,40,40,0] 	
+		drawsquare(10+i*45,8,46+i*45,44,2,selectcolor)
+		drawsquare(9+i*45,7,47+i*45,45,2,selectcolor)
 	drawsquare(5+15*45,8,6+15*45,44,0,[90,90,90])
 	drawstat(10+15*45,8,46+(18)*45,44,[90,90,90])
+	
 	if tech>=0:	
 		glColor3ub(255,255,255)
-		pic=image.load(items[items[int("0x10000",16)+4]]['icon'])
-		pic.blit(10+19*45,7)
+		items['cout']['icon'].blit(10+19*45,7)
+		txt_cout.text=str(cout-thecout)
 		if (cout-thecout)>0:
-			label=pyglet.text.Label(str(cout-thecout),font_size=15,x=46+19*45,y=18,bold=True,italic=False,color=(110, 110, 110,255))
+			txt_cout.color=(110, 110, 110,255)
 		else:
-			label=pyglet.text.Label(str(cout-thecout),font_size=15,x=46+19*45,y=18,bold=True,italic=False,color=(255, 0, 0,255))
-		label.draw()
+			txt_cout.color=(255, 0, 0,255)
+		txt_cout.draw()
 	if tech>0:
 		glColor3ub(255,255,255)
-		pic=image.load(items[items[int("0x10000",16)+5]]['icon'])
-		pic.blit(25+21*45,7)
-		label=pyglet.text.Label(str(tech),font_size=15,x=55+21*45,y=18,bold=True,italic=False,color=(110, 110, 110,255))
-		label.draw()
+		items['tech']['icon'].blit(25+21*45,7)
+		txt_tech.text=str(tech)
+		txt_tech.draw()
 	if over>0:
-		label=pyglet.text.Label("GAME OVER",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
-		label.draw()
+		txt_over.text="GAME OVER"
+		txt_over.x=win.width/2-350
+		txt_over.y=win.height/2-200
+		txt_over.draw()
 		msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !"]
-		label=pyglet.text.Label(msg[over-1].decode('utf-8'),font_name='Liberation Mono',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
-		label.draw()
+		txt_over2.text=msg[over-1].decode('utf-8')
+		txt_over2.y=win.height/2-100
+		txt_over2.draw()
 	if over<0:
-		label=pyglet.text.Label("VICTOIRE !",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
-		label.draw()
-		label=pyglet.text.Label("Vous débloquez le/les niveaux suivant.".decode('utf-8'),font_name='Liberation Mono',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
-		label.draw()
+		txt_over.text="VICTOIRE !"
+		txt_over.x=win.width/2-350
+		txt_over.y=win.height/2-200
+		txt_over.draw()
+		txt_over2.text="Vous débloquez le/les niveaux suivant.".decode('utf-8')
+		txt_over2.y=win.height/2-100
+		txt_over2.draw()
 	if allcout>0:
-		label=pyglet.text.Label("cout:"+str(allcout['cout']),font_name='Liberation Mono',font_size=10,x=950,y=win.height-20,color=(255,255,255,255))
-		label.draw()
-		label=pyglet.text.Label("tech:"+str(allcout['tech']),font_name='Liberation Mono',font_size=10,x=950,y=win.height-40,color=(255,255,255,255))
-		label.draw()
+		txt_drag.text="cout:"+str(allcout['cout'])
+		txt_drag.draw()
+		txt_drag2.text="tech:"+str(allcout['tech'])
+		txt_drag2.draw()
 ''' *********************************************************************************************** '''
 ''' Fonctions liees aux menus																								 '''
 				
@@ -563,7 +625,8 @@ def speed(x,y,dummy1,dummy2):
 	clock.schedule_interval(calculate,play)
 
 def others(x,y,dummy1,dummy2):
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
+	global tech
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or items[items[world_art[x][y]]]['tech']<tech):
 		value=items['others']['ref']['value']
 		if value==items['null']['value']:
 			value=items['nothing']['value']
@@ -576,11 +639,13 @@ def setnothinga(x,y,dummy1,dummy2):
 	infos()
 	
 def setnothing(x,y,dummy1,dummy2):
+	global tech
 	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_new[x][y]<items['tail']['value']: 
-			world_new[x][y] = items['nothing']['value']
+		if world_art[x][y] == items['nothing']['value']:
+			world_new[x][y] = items['nothing']['value']				
+		elif items[items[world_art[x][y]]]['tech']<=tech:
 			world_art[x][y] = items['nothing']['value']
-			infos()
+		infos()
 		
 def setcopper(x,y,dummy1,dummy2):
 	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
@@ -607,6 +672,13 @@ def levels(dummy1,dummy2,dummy3,dummy4):
 
 def exits(dummy1,dummy2,dummy3,dummy4):
 	pyglet.app.exit()
+		
+def stop(dummy1,dummy2,dummy3,dummy4):
+	global play
+	if play>0:
+		reallystop()
+	else:
+		reallyrun()
 		
 def run(dummy1,dummy2,dummy3,dummy4):
 	global play
@@ -644,7 +716,7 @@ def zoomp(x,y,dummy1,dummy2):
 
 def reallystop():
 	global play,sizeworld,level,stat
-	items['run']['icon']="picture/stop.png"
+	items[items['run']['value']]='stop'
 	play=0
 	clock.unschedule(calculate)
 	for i in range(sizeworld):
@@ -658,7 +730,7 @@ def reallystop():
 def reallyrun():
 		global play,sizeworld
 		play=0.15625
-		items['run']['icon']="picture/run.png"
+		items[items['run']['value']]='run'
 		clock.schedule_interval(calculate,play)
 																			 
 def retriern():
@@ -730,7 +802,6 @@ def gameover(x):
 
 def itsvictory():
 	global over
-	label=pyglet.text.Label("ViCTOIRE !",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
 	over=-1
 	sound.queue(pyglet.resource.media("sound/victoire.mp3"))
 	sound.play()
@@ -1008,7 +1079,7 @@ def nextgrid():
 						world_new[x][y-1] = value
 						world_new[x][y] = items['nothing']['value']
 				elif world_new[x][y-1] == items['prot']['value'] or world_new[x][y-1] == items['neut']['value']:
-					gameover(2)
+					gameover(3)
 					return
 	infos()
 	cycle=cycle+1
@@ -1020,9 +1091,11 @@ def main():
    pyglet.app.run()
    
 '''win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)'''
-win = pyglet.window.Window(fullscreen=True)
+win = pyglet.window.Window(fullscreen=True,resizable=True)
 
 initgrid(30,20)
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 win.set_caption("Wirechem: The new chemistry game")
 clock.schedule(refresh)
 player = pyglet.media.Player()
@@ -1032,6 +1105,38 @@ player.queue(pyglet.resource.media("movie/intro.mp4"))
 player.play()
 ambiance.queue(pyglet.resource.media("music/ambiance1.mp3"))
 ambiance.play()
+ambiance.volume=0.4
+ambiance.eos_action='loop'
+pic_logo=image.load("picture/logo.png")
+pic_logo2=image.load("picture/logo2.png")
+pic_exit2=image.load("picture/exit2.png")
+pic_arrows=image.load("picture/arrows.png")
+pic_arrows2=image.load("picture/arrows2.png")
+pic_levels2=image.load("picture/levels2.png")
+document=pyglet.text.decode_attributed("test")
+txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
+txt_description.x=8
+txt_description.y=8
+txt_cout2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=780,y=120,bold=True,italic=False,color=(110, 110, 110,255))
+txt_maxcycle2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=780,y=75,bold=True,italic=False,color=(110, 110, 110,255))
+txt_tech2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=980,y=120,bold=True,italic=False,color=(110, 110, 110,255))
+txt_maxrayon2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=970,y=75,bold=True,italic=False,color=(110, 110, 110,255))
+txt_maxtemp2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=875,y=120,bold=True,italic=False,color=(110, 110, 110,255))
+txt_maxnrj2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=875,y=75,bold=True,italic=False,color=(110, 110, 110,255))
+txt_element2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=0,y=0,bold=True,italic=False)
+txt_nom2=pyglet.text.Label("",font_name='Liberation Mono',font_size=16,x=0,y=0,bold=True,italic=False)
+txt_victory1=pyglet.text.Label("",font_name='Liberation Mono',font_size=24,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
+txt_victory2=pyglet.text.Label("",font_size=10,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(255, 255, 255,255))
+txt_element=pyglet.text.Label("",font_size=20,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(0, 0, 0,255))
+txt_item=pyglet.text.Label("",font_name='Liberation Mono',font_size=2,x=0,y=0)
+txt_stat=pyglet.text.Label("",font_size=24,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(255, 255, 255,255))
+txt_cout=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=46+19*45,y=18,bold=True,italic=False,color=(110, 110, 110,255))
+txt_tech=pyglet.text.Label("",font_size=15,x=55+21*45,y=18,font_name='Liberation Mono',bold=True,italic=False,color=(110, 110, 110,255))
+txt_over=pyglet.text.Label("",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
+txt_over2=pyglet.text.Label("",font_name='Liberation Mono',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
+txt_drag=pyglet.text.Label("cout:",font_name='Liberation Mono',font_size=10,x=950,y=win.height-20,color=(255,255,255,255))
+txt_drag2=pyglet.text.Label("tech:",font_name='Liberation Mono',font_size=10,x=950,y=win.height-40,color=(255,255,255,255))
+txt_temp=pyglet.text.Label("",font_name='Liberation Mono',font_size=24,x=0,y=0,bold=True,italic=False,color=(110, 110, 110,255))
 readpref('user/pref.dat')
 world=0
 for i in range(sizeworld):
@@ -1088,7 +1193,7 @@ def on_mouse_motion(x, y, dx, dy):
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world:
-			if x>ele['coordx']+20 and x<ele['coordx']+100 and y>ele['coordy']+0 and y<ele['coordy']+110 and (items[ele['value']] in finished or items[ele['value']]=="level0-0"):
+			if x>ele['coordx']+20 and x<ele['coordx']+100 and y>ele['coordy']/768.0*win.height+0 and y<ele['coordy']/768.0*win.height+110 and (items[ele['value']] in finished or items[ele['value']]=="level0-0"):
 				selected=ele
 	if x>940 and y>win.height-100 and x<1024 and y<win.height:
 		selected=-2
@@ -1099,7 +1204,7 @@ def on_mouse_motion(x, y, dx, dy):
 				
 @win.event
 def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
-	global zoom,mousel,mouser,mousem,over,level
+	global zoom,mousel,mouser,mousem,over,level,unroll
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1120,7 +1225,7 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 		mouses=mouser	
 	if buttons == mouse.MIDDLE:
 		mouses=mousem
-	if mouses!=23 and items[items[int("0x20000",16)+mouses]]['drag']==1 and (unroll==1 or y>100) and (unroll==0 or y>50):
+	if mouses!=23 and items[items[int("0x20000",16)+mouses]]['drag']==1 and (unroll==0 or y>100) and (y>50):
 		eval(items[int("0x20000",16)+mouses]+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
 			
 @win.event
@@ -1168,7 +1273,7 @@ def on_mouse_press(x, y, button, modifiers):
 						unroll=0
 					else:
 						unroll=1	
-					return
+				return
 	if unroll==1:
 		if debug==1:
 			nbelements=44
