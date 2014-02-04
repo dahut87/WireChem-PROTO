@@ -1,10 +1,10 @@
 /;file;world;grid;coordx;coordy;validate;tuto
-level0-0;data/level0-0.dat;#0;#0;#30;#450;{level0-1,level0-8};movie/level0-0.mp4
-level0-1;data/level0-1.dat;#0;#1;#30;#200;{level0-2};
+level0-0;data/level0-0.dat;#0;#0;#38;#450;{level0-1,level0-8};movie/level0-0.mp4
+level0-1;data/level0-1.dat;#0;#1;#38;#200;{level0-2};
 level0-2;data/level0-2.dat;#0;#2;#180;#300;{level0-3};
 level0-3;data/level0-3.dat;#0;#3;#330;#350;{level0-4};
-level0-4;data/level0-4.dat;#0;#4;#480;#380;{level0-5};
-level0-5;data/level0-5.dat;#0;#5;#480;#200;{level0-6};
+level0-4;data/level0-4.dat;#0;#4;#490;#380;{level0-5};
+level0-5;data/level0-5.dat;#0;#5;#490;#200;{level0-6};
 level0-6;data/level0-6.dat;#0;#6;#640;#200;{level0-7};
 level0-7;data/level0-7.dat;#0;#7;#800;#290;{level0-8};
 level0-8;data/level0-8.dat;#0;#8;#900;#450;{level1-0,level1-2};

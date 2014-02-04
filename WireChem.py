@@ -309,7 +309,6 @@ def drawtriangles(x,y,x2,y2,color):
 	
 def drawitdem(x,y,art,thezoom,activation):
 	if 'text' in art:
-		txt_item=pyglet.text.Label("",font_name='Liberation Mono',font_size=2,x=0,y=0)
 		txt_item.text=art['text'].decode('utf-8')
 		txt_item.font_size=thezoom
 		txt_item.x=x+thezoom/10
@@ -324,7 +323,6 @@ def drawitdem(x,y,art,thezoom,activation):
 				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[255,255,255])
 				txt_item.color=(255,255,255,255)
 		txt_item.draw()
-		del txt_item
 		
 def drawstat(x,y,x2,y2,color):
 	global thecolors,stat
@@ -353,8 +351,8 @@ def drawvictory(x,y,x2,y2,color):
 			drawsquare(x+size*i,y,x+size*(i+1),int(y+float(current[i])/victory[i]*(y2-y)),1,[0,0,0])
 			if victory[i]-current[i]>=0:
 				txt_victory1.text=str(victory[i]-current[i])
-				txt_victory1.x=x+size*i
-				txt_victory1.y=y
+				txt_victory1.x=x+size*i+1
+				txt_victory1.y=y+1
 				txt_victory1.draw()
 			txt_victory2.text=names[i]
 			txt_victory2.x=x+size*i
@@ -410,10 +408,10 @@ def drawworld():
 				acolor=(90,90,90,255)
 			elif selected!=ele:
 				glColor3ub(255,120+int(ele['coordx']/1024.0*135),155+int(ele['coordx']/1024.0*100))
-				acolor=(90,90,90,255)
-			else:
 				acolor=(255,255,255,255)
-				document=pyglet.text.decode_attributed("{font_name 'Liberation Mono'}{font_size 22}{color (255, 255, 255, 255)}"+ele['description'].decode('utf-8')+"}".encode('utf8'))
+			else:
+				acolor=(255,0,0,255)
+				document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+ele['description'].decode('utf-8')+"}".encode('utf8'))
 				txt_description.document=document
 				txt_description.draw()
 				document=None
@@ -448,11 +446,11 @@ def drawworld():
 			pic_levels2.blit(ele['coordx'],ele['coordy']/768.0*win.height)
 			txt_element2.text=ele['element']
 			txt_element2.x=ele['coordx']+50
-			txt_element2.y=ele['coordy']/768.0*win.height+70
+			txt_element2.y=ele['coordy']/768.0*win.height+67
 			txt_element2.color=(int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150),255)
 			txt_element2.draw()
-			calc=(len(ele['nom'])*16-76)/2
-			drawsquare(ele['coordx']+28-calc,int(ele['coordy']/768.0*win.height+2),ele['coordx']+28-calc+len(ele['nom'])*15,int(ele['coordy']/768.0*win.height-18),1,[40,int(ele['coordx']/1024.0*135),int(ele['coordx']/1024.0*100)])			
+			calc=(len(ele['nom'])*17-52)/2
+			drawsquare(ele['coordx']+35-calc,int(ele['coordy']/768.0*win.height+2),ele['coordx']+42-calc+len(ele['nom'])*17,int(ele['coordy']/768.0*win.height-18),1,[40,int(ele['coordx']/1024.0*135),int(ele['coordx']/1024.0*100)])			
 			txt_nom2.text=ele['nom'].decode('utf-8')
 			txt_nom2.x=ele['coordx']+38-calc
 			txt_nom2.y=ele['coordy']/768.0*win.height-15
@@ -469,7 +467,7 @@ def drawgrid(zoom):
 		if x*zoom+decx>win.width: break
 		for y in range(1,sizey-1):
 			if y*zoom+decy>win.height: break
-			drawsquare(x*zoom+decx,y*zoom+decy,(x+1)*zoom+decx,(y+1)*zoom+decy,1,items[items[world_new[x][y]]]['color'])
+			'''drawsquare(x*zoom+decx,y*zoom+decy,(x+1)*zoom+decx,(y+1)*zoom+decy,1,items[items[world_new[x][y]]]['color'])'''
 			glBegin(GL_QUADS)
 			if world_new[x-1][y-1]>0 or (world_new[x-1][y]>0 and world_new[x][y-1]>0):
 				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
@@ -508,12 +506,13 @@ def drawgrid(zoom):
 			if art['tech']<=tech: 
 				drawitdem(10+i*size,55,items[items[int("0x30000",16)+i]],size-6,10)
 				if art['cat']!=cat:
-					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])
+					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
 					cat=art['cat']
-	drawsquare(615,win.height-45,655,win.height-5,1,[255,255,255])
+	drawsquare(615,win.height-45,655,win.height-5,1,[240, int(items[items[int("0x40000",16)+level]]['coordx']/1024.0*120+100), int(items[items[int("0x40000",16)+level]]['coordx']/1024.0*120+100)])
 	txt_element.text=element
+	txt_element.color=(int(items[items[int("0x40000",16)+level]]['coordx']/1024.0*150), int(items[items[int("0x40000",16)+level]]['coordx']/1024.0*150), int(items[items[int("0x40000",16)+level]]['coordx']/1024.0*150),255)
 	txt_element.x=636-len(element)*10
-	txt_element.y=win.height-35
+	txt_element.y=win.height-38
 	txt_element.draw()
 	for i in range(4):
 		if (i==0 and tech>0):
@@ -523,20 +522,20 @@ def drawgrid(zoom):
 				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
 				txt_temp.x=50+i*150
 				txt_temp.y=win.height-29
-				txt_temp.color=(110, 110, 110,255)
+				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
 				txt_temp.text=str(eval("max"+items[int("0x10000",16)+i]))
 				txt_temp.x=50+i*150
 				txt_temp.y=win.height-47
-				txt_temp.color=(200, 110, 110,255)
+				txt_temp.color=(110, 110, 110,255)
 				txt_temp.font_size=12
 				txt_temp.draw()
 			else:
 				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
 				txt_temp.x=50+i*150
 				txt_temp.y=y=win.height-38
-				txt_temp.color=(110, 110, 110,255)
+				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
 	drawvictory(660,win.height-45,1020,win.height-5,[90,90,90])
@@ -565,13 +564,12 @@ def drawgrid(zoom):
 		drawsquare(9+i*45,7,47+i*45,45,2,selectcolor)
 	drawsquare(5+15*45,8,6+15*45,44,0,[90,90,90])
 	drawstat(10+15*45,8,46+(18)*45,44,[90,90,90])
-	
 	if tech>=0:	
 		glColor3ub(255,255,255)
 		items['cout']['icon'].blit(10+19*45,7)
 		txt_cout.text=str(cout-thecout)
 		if (cout-thecout)>0:
-			txt_cout.color=(110, 110, 110,255)
+			txt_cout.color=(180, 180, 180,255)
 		else:
 			txt_cout.color=(255, 0, 0,255)
 		txt_cout.draw()
@@ -1090,8 +1088,8 @@ def nextgrid():
 def main():
    pyglet.app.run()
    
-'''win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)'''
-win = pyglet.window.Window(fullscreen=True,resizable=True)
+win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)
+'''win = pyglet.window.Window(fullscreen=True,resizable=True)'''
 
 initgrid(30,20)
 glEnable(GL_BLEND);
@@ -1117,27 +1115,32 @@ document=pyglet.text.decode_attributed("test")
 txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
 txt_description.x=8
 txt_description.y=8
-txt_cout2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=780,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-txt_maxcycle2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=780,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-txt_tech2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=980,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-txt_maxrayon2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=970,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-txt_maxtemp2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=875,y=120,bold=True,italic=False,color=(110, 110, 110,255))
-txt_maxnrj2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=875,y=75,bold=True,italic=False,color=(110, 110, 110,255))
-txt_element2=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=0,y=0,bold=True,italic=False)
-txt_nom2=pyglet.text.Label("",font_name='Liberation Mono',font_size=16,x=0,y=0,bold=True,italic=False)
-txt_victory1=pyglet.text.Label("",font_name='Liberation Mono',font_size=24,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
-txt_victory2=pyglet.text.Label("",font_size=10,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(255, 255, 255,255))
-txt_element=pyglet.text.Label("",font_size=20,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(0, 0, 0,255))
+txt_cout2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=120,bold=False,italic=False,color=(180, 180, 180,255))
+txt_maxcycle2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=75,bold=False,italic=False,color=(180, 180, 180,255))
+txt_tech2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=980,y=120,bold=False,italic=False,color=(180, 180, 180,255))
+txt_maxrayon2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=970,y=75,bold=False,italic=False,color=(180, 180, 180,255))
+txt_maxtemp2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=875,y=120,bold=False,italic=False,color=(180, 180, 180,255))
+txt_maxnrj2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=875,y=75,bold=False,italic=False,color=(180, 180, 180,255))
+txt_element2=pyglet.text.Label("",font_name='Vademecum',font_size=23,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
+txt_nom2=pyglet.text.Label("",font_name='Fluoxetine',font_size=18,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
+txt_victory1=pyglet.text.Label("",font_name='Mechanihan',font_size=25,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
+txt_victory2=pyglet.text.Label("",font_name='Mechanihan',font_size=10,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
+txt_element=pyglet.text.Label("",font_name='vademecum',font_size=23,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_item=pyglet.text.Label("",font_name='Liberation Mono',font_size=2,x=0,y=0)
-txt_stat=pyglet.text.Label("",font_size=24,x=0,y=0,font_name='Liberation Mono',bold=False,italic=False,color=(255, 255, 255,255))
-txt_cout=pyglet.text.Label("",font_name='Liberation Mono',font_size=15,x=46+19*45,y=18,bold=True,italic=False,color=(110, 110, 110,255))
-txt_tech=pyglet.text.Label("",font_size=15,x=55+21*45,y=18,font_name='Liberation Mono',bold=True,italic=False,color=(110, 110, 110,255))
-txt_over=pyglet.text.Label("",font_name='Liberation Mono',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
-txt_over2=pyglet.text.Label("",font_name='Liberation Mono',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
-txt_drag=pyglet.text.Label("cout:",font_name='Liberation Mono',font_size=10,x=950,y=win.height-20,color=(255,255,255,255))
-txt_drag2=pyglet.text.Label("tech:",font_name='Liberation Mono',font_size=10,x=950,y=win.height-40,color=(255,255,255,255))
-txt_temp=pyglet.text.Label("",font_name='Liberation Mono',font_size=24,x=0,y=0,bold=True,italic=False,color=(110, 110, 110,255))
+txt_stat=pyglet.text.Label("",font_name='Mechanihan',font_size=24,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255))
+txt_cout=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=46+19*45,y=18,bold=False,italic=False,color=(180, 180, 180,255))
+txt_tech=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=55+21*45,y=18,bold=False,italic=False,color=(180, 180, 180,255))
+txt_over=pyglet.text.Label("",font_name='Mechanihan',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
+txt_over2=pyglet.text.Label("",font_name='Mechanihan',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
+txt_drag=pyglet.text.Label("cout:",font_name='Mechanihan',font_size=12,x=950,y=win.height-20,color=(255,255,255,255))
+txt_drag2=pyglet.text.Label("tech:",font_name='Mechanihan',font_size=12,x=950,y=win.height-40,color=(255,255,255,255))
+txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 readpref('user/pref.dat')
+pyglet.font.add_file('font/Fluoxetine.ttf')
+pyglet.font.add_file('font/OpenDyslexicAlta.otf')
+pyglet.font.add_file('font/Mecanihan.ttf')
+pyglet.font.add_file('font/Vademecum.ttf')
+pyglet.font.add_file('font/LiberationMono-Regular.ttf')
 world=0
 for i in range(sizeworld):
 	if items[int("0x40000",16)+i] in finished and items[items[int("0x40000",16)+i]]['world']>world:
