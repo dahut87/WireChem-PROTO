@@ -585,7 +585,7 @@ def drawgrid(zoom):
 		txt_over.draw()
 		msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !"]
 		txt_over2.text=msg[over-1].decode('utf-8')
-		txt_over2.y=win.height/2-100
+		txt_over2.y=win.height/2-90
 		txt_over2.draw()
 	if over<0:
 		txt_over.text="VICTOIRE !"
@@ -593,11 +593,13 @@ def drawgrid(zoom):
 		txt_over.y=win.height/2-200
 		txt_over.draw()
 		txt_over2.text="Vous débloquez le/les niveaux suivant.".decode('utf-8')
-		txt_over2.y=win.height/2-100
+		txt_over2.y=win.height/2-90
 		txt_over2.draw()
 	if allcout>0:
+		txt_drag.y=win.height-20
 		txt_drag.text="cout:"+str(allcout['cout'])
 		txt_drag.draw()
+		txt_drag2.y=win.height-45
 		txt_drag2.text="tech:"+str(allcout['tech'])
 		txt_drag2.draw()
 ''' *********************************************************************************************** '''
@@ -1131,9 +1133,9 @@ txt_stat=pyglet.text.Label("",font_name='Mechanihan',font_size=24,x=0,y=0,bold=F
 txt_cout=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=46+19*45,y=18,bold=False,italic=False,color=(180, 180, 180,255))
 txt_tech=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=55+21*45,y=18,bold=False,italic=False,color=(180, 180, 180,255))
 txt_over=pyglet.text.Label("",font_name='Mechanihan',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
-txt_over2=pyglet.text.Label("",font_name='Mechanihan',font_size=30,x=0,y=win.height/2-100,color=(255,255,255,255))
-txt_drag=pyglet.text.Label("cout:",font_name='Mechanihan',font_size=12,x=950,y=win.height-20,color=(255,255,255,255))
-txt_drag2=pyglet.text.Label("tech:",font_name='Mechanihan',font_size=12,x=950,y=win.height-40,color=(255,255,255,255))
+txt_over2=pyglet.text.Label("",font_name='Mechanihan',font_size=30,x=0,y=win.height/2-90,color=(255,255,255,255))
+txt_drag=pyglet.text.Label("cout:",font_name='Mechanihan',font_size=14,x=950,y=win.height-20,color=(255,255,255,255))
+txt_drag2=pyglet.text.Label("tech:",font_name='Mechanihan',font_size=14,x=950,y=win.height-40,color=(255,255,255,255))
 txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 readpref('user/pref.dat')
 pyglet.font.add_file('font/Fluoxetine.ttf')
