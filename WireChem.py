@@ -76,14 +76,15 @@ def initgrid(x,y):
 	nom=descriptif=element='H'
 	names=["e","e","q","e","e","e","e","K","L","M","N","n","p"]
 	thecolors=[items['headb2']['color'],items['headb']['color'],items['headp']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color'],items['headb']['color'],items['headb']['color'],items['headb']['color'],items['headb']['color'],items['neut']['color'],items['prot']['color']]
-	victory=[0,0,0,0,0,0,0,1,0,0,0,1,1]
+	victory=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 	current=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 	finished=[]
 	mousel=4
 	mouser=0
 	mousem=3
 	maxnrj=maxrayon=maxcycle=maxtemp=99999
-	allcout=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=debug=0
+	allcout=[0,0,0]
+	thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=debug=0
 	selected=level=-1
 	tech=9
 	world_art = [[items['nothing']['value'] for y in range(sizey)] for x in range(sizex)]
@@ -150,17 +151,12 @@ def readgrid(file):
 			element=liste[0][1]
 			descriptif=liste[0][2]
 			debug=int(liste[0][3])
-			zoom=int(liste[0][4])
-			if zoom==99:
-				if sizex<sizey:
-					zoom=(win.height)/(sizey-2)
-				else:
-					zoom=win.width/(sizex-2)			
-				decx=-zoom+(win.width-zoom*(sizex-2))/2
-				decy=-zoom+(win.height-zoom*(sizey-2))/2
+			if sizex/float(sizey)<win.width/(win.height-102.0):
+				zoom=(win.height-102)/(sizey-2)
 			else:
-				decx=int(liste[0][5])
-				decy=int(liste[0][6])
+				zoom=win.width/(sizex-2)
+			decx=-zoom+(win.width-zoom*(sizex-2))/2
+			decy=-zoom+(win.height-zoom*(sizey-2))/2
 			tech=int(liste[0][7])
 			cout=int(liste[0][8])		
 			victemp=liste[0][9][1:len(liste[0][9])-1].split(",")
@@ -229,7 +225,9 @@ def refresh(dt):
 		player.get_texture().blit(0,0,width=win.width,height=win.height)
 		return
 	win.clear()
-	if level!=-1:
+	if level==-2:	
+		drawsettings()
+	elif level!=-1:
 		drawgrid(zoom)
 	else:
 		drawworld()
@@ -306,6 +304,17 @@ def drawtriangles(x,y,x2,y2,color):
 	glVertex2i(x2-thezoom/4,y)
 	glEnd()
 
+def drawLaser(x1,y1,x2,y2,width,power,color,randomize):
+	while(width > 0):
+		if randomize!=0: glLineStipple(random.randint(0,randomize),random.randint(0,65535))		
+		glLineWidth(width)
+		glBegin(GL_LINES)
+		glColor3ub(min(color[0]+power*width,255),min(color[1]+power*width,255),min(color[2]+power*width,255))
+		glVertex2i(x1,y1)
+		glVertex2i(x2,y2)
+		width=width-1
+		glEnd()
+		glLineStipple(1,65535)
 	
 def drawitdem(x,y,art,thezoom,activation):
 	if 'text' in art:
@@ -359,6 +368,17 @@ def drawvictory(x,y,x2,y2,color):
 			txt_victory2.y=y2-10
 			txt_victory2.draw()
 			
+def drawsettings():
+	pic_logo.blit((win.width-668)/2,win.height-200)
+	pic_logo2.blit((win.width-668)/2-120,win.height-160)
+	txt_son.x=win.width/6
+	txt_son.y=win.height/6
+	txt_son.draw()
+	txt_video.x=win.width/6
+	txt_video.y=2*win.height/6	
+	txt_video.draw()
+	
+				
 def drawworld():
 	global selected,victory,finished
 	drawsquare(740,148,1016,8,1,[40,40,40])
@@ -386,18 +406,12 @@ def drawworld():
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world:
-			glBegin(GL_LINES)
 			for n in ele['validate']:
 				if n!="" and items[n]['world']==world:
-					glVertex2i(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50))
-					glVertex2i(items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50))
-					glVertex2i(ele['coordx']+51,int(ele['coordy']/768.0*win.height+50))
-					glVertex2i(items[n]['coordx']+51,int(items[n]['coordy']/768.0*win.height+50))
-					glVertex2i(ele['coordx']+50,int(ele['coordy']/768.0*win.height+51))
-					glVertex2i(items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+51))
-					glVertex2i(ele['coordx']+51,int(ele['coordy']/768.0*win.height+51))
-					glVertex2i(items[n]['coordx']+51,int(items[n]['coordy']/768.0*win.height+51))
-			glEnd()				
+					if n in finished:
+						drawLaser(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50),items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50),random.randint(0,6),20,[0,100,0],12)	
+					else:
+						drawLaser(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50),items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50),1,20,[100,100,100],0)		
 	for i in range(sizeworld):
 		ele=items[items[int("0x40000",16)+i]]
 		if ele['world']==world:
@@ -459,10 +473,12 @@ def drawworld():
 	
 def drawgrid(zoom):
 	global temp,debug,over,allcout,play,element
-	drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,255,255])
+	glLineWidth(3)
 	if play>0:
-		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])
-		drawsquare(decx-2+zoom,decy-2+zoom,decx+zoom*(sizex-1)+2,decy+zoom*(sizey-1)+3,0,[255,0,0])			
+		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
+	else:
+		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,255,255])
+	glLineWidth(1)	
 	for x in range(1,sizex-1):
 		if x*zoom+decx>win.width: break
 		for y in range(1,sizey-1):
@@ -518,7 +534,7 @@ def drawgrid(zoom):
 		if (i==0 and tech>0):
 			glColor3ub(255,255,255)
 			items[items[int("0x10000",16)+i]]['icon'].blit(10+i*150,win.height-45)
-			if (tech>5):
+			if (tech>=5):
 				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
 				txt_temp.x=50+i*150
 				txt_temp.y=win.height-29
@@ -526,6 +542,7 @@ def drawgrid(zoom):
 				txt_temp.font_size=24
 				txt_temp.draw()
 				txt_temp.text=str(eval("max"+items[int("0x10000",16)+i]))
+				if txt_temp.text=="99999": txt_temp.text="illimité".decode('utf-8')
 				txt_temp.x=50+i*150
 				txt_temp.y=win.height-47
 				txt_temp.color=(110, 110, 110,255)
@@ -559,9 +576,16 @@ def drawgrid(zoom):
 		elif (mousem==i):
 			selectcolor=[0,0,255,40] 
 		else:
-			selectcolor=[40,40,40,0] 	
+			selectcolor=[40,40,40,0]
+		if play>0 and ((mousem==i) or (mousel==i) or (mouser==i)):
+			glLineWidth(random.randint(1,3))
+			glLineStipple(random.randint(0,10),random.randint(0,65535))	
 		drawsquare(10+i*45,8,46+i*45,44,2,selectcolor)
+		if play>0 and ((mousem==i) or (mousel==i) or (mouser==i)):
+			glLineStipple(random.randint(0,10),random.randint(0,65535))
 		drawsquare(9+i*45,7,47+i*45,45,2,selectcolor)
+		glLineStipple(0,65535)
+		glLineWidth(1)
 	drawsquare(5+15*45,8,6+15*45,44,0,[90,90,90])
 	drawstat(10+15*45,8,46+(18)*45,44,[90,90,90])
 	if tech>=0:	
@@ -583,8 +607,9 @@ def drawgrid(zoom):
 		txt_over.x=win.width/2-350
 		txt_over.y=win.height/2-200
 		txt_over.draw()
-		msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !"]
+		msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !","Le réacteur est en surcharge !!"]
 		txt_over2.text=msg[over-1].decode('utf-8')
+		txt_over2.x=win.width/2-450
 		txt_over2.y=win.height/2-90
 		txt_over2.draw()
 	if over<0:
@@ -593,17 +618,55 @@ def drawgrid(zoom):
 		txt_over.y=win.height/2-200
 		txt_over.draw()
 		txt_over2.text="Vous débloquez le/les niveaux suivant.".decode('utf-8')
+		txt_over2.x=win.width/2-450
 		txt_over2.y=win.height/2-90
 		txt_over2.draw()
-	if allcout>0:
-		txt_drag.y=win.height-20
-		txt_drag.text="cout:"+str(allcout['cout'])
+	if allcout[2]>0:
+		if tech<6:
+			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,1,[40,40,40])
+			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,0,[255,255,255])
+		else:
+			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,1,[40,40,40])
+			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,0,[255,255,255])
+		txt_drag.x=allcout[0]+45
+		txt_drag.y=allcout[1]+10
+		glColor3ub(255,255,255,255)
+		items['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
+		txt_drag.text=str(allcout[2]['cout'])
 		txt_drag.draw()
-		txt_drag2.y=win.height-45
-		txt_drag2.text="tech:"+str(allcout['tech'])
-		txt_drag2.draw()
+		txt_drag.x=allcout[0]+45
+		txt_drag.y=allcout[1]+45
+		glColor3ub(255,255,255,255)
+		items['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
+		txt_drag.text=str(allcout[2]['tech'])
+		txt_drag.draw()
+		if tech>6:
+			txt_drag.x=allcout[0]+45
+			txt_drag.y=allcout[1]+80
+			glColor3ub(255,255,255,255)
+			items['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
+			txt_drag.text=str(allcout[2]['nrj'])
+			txt_drag.draw()	
+			txt_drag.x=allcout[0]+45
+			txt_drag.y=allcout[1]+115
+			glColor3ub(255,255,255,255)
+			items['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
+			txt_drag.text=str(allcout[2]['temp'])
+			txt_drag.draw()			
+		
+		
+		
 ''' *********************************************************************************************** '''
 ''' Fonctions liees aux menus																								 '''
+
+def settings(dummy1,dummy2,dummy3,dummy4):
+	global level,sizeworld
+	reallystop()
+	for i in range(sizeworld):
+		ele=items[items[int("0x40000",16)+i]]
+		if ele['world']==world and ele['grid']==level:
+			writegrid("user/"+ele['file'])
+	level=-2
 				
 def raz(dummy1,dummy2,dummy3,dummy4):
 	for i in range(sizeworld):
@@ -809,7 +872,7 @@ def itsvictory():
 
 def infos():
 	global stat,sizex,sizey,cycle,thecout,victory,current
-	stat=[0,0,0,0,0,0,0,0]
+	stat=[0,0,0,0,0,0,0,0,0,0,0,0]
 	thecout=0
 	for x in range(1,sizex-1):
 		for y in range(1,sizey-1):
@@ -823,13 +886,15 @@ def infos():
 			if world_new[x][y]>=items['head']['value']: stat[7]=stat[7]+1
 			if cycle!=0: desactive(x,y)
 			thecout=items[items[world_new[x][y]]]['cout']+items[items[wart(x,y)]]['cout']+thecout
-		tempvictoire=0
+	tempvictoire=0
 	for i in range(len(victory)):
 		if victory[i]-current[i]<0:
 			gameover(1)
 			break
-		tempvictoire=(victory[i]-current[i])|tempvictoire
-	if tempvictoire==0: itsvictory()	
+		if victory[i]-current[i]>0:
+			tempvictoire=tempvictoire+1000
+		tempvictoire=tempvictoire+1
+	if tempvictoire==len(victory): itsvictory()	
 	if rayon>maxrayon: gameover(5)
 	if cycle>maxcycle: gameover(6)
 	if temp>maxtemp: gameover(7)
@@ -841,10 +906,10 @@ def erase():
 			unactive(x,y)
 			if world_new[x][y]==items['headp']['value'] or world_new[x][y]==items['tailp']['value']:
 				world_new[x][y]=items['fiber']['value']
+			elif world_new[x][y]==items['prot']['value'] or world_new[x][y]==items['neut']['value']:
+				world_new[x][y]=items['nothing']['value']
 			elif world_new[x][y]>=items['tail']['value']:
 				world_new[x][y]=items['copper']['value']
-			elif world_new[x][y]>=items['prot']['value']:
-				world_new[x][y]=items['nothing']['value']
 
 def wart(x,y):
 	return world_art[x][y] & int("0xFFFFFF",16)
@@ -989,10 +1054,16 @@ def nextgrid():
 								value=unsigned(value)
 							elif art==items['reactor']['value'] and value==items['headr2']['value'] and isactive(x+ex,y+ey):				
 								world_new[x+ex][y+ey]=items['copper']['value']
-								world_new[x+ex][y+ey-1]=items['prot']['value']
+								if world_new[x+ex][y+ey-1]!=items['nothing']['value']:
+									gameover(9)
+								else:
+									world_new[x+ex][y+ey-1]=items['prot']['value']
 							elif art==items['reactor']['value'] and value==items['head2']['value'] and isactive(x+ex,y+ey):				
 								world_new[x+ex][y+ey]=items['copper']['value']
-								world_new[x+ex][y+ey-1]=items['neut']['value']
+								if world_new[x+ex][y+ey-1]!=items['nothing']['value']:
+									gameover(9)
+								else:
+									world_new[x+ex][y+ey-1]=items['neut']['value']
 							elif art==items['senserK']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=items['copper']['value']
 								current[7]=current[7]+1
@@ -1066,7 +1137,7 @@ def nextgrid():
 					items['fiber']['value']
 			elif value == items['prot']['value'] or value == items['neut']['value'] :
 				if wart(x,y)==items['sensern']['value'] and value==items['neut']['value'] and isactive(x,y):
-					world_new[x][y]=items['copper']['value']
+					world_new[x][y]=items['nothing']['value']
 					current[11]=current[11]+1
 				elif wart(x,y)==items['senserp']['value'] and value==items['prot']['value'] and isactive(x,y):
 					world_new[x][y]=items['nothing']['value']
@@ -1078,7 +1149,7 @@ def nextgrid():
 					else:
 						world_new[x][y-1] = value
 						world_new[x][y] = items['nothing']['value']
-				elif world_new[x][y-1] == items['prot']['value'] or world_new[x][y-1] == items['neut']['value']:
+				elif (world_new[x][y-1] == items['prot']['value'] or world_new[x][y-1] == items['neut']['value']) and world_new[x][y-1]!=world_new[x][y]:
 					gameover(3)
 					return
 	infos()
@@ -1095,6 +1166,9 @@ win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)
 
 initgrid(30,20)
 glEnable(GL_BLEND);
+'''glEnable(GL_LINE_SMOOTH);
+glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);'''
+glEnable(GL_LINE_STIPPLE)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 win.set_caption("Wirechem: The new chemistry game")
 clock.schedule(refresh)
@@ -1134,9 +1208,10 @@ txt_cout=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=46+19*45,y=1
 txt_tech=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=55+21*45,y=18,bold=False,italic=False,color=(180, 180, 180,255))
 txt_over=pyglet.text.Label("",font_name='Mechanihan',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
 txt_over2=pyglet.text.Label("",font_name='Mechanihan',font_size=30,x=0,y=win.height/2-90,color=(255,255,255,255))
-txt_drag=pyglet.text.Label("cout:",font_name='Mechanihan',font_size=14,x=950,y=win.height-20,color=(255,255,255,255))
-txt_drag2=pyglet.text.Label("tech:",font_name='Mechanihan',font_size=14,x=950,y=win.height-40,color=(255,255,255,255))
+txt_drag=pyglet.text.Label("",font_name='Mechanihan',font_size=14,x=950,y=win.height-20,color=(255,255,255,255))
 txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
+txt_son=pyglet.text.Label("Reglages du son",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
+txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 readpref('user/pref.dat')
 pyglet.font.add_file('font/Fluoxetine.ttf')
 pyglet.font.add_file('font/OpenDyslexicAlta.otf')
@@ -1188,11 +1263,13 @@ def on_mouse_motion(x, y, dx, dy):
 			else:
 				nbelements=29
 			size=win.width/nbelements	
-			allcout=0
+			allcout[2]=0
+			allcout[0]=x
+			allcout[1]=y
 			for i in range(nbelements):
 				if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
 					if items[items[int("0x30000",16)+i]]['tech']<=tech:
-						allcout=items[items[int("0x30000",16)+i]]
+						allcout[2]=items[items[int("0x30000",16)+i]]
 		return	
 	selected=-1
 	for i in range(sizeworld):
@@ -1278,7 +1355,7 @@ def on_mouse_press(x, y, button, modifiers):
 						unroll=0
 					else:
 						unroll=1	
-				return
+				if i>=11: return
 	if unroll==1:
 		if debug==1:
 			nbelements=44
