@@ -111,7 +111,7 @@ def writepref(file):
 	global finished
 	with open(file, 'wb+') as f:
 		writer = csv.writer(f, delimiter=';', quotechar='', quoting=csv.QUOTE_NONE)
-		writer.writerow(finished)
+		writer.writerow(list(set(finished)))
 		f.close()		
 		
 def readlittlegrid(file,key):
@@ -244,6 +244,7 @@ def refresh(dt):
 	
 ''' *********************************************************************************************** '''
 ''' Affichage																						'''	
+
 def drawcumulgraph(coords,tableau,full,color):
 	drawsquare(coords[0],coords[1],coords[2],coords[3],1,[100,100,100])
 	tab=copy.deepcopy(tableau)
@@ -467,7 +468,7 @@ def drawstat(x,y,x2,y2,tableau,color):
 	txt_stat.y=y-(y-24)/2
 	txt_stat.draw()
 	
-def drawvictory(x,y,x2,y2,color):
+def drawcondvictory(x,y,x2,y2,color):
 	global victory,current
 	'''size=(x2-x)/sum(victory[i] for i in range(len(victory)))'''
 	names=["e","e","q","e","e","e","e","K","L","M","N","n","p"]
@@ -497,8 +498,7 @@ def drawsettings():
 	txt_video.x=win.width/6
 	txt_video.y=2*win.height/6	
 	txt_video.draw()
-	
-				
+			
 def drawworld():
 	global selected,victory,finished,world,level
 	drawsquare(740,148,1016,8,1,[40,40,40])
@@ -579,7 +579,7 @@ def drawworld():
 					txt_maxnrj2.text=str(ele['maxnrj'])
 					txt_maxnrj2.draw()
 				victory=ele['victory']
-				drawvictory(742,12,1016,50,[40,40,40])
+				drawcondvictory(742,12,1016,50,[40,40,40])
 				glColor3ub(255,0,0)
 			pic_levels2.blit(ele['coordx'],ele['coordy']/768.0*win.height)
 			glColor3ub(255,255,255)
@@ -601,6 +601,140 @@ def drawworld():
 def calc_space(nb,nbtot):
 	global unroll
 	return [2*win.width/3+20,(nb-1)*(win.height-100-unroll*50)/nbtot+50+unroll*50+20,win.width-20,nb*(win.height-100-unroll*50)/nbtot+50+unroll*50]
+
+def drawpopup():
+	global allcout
+	if tech<6:
+		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,1,[40,40,40])
+		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,0,[255,255,255])
+	else:
+		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,1,[40,40,40])
+		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,0,[255,255,255])
+	txt_drag.x=allcout[0]+45
+	txt_drag.y=allcout[1]+10
+	glColor3ub(255,255,255,255)
+	items['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
+	txt_drag.text=str(allcout[2]['cout'])
+	txt_drag.draw()
+	txt_drag.x=allcout[0]+45
+	txt_drag.y=allcout[1]+45
+	glColor3ub(255,255,255,255)
+	items['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
+	txt_drag.text=str(allcout[2]['tech'])
+	txt_drag.draw()
+	if tech>6:
+		txt_drag.x=allcout[0]+45
+		txt_drag.y=allcout[1]+80
+		glColor3ub(255,255,255,255)
+		items['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
+		txt_drag.text=str(allcout[2]['nrj'])
+		txt_drag.draw()	
+		txt_drag.x=allcout[0]+45
+		txt_drag.y=allcout[1]+115
+		glColor3ub(255,255,255,255)
+		items['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
+		txt_drag.text=str(allcout[2]['temp'])
+		txt_drag.draw()	
+
+def drawbigstat(page):	
+	global unroll,stat_var	
+	drawsquare(2*win.width/3,50+unroll*50,win.width,win.height-50,1,[40,40,40])
+	if page==1:
+		coord=calc_space(1,3)
+		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[items['headb2']['color'],items['headb']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color']])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="eX"
+		txt_victory2.draw()	
+		coord=calc_space(2,3)			
+		drawcumulgraph(calc_space(2,3),[stat_var[7],stat_var[8]],1,[items['neut']['color'],items['prot']['color']])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+8
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="p/n"
+		txt_victory2.draw()	
+		coord=calc_space(3,3)
+		drawgraph(calc_space(3,3),stat_var[2],1,items['headp']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="Ph"
+		txt_victory2.draw()	
+	elif page==2:
+		coord=calc_space(1,3)
+		drawgraph(coord,stat_var[9],1,[180,180,180])
+		items['nrj']['icon'].blit(coord[0],coord[1])
+		coord=calc_space(2,3)
+		drawgraph(coord,stat_var[10],1,[180,180,180])
+		items['temp']['icon'].blit(coord[0],coord[1])
+		coord=calc_space(3,3)
+		drawgraph(coord,stat_var[11],1,[180,180,180])
+		items['rayon']['icon'].blit(coord[0],coord[1])
+	elif page==3:
+		coord=calc_space(1,6)
+		drawgraph(coord,stat_var[17],1,items['prot']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="p"
+		txt_victory2.draw()
+		coord=calc_space(2,6)
+		drawgraph(coord,stat_var[16],1,items['neut']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="n"
+		txt_victory2.draw()
+		coord=calc_space(3,6)
+		drawgraph(coord,stat_var[15],1,items['headb']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="N"
+		txt_victory2.draw()
+		coord=calc_space(4,6)
+		drawgraph(coord,stat_var[14],1,items['headb']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="M"
+		txt_victory2.draw()
+		coord=calc_space(5,6)
+		drawgraph(coord,stat_var[13],1,items['headb']['color'])
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="L"
+		txt_victory2.draw()
+		coord=calc_space(6,6)
+		drawgraph(coord,stat_var[12],1,items['headb']['color'])	
+		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
+		txt_victory2.x=coord[0]+12
+		txt_victory2.y=coord[1]+12
+		txt_victory2.text="K"
+		txt_victory2.draw()
+		
+def drawgameover():
+	txt_over.text="GAME OVER"
+	txt_over.x=win.width/2-350
+	txt_over.y=win.height/2-200
+	txt_over.draw()
+	msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !","Le réacteur est en surcharge !!"]
+	txt_over2.text=msg[over-1].decode('utf-8')
+	txt_over2.x=win.width/2-450
+	txt_over2.y=win.height/2-90
+	txt_over2.draw()
+		
+def drawvictory():
+	txt_over.text="VICTOIRE !"
+	txt_over.x=win.width/2-350
+	txt_over.y=win.height/2-200
+	txt_over.draw()
+	txt_over2.text="Vous débloquez le/les niveaux suivant.".decode('utf-8')
+	txt_over2.x=win.width/2-450
+	txt_over2.y=win.height/2-90
+	txt_over2.draw()
 	
 def drawgrid(zoom):
 	global temp,debug,over,allcout,play,element,seestat
@@ -655,38 +789,54 @@ def drawgrid(zoom):
 				if art['cat']!=cat:
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
 					cat=art['cat']
-	drawsquare(615,win.height-45,655,win.height-5,1,[240, int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100)])
+	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240, int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100)])
 	txt_element.text=element
 	txt_element.color=(int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150),255)
-	txt_element.x=636-len(element)*10
+	txt_element.x=win.width-384-len(element)*10
 	txt_element.y=win.height-38
 	txt_element.draw()
+	addx=(win.width-1024)/4
+	if addx<0: addx=0
 	for i in range(4):
-		if (i==0 and tech>0):
+		if (i==0 and tech>0) or (i==1 and tech>6) or (i==2 and tech>7) or (i==3 and tech>8):
 			glColor3ub(255,255,255)
-			items[items[int("0x10000",16)+i]]['icon'].blit(10+i*150,win.height-45)
-			if (tech>=5):
+			items[items[int("0x10000",16)+i]]['icon'].blit(10+i*(150+addx),win.height-45)
+			if (tech>=5 and addx>100):
 				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
-				txt_temp.x=50+i*150
+				txt_temp.x=50+i*(150+addx)
+				txt_temp.y=y=win.height-38
+				txt_temp.color=(180, 180, 180,255)
+				txt_temp.font_size=24
+				txt_temp.draw()
+				txt_temp.text="/"+str(eval("max"+items[int("0x10000",16)+i]))
+				if txt_temp.text=="/99999": txt_temp.text="/illimité".decode('utf-8')
+				txt_temp.x=150+i*(150+addx)
+				txt_temp.y=win.height-38
+				txt_temp.color=(110, 110, 110,255)
+				txt_temp.font_size=12
+				txt_temp.draw()
+			elif (tech>=5):
+				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-29
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
 				txt_temp.text=str(eval("max"+items[int("0x10000",16)+i]))
 				if txt_temp.text=="99999": txt_temp.text="illimité".decode('utf-8')
-				txt_temp.x=50+i*150
+				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-47
 				txt_temp.color=(110, 110, 110,255)
 				txt_temp.font_size=12
 				txt_temp.draw()
 			else:
 				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
-				txt_temp.x=50+i*150
+				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=y=win.height-38
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
-	drawvictory(660,win.height-45,1020,win.height-5,[90,90,90])
+	drawcondvictory(win.width-364,win.height-45,1020,win.height-5,[90,90,90])
 	for i in range(15):
 		glColor3ub(255,255,255)
 		if items[items[int("0x20000",16)+i]]['icon']=="/":
@@ -741,134 +891,10 @@ def drawgrid(zoom):
 		txt_tech.x=posx+addx+144
 		txt_tech.text=str(tech)
 		txt_tech.draw()
-	if seestat>=1:
-		drawsquare(2*win.width/3,50+unroll*50,win.width,win.height-50,1,[40,40,40])
-	if seestat==1:
-		coord=calc_space(1,3)
-		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[items['headb2']['color'],items['headb']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color']])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="eX"
-		txt_victory2.draw()	
-		coord=calc_space(2,3)			
-		drawcumulgraph(calc_space(2,3),[stat_var[7],stat_var[8]],1,[items['neut']['color'],items['prot']['color']])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+8
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="p/n"
-		txt_victory2.draw()	
-		coord=calc_space(3,3)
-		drawgraph(calc_space(3,3),stat_var[2],1,items['headp']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="Ph"
-		txt_victory2.draw()	
-	elif seestat==2:
-		coord=calc_space(1,3)
-		drawgraph(coord,stat_var[9],1,[180,180,180])
-		items['nrj']['icon'].blit(coord[0],coord[1])
-		coord=calc_space(2,3)
-		drawgraph(coord,stat_var[10],1,[180,180,180])
-		items['temp']['icon'].blit(coord[0],coord[1])
-		coord=calc_space(3,3)
-		drawgraph(coord,stat_var[11],1,[180,180,180])
-		items['rayon']['icon'].blit(coord[0],coord[1])
-	elif seestat==3:
-		coord=calc_space(1,6)
-		drawgraph(coord,stat_var[17],1,items['prot']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="p"
-		txt_victory2.draw()
-		coord=calc_space(2,6)
-		drawgraph(coord,stat_var[16],1,items['neut']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="n"
-		txt_victory2.draw()
-		coord=calc_space(3,6)
-		drawgraph(coord,stat_var[15],1,items['headb']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="N"
-		txt_victory2.draw()
-		coord=calc_space(4,6)
-		drawgraph(coord,stat_var[14],1,items['headb']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="M"
-		txt_victory2.draw()
-		coord=calc_space(5,6)
-		drawgraph(coord,stat_var[13],1,items['headb']['color'])
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="L"
-		txt_victory2.draw()
-		coord=calc_space(6,6)
-		drawgraph(coord,stat_var[12],1,items['headb']['color'])	
-		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
-		txt_victory2.x=coord[0]+12
-		txt_victory2.y=coord[1]+12
-		txt_victory2.text="K"
-		txt_victory2.draw()
-	if over>0:
-		txt_over.text="GAME OVER"
-		txt_over.x=win.width/2-350
-		txt_over.y=win.height/2-200
-		txt_over.draw()
-		msg=["Trop de matière reçue dans les senseurs","Les photons sont sortis du cadre de jeu","Colision de protons et de neutrons","Le canon a provoqué une collision","Vous avez généré trop de rayonements","Le nombre de cycle maximum a été atteint","La température est a un niveau inacceptable","Il n'y a plus d'energie disponible !","Le réacteur est en surcharge !!"]
-		txt_over2.text=msg[over-1].decode('utf-8')
-		txt_over2.x=win.width/2-450
-		txt_over2.y=win.height/2-90
-		txt_over2.draw()
-	if over<0:
-		txt_over.text="VICTOIRE !"
-		txt_over.x=win.width/2-350
-		txt_over.y=win.height/2-200
-		txt_over.draw()
-		txt_over2.text="Vous débloquez le/les niveaux suivant.".decode('utf-8')
-		txt_over2.x=win.width/2-450
-		txt_over2.y=win.height/2-90
-		txt_over2.draw()
-	if allcout[2]>0:
-		if tech<6:
-			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,1,[40,40,40])
-			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,0,[255,255,255])
-		else:
-			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,1,[40,40,40])
-			drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+150,0,[255,255,255])
-		txt_drag.x=allcout[0]+45
-		txt_drag.y=allcout[1]+10
-		glColor3ub(255,255,255,255)
-		items['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
-		txt_drag.text=str(allcout[2]['cout'])
-		txt_drag.draw()
-		txt_drag.x=allcout[0]+45
-		txt_drag.y=allcout[1]+45
-		glColor3ub(255,255,255,255)
-		items['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
-		txt_drag.text=str(allcout[2]['tech'])
-		txt_drag.draw()
-		if tech>6:
-			txt_drag.x=allcout[0]+45
-			txt_drag.y=allcout[1]+80
-			glColor3ub(255,255,255,255)
-			items['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
-			txt_drag.text=str(allcout[2]['nrj'])
-			txt_drag.draw()	
-			txt_drag.x=allcout[0]+45
-			txt_drag.y=allcout[1]+115
-			glColor3ub(255,255,255,255)
-			items['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
-			txt_drag.text=str(allcout[2]['temp'])
-			txt_drag.draw()	
+	if seestat>=1: drawbigstat(seestat)
+	if over>0: drawgameover()
+	if over<0: drawvictory()
+	if allcout[2]>0: drawpopup()
 		
 ''' *********************************************************************************************** '''
 ''' Fonctions liees aux menus																								 '''
@@ -1398,6 +1424,7 @@ def main():
    pyglet.app.run()
    
 win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)
+win.set_minimum_size(1024, 768)
 '''win = pyglet.window.Window(fullscreen=True,resizable=True)'''
 
 initgrid(30,20)
