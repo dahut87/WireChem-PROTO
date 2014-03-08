@@ -3,12 +3,23 @@
 
 import shelve
 import csv
+import os
 import pyglet
 from pyglet import image
+from os.path import expanduser
 
-global items,worlds
+global items,worlds,finished
 
 '''********************* fonctions Chargement ANCIENNE ****************************************************************'''
+
+def readpref(file):
+	global finished
+	with open(file, 'a+') as f:
+		try:
+			finished=list(csv.reader(f,delimiter=';'))[0]
+			f.close()
+		except:
+			print "no"
 
 def loaditems(n,file):
 	global items
@@ -75,7 +86,24 @@ def readgrid(file):
 		return False
 		
 '''********************* fonction ecriture NOUVELLE ****************************************************************'''
-		
+
+def sync():
+	global Uworlds,finished
+	write(gethome()+"/dbdata",["Uworlds","finished"])
+
+def verifyhome():
+	global Uworlds,finished
+	if not os.path.exists(gethome()):
+		os.makedirs(gethome())
+	if not os.path.exists(gethome()+"/dbdata"):
+		Uworlds=[[{0:0}]]
+		finished=[(0,0)]
+		sync()
+	
+def gethome():
+	home = expanduser("~")+"/.wirechem"
+	return home
+			
 def write(afile,var):
 	d=shelve.open(afile,writeback=True)
 	for k in var:
@@ -91,7 +119,13 @@ loaditems(int("0x20000", 16),"data/menus.dat")
 loaditems(0,"data/elements.dat")
 worlds=[]
 Uworlds=[]
-
+verifyhome()
+readpref("user/pref.dat")
+linked=finished
+finished=[]
+for k in linked:
+	if len(k)>4:
+		finished.append((int(k[5]),int(k[7])))
 for i in range(sizeworld):
 	ele=items[items[int("0x40000",16)+i]]
 	readgrid(ele['file'])
@@ -100,7 +134,7 @@ for i in range(sizeworld):
 		worlds.append(0)
 		worlds[ele['world']]=[]
 	while len(worlds[ele['world']])<=ele['grid']:
-		worlds[ele['world']].append(0)
+		worlds[ele['world']].append({})
 	link=[]
 	for k in ele['validate']:
 		if len(k)>4:
@@ -126,8 +160,39 @@ for i in range(sizeworld):
 'maxtemp':maxtemp,
 'world_new':world_new,
 'world_art':world_art}
-print worlds
+
+	world_art=[]
+	if os.path.exists("user/"+ele['file']):
+		print ele['file']
+		readgrid("user/"+ele['file'])
+		while len(Uworlds)<=ele['world']:
+			Uworlds.append(0)
+			Uworlds[ele['world']]=[]
+		while len(Uworlds[ele['world']])<=ele['grid']:
+			Uworlds[ele['world']].append({})
+		Uworlds[ele['world']][ele['grid']]={'nom':nom, 
+'element':element,
+'description':descriptif,
+'_xx':ele['coordx'],
+'_yy':ele['coordy'],
+'video':ele['tuto']!="",
+'link':link,
+'tech':tech,
+'cout':cout,
+'victory':victory,
+'current':current,
+'cycle':cycle,
+'nrj':nrj,
+'rayon':rayon,
+'temp':temp,
+'maxcycle':maxcycle,
+'maxnrj':maxnrj,
+'maxrayon':maxrayon,
+'maxtemp':maxtemp,
+'world_new':world_new,
+'world_art':world_art}
 write("dbdata",["worlds"])
+write(gethome()+"/dbdata",["Uworlds","finished"])
 f=open("dbsrc", 'wb+')
 afile="""#!/usr/bin/env python
 # -*- coding: utf-8 -*- 
@@ -147,4 +212,3 @@ global worlds
 worlds="""
 f.write(afile+str(worlds).replace(", '",",\n '").replace(", [",", \n\t\t\t[")+"""\nwrite("dbdata",["worlds"])""")
 f.close()
-		
