@@ -6,49 +6,99 @@ import csv
 import random
 import time
 import operator
+import shelve
+import os
 from pyglet.gl import *
 from pyglet.window import mouse
 from pyglet.window import key
 from pyglet import clock
 from pyglet import image
-
+from os.path import expanduser
 
 ''' ************************************************************************************************ '''
-''' Initialisation																											 '''
+''' Initialisation & Chargement																		 '''
+
+def sync():
+	global Uworlds,finished
+	write(gethome()+"/dbdata",["Uworlds","finished"])
+
+def verifyhome():
+	global Uworlds,finished
+	if not os.path.exists(gethome()):
+		os.makedirs(gethome())
+	if not os.path.exists(gethome()+"/dbdata"):
+		Uworlds=[[{0:0}]]
+		finished=[(0,0)]
+		sync()
+	
+def gethome():
+	home = expanduser("~")+"/.wirechem"
+	return home
+
+def write(afile,var):
+	d=shelve.open(afile,writeback=True)
+	for k in var:
+		d[k]=copy.deepcopy(globals()[k])
+	d.sync()
+	d.close()	
+
+def read(afile):
+	d=shelve.open(afile,writeback=True)
+	for k in d.keys():
+		globals()[k]=copy.deepcopy(d[k])
+	d.close()
+	
+def load(d):
+	for k in d.keys():
+		if k[0]!="_":
+			globals()[k]=copy.deepcopy(d[k])
+		
+def reference(var,noms):
+	sizex=len(var)
+	if len(noms)==2: sizey=len(var[0])
+	for x in range(sizex):
+		for y in range(sizey):		
+			var[x][y][noms[0]]=x
+			if len(noms)==2: var[x][y][noms[1]]=y
+			
+'''Ancienne fonctions'''			
 
 def loaditems(n,file):
 	global items
 	with open(file, 'rb') as f:
 		liste=list(csv.reader(f,delimiter=';'))
-		for i in range(1,len(liste)):
-			items[liste[i][0]]={}
-			for j in range(1,len(liste[i])):
-				if liste[i][j][:1]=="#":
-					items[liste[i][0]][liste[0][j]]=int(liste[i][j][1:])
-				elif liste[i][j][:1]=="[":
-					atemp=liste[i][j][1:-1].split(",")
-					items[liste[i][0]][liste[0][j]]=[int(atemp[k]) for k in range(len(atemp))]
-				elif liste[i][j][:1]=="{":
-					atemp=items[liste[i][0]][liste[0][j]]=liste[i][j][1:-1].split(",")
-					items[liste[i][0]][liste[0][j]]=[atemp[k] for k in range(len(atemp))]
-				elif liste[i][j][:2]=="0x":
-					items[liste[i][0]][liste[0][j]]=int(liste[i][j][2:],16)
-				elif liste[i][j][:1]=="&":
-					items[liste[i][0]][liste[0][j]]=float(liste[i][j][1:])
-				elif liste[i][j][:1]=="@":
-					items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]		
-				elif liste[i][j][:1]=="%":					
-					items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
-				else:
-					items[liste[i][0]][liste[0][j]]=liste[i][j]
-			if n!=0:
-				items[liste[i][0]]['value']=n+i-1
-			items[items[liste[i][0]]['value']]=liste[i][0]
+		if len(liste)!=0:
+			for i in range(1,len(liste)):
+				items[liste[i][0]]={}
+				for j in range(1,len(liste[i])):
+					if liste[i][j][:1]=="#":
+						items[liste[i][0]][liste[0][j]]=int(liste[i][j][1:])
+					elif liste[i][j][:1]=="[":
+						atemp=liste[i][j][1:-1].split(",")
+						items[liste[i][0]][liste[0][j]]=[int(atemp[k]) for k in range(len(atemp))]
+					elif liste[i][j][:1]=="{":
+						atemp=items[liste[i][0]][liste[0][j]]=liste[i][j][1:-1].split(",")
+						items[liste[i][0]][liste[0][j]]=[atemp[k] for k in range(len(atemp))]
+					elif liste[i][j][:2]=="0x":
+						items[liste[i][0]][liste[0][j]]=int(liste[i][j][2:],16)
+					elif liste[i][j][:1]=="&":
+						items[liste[i][0]][liste[0][j]]=float(liste[i][j][1:])
+					elif liste[i][j][:1]=="@":
+						items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]		
+					elif liste[i][j][:1]=="%":					
+						items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
+					else:
+						items[liste[i][0]][liste[0][j]]=liste[i][j]
+				if n!=0:
+					items[liste[i][0]]['value']=n+i-1
+				items[items[liste[i][0]]['value']]=liste[i][0]
 		f.close()
 		return len(liste)-1
 		
-def initgrid(x,y):
-	global statedvar,stat_var,seestat,adirection,sizeworld,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,items,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	'''		json.dump(globals()[tempi],f,-1)'''
+		
+def initgrid():
+	global Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,items,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -62,86 +112,47 @@ def initgrid(x,y):
 	direction[(+1,+1)]=[(-1,-1),(-1,+0),(+0,-1),(-1,+1),(+1,-1),(+0,+1),(+1,+0),(+1,+1)]
 	adirection=[(-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)]
 	items = {}
-	sizeworld=loaditems(int("0x40000", 16),"data/worlds.dat")	
+	
+	verifyhome()
 	loaditems(int("0x30000", 16),"data/elements2.dat")	
 	loaditems(int("0x10000", 16),"data/menus2.dat")	
 	loaditems(int("0x20000", 16),"data/menus.dat")
 	loaditems(0,"data/elements.dat")
+	read("dbdata")
+	read(gethome()+"/dbdata")
+	reference(worlds,['world','level'])
+	reference(Uworlds,['world','level'])
 		
 	''' Variables globales '''
-	sizex=x
-	sizey=y
 	zoom=25
 	stat=[0,0,0,0,0,0,0,0,0]
 	nom=descriptif=element='H'
 	victory=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 	current=[0,0,0,0,0,0,0,0,0,0,0,0,0]
-	stat_var=finished=[]
+	stat_var=[]
 	mousel=4
 	mouser=0
 	mousem=3
 	maxnrj=maxrayon=maxcycle=maxtemp=99999
 	allcout=[0,0,0]
+	sizex=sizey=1
 	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=debug=0
-	selected=level=-1
-	tech=9
+	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
 	if len(stat_var)==0:
 		for i in range(len(statedvar)):
 			stat_var.append([0])
-	world_art = [[items['nothing']['value'] for y in range(sizey)] for x in range(sizex)]
-	world_new = [[items['nothing']['value'] for y in range(sizey)] for x in range(sizex)]
+	world_new = world_art = [[]]
+	world=0
+	for w in range(len(worlds)):
+		for l in range(len(worlds[w])):
+			if "level"+str(w)+"-"+str(l) in finished and w>world:
+				world=w
 
 
 ''' *********************************************************************************************** '''
 ''' Sauvegarde/Restauration																								 '''
-
-'''format nom,element,descriptif,debug,zoom,decx,decy,tech,victory     '''
-
-def readpref(file):
-	global finished
-	with open(file, 'a+') as f:
-		try:
-			finished=list(csv.reader(f,delimiter=';'))[0]
-			f.close()
-		except:
-			print "no"
-							
-def writepref(file):
-	global finished
-	with open(file, 'wb+') as f:
-		writer = csv.writer(f, delimiter=';', quotechar='', quoting=csv.QUOTE_NONE)
-		writer.writerow(list(set(finished)))
-		f.close()		
-		
-def readlittlegrid(file,key):
-	with open(file, 'rb') as f:
-		liste=list(csv.reader(f,delimiter=';'))
-		items[key]['nom']=liste[0][0]
-		items[key]['element']=liste[0][1]
-		items[key]['description']=liste[0][2]
-		items[key]['tech']=int(liste[0][7])
-		items[key]['cout']=int(liste[0][8])
-		victemp=liste[0][9][1:len(liste[0][9])-1].split(",")
-		items[key]['victory']=[int(victemp[k]) for k in range(len(victemp))]
-		items[key]['maxcycle']=int(liste[0][15])
-		items[key]['maxnrj']=int(liste[0][16])
-		items[key]['maxrayon']=int(liste[0][17])
-		items[key]['maxtemp']=int(liste[0][18])
-		f.close()
-		
-def readcondgrid(file):
-	global current,cycle,nrj,rayon,temp
-	with open(file, 'rb') as f:
-		liste=list(csv.reader(f,delimiter=';'))
-		curtemp=liste[0][10][1:len(liste[0][10])-1].split(",")
-		current=[int(curtemp[k]) for k in range(len(curtemp))]
-		cycle=int(liste[0][11])
-		nrj=int(liste[0][12])
-		rayon=int(liste[0][13])
-		temp=int(liste[0][14])
-		f.close()
-		
+					
 def resize():
 	global zoom,decx,decy,seestat
 	if seestat>=1:
@@ -155,67 +166,67 @@ def resize():
 	decx=-zoom+(allsizex-zoom*(sizex-2))/2
 	decy=-zoom+(win.height-zoom*(sizey-2))/2
 
-def readgrid(file):
-	global unroll,mousel,mousem,mouser,cout,selected,sizex,sizey,world_old,world_new,world_art,items,zoom,play,stat,cycle,nrj,rayon,tech,decx,decy,unroll,stat,victory,current,temp,debug,nom,descriptif,element,maxnrj,maxrayon,maxcycle,maxtemp
-	try:
-		with open(file, 'rb') as f:
-			liste=list(csv.reader(f,delimiter=';'))
-			sizey=(len(liste)-1)/2
-			sizex=len(liste[1])
-			nom=liste[0][0]
-			element=liste[0][1]
-			descriptif=liste[0][2]
-			debug=int(liste[0][3])
-			resize();
-			tech=int(liste[0][7])
-			cout=int(liste[0][8])		
-			victemp=liste[0][9][1:len(liste[0][9])-1].split(",")
-			victory=[int(victemp[k]) for k in range(len(victemp))]
-			curtemp=liste[0][10][1:len(liste[0][10])-1].split(",")
-			current=[int(curtemp[k]) for k in range(len(curtemp))]
-			cycle=int(liste[0][11])
-			nrj=int(liste[0][12])
-			rayon=int(liste[0][13])
-			temp=int(liste[0][14])
-			maxcycle=int(liste[0][15])
-			maxnrj=int(liste[0][16])
-			maxrayon=int(liste[0][17])
-			maxtemp=int(liste[0][18])
-			world_new = [[int(liste[sizey-i][j]) for i in range(sizey)] for j in range(sizex)]
-			world_art = [[int(liste[-i-1][j]) for i in range(sizey)] for j in range(sizex)]		
-			stat=[0,0,0,0,0,0,0,0,0]
-			unroll=over=0
-			if tech<0:
-				items[items['setcopper']['value']]='setnothinga'
-				items[items['setfiber']['value']]='setnothinga'
-				items[items['setnothing']['value']]='setnothinga'
-				items[items['others']['value']]='setnothinga'
-			elif tech<2:
-				items[items['setcopper']['value']]='setcopper'
-				items[items['setfiber']['value']]='setnothinga'
-				items[items['setnothing']['value']]='setnothing'
-				items[items['others']['value']]='others'
-			else:
-				items[items['setcopper']['value']]='setcopper'
-				items[items['setfiber']['value']]='setfiber'
-				items[items['setnothing']['value']]='setnothing'
-				items[items['others']['value']]='others'
-			f.close()
-			infos()
-			return True
-	except IOError:
-		return False
-
-def writegrid(file):
-	global sizex,sizey,world_old,world_new,world_art,items,play,cycle,nom,element,descriptif,debug,zoom,decx,decy,tech,victory
-	with open(file, 'wb') as f:
-		writer = csv.writer(f, delimiter=';', quotechar='', quoting=csv.QUOTE_NONE)
-		writer.writerow([nom,element,descriptif,debug,zoom,decx,decy,tech,cout,str(victory),str(current),cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp])
-		for j in range(sizey):
-			 writer.writerow([world_new[i][sizey-j-1] for i in range(sizex)])
-		for j in range(sizey):
-			 writer.writerow([wart(i,-j-1) for i in range(sizex)])
-		f.close()
+def readlevel(w,l,user):
+	global worlds,unroll,mousel,mousem,mouser,cout,selected,sizex,sizey,unroll,stat
+	if user:
+		if w<len(Uworlds) and l<len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
+			load(Uworlds[w][l])
+		else:
+			load(worlds[w][l])
+	else:
+		load(worlds[w][l])
+	if tech<0:
+		items[items['setcopper']['value']]='setnothinga'
+		items[items['setfiber']['value']]='setnothinga'
+		items[items['setnothing']['value']]='setnothinga'
+		items[items['others']['value']]='setnothinga'
+	elif tech<2:
+		items[items['setcopper']['value']]='setcopper'
+		items[items['setfiber']['value']]='setnothinga'
+		items[items['setnothing']['value']]='setnothing'
+		items[items['others']['value']]='others'
+	else:
+		items[items['setcopper']['value']]='setcopper'
+		items[items['setfiber']['value']]='setfiber'
+		items[items['setnothing']['value']]='setnothing'
+		items[items['others']['value']]='others'	
+	sizex=len(world_new)
+	sizey=len(world_new[0])
+	resize();	
+	stat=[0,0,0,0,0,0,0,0,0]
+	unroll=over=0
+	infos()
+	
+def savelevel(w,l):
+	global worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
+	while len(Uworlds)<=w:
+		Uworlds.append(0)
+		Uworlds[w]=[]
+	while len(Uworlds[w])<=l:
+		Uworlds[w].append({'level':level,'world':world})
+	Uworlds[w][l]={'nom':nom, 
+'element':element,
+'description':descriptif,
+'_xx':worlds[world][level]['_xx'],
+'_yy':worlds[world][level]['_yy'],
+'video':video,
+'link':link,
+'level':level,
+'world':world,
+'tech':tech,
+'cout':cout,
+'victory':victory,
+'current':worlds[world][level]['current'],
+'cycle':cycle,
+'nrj':nrj,
+'rayon':rayon,
+'temp':temp,
+'maxcycle':maxcycle,
+'maxnrj':maxnrj,
+'maxrayon':maxrayon,
+'maxtemp':maxtemp,
+'world_new':world_new,
+'world_art':world_art}
 	
 ''' *********************************************************************************************** '''
 ''' Fonctions programmees																							 '''
@@ -527,76 +538,72 @@ def drawworld():
 		glColor3ub(255,255,255)
 	pic_arrows2.blit(920,150)
 	glColor3ub(255,255,255)	
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world:
-			for n in ele['validate']:
-				if n!="" and items[n]['world']==world:
-					if n in finished:
-						drawLaser(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50),items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50),random.randint(0,6),20,[0,100,0],12)	
-					else:
-						drawLaser(ele['coordx']+50,int(ele['coordy']/768.0*win.height+50),items[n]['coordx']+50,int(items[n]['coordy']/768.0*win.height+50),2,20,[40,40,40],0)		
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world:
-			if 'cout' not in ele:
-				readlittlegrid(ele['file'],items[int("0x40000",16)+i])
-			if items[int("0x40000",16)+i] not in finished and not (ele['world']==0 and ele['grid']==0):
-				glColor3ub(60,60,60)
-				acolor=(90,90,90,255)
-			elif selected!=ele:
-				glColor3ub(255,120+int(ele['coordx']/1024.0*135),155+int(ele['coordx']/1024.0*100))
-				acolor=(255,255,255,255)
-			else:
-				acolor=(255,0,0,255)
-				document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+ele['description'].decode('utf-8')+"}".encode('utf8'))
-				txt_description.document=document
-				txt_description.draw()
-				document=None
-				glColor3ub(255,255,255)
-				if ele['cout']>0:
-					items['cout']['icon'].blit(740,110)
-					txt_cout2.text=str(ele['cout'])
-					txt_cout2.draw()
-				if ele['maxcycle']<90000:
-					items['cycle']['icon'].blit(740,65)
-					txt_maxcycle2.text=str(ele['maxcycle'])
-					txt_maxcycle2.draw()
-				if ele['tech']>0:	
-					items['tech']['icon'].blit(940,110)
-					txt_tech2.text=str(ele['tech'])
-					txt_tech2.draw()
-				if ele['maxrayon']<90000:	
-					items['rayon']['icon'].blit(940,65)
-					txt_maxrayon2.text=str(ele['maxrayon'])
-					txt_maxrayon2.draw()
-				if ele['maxtemp']<90000:	
-					items['temp']['icon'].blit(850,110)
-					txt_maxtemp2.text=str(ele['maxtemp'])
-					txt_maxtemp2.draw()
-				if ele['maxnrj']<90000:	
-					items['nrj']['icon'].blit(850,65)
-					txt_maxnrj2.text=str(ele['maxnrj'])
-					txt_maxnrj2.draw()
-				victory=ele['victory']
-				drawcondvictory(742,12,1016,50,[40,40,40])
-				glColor3ub(255,0,0)
-			pic_levels2.blit(ele['coordx'],ele['coordy']/768.0*win.height)
+	for l in range(len(worlds[world])):
+		ele=worlds[world][l]
+		for n in ele['link']:
+			if n!="" and n[0]==world:
+				if n in finished:
+					drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*win.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*win.height+50),random.randint(0,6),20,[0,100,0],12)	
+				else:
+					drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*win.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*win.height+50),2,20,[40,40,40],0)		
+	for l in range(len(worlds[world])):
+		ele=worlds[world][l]
+		if (world,l) not in finished:
+			glColor3ub(60,60,60)
+			acolor=(90,90,90,255)
+		elif selected!=ele:
+			glColor3ub(255,120+int(ele['_xx']/1024.0*135),155+int(ele['_xx']/1024.0*100))
+			acolor=(255,255,255,255)
+		else:
+			acolor=(255,0,0,255)
+			document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+ele['description'].decode('utf-8')+"}".encode('utf8'))
+			txt_description.document=document
+			txt_description.draw()
+			document=None
 			glColor3ub(255,255,255)
-			if items[int("0x40000",16)+i] not in finished and not (ele['world']==0 and ele['grid']==0):
-				pic_locked.blit(ele['coordx']+10,ele['coordy']/768.0*win.height+10)
-			txt_element2.text=ele['element']
-			txt_element2.x=ele['coordx']+50
-			txt_element2.y=ele['coordy']/768.0*win.height+67
-			txt_element2.color=(int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150), int(ele['coordx']/1024.0*150),255)
-			txt_element2.draw()
-			calc=(len(ele['nom'])*17-52)/2
-			drawsquare(ele['coordx']+35-calc,int(ele['coordy']/768.0*win.height+2),ele['coordx']+42-calc+len(ele['nom'])*17,int(ele['coordy']/768.0*win.height-18),1,[40,int(ele['coordx']/1024.0*135),int(ele['coordx']/1024.0*100)])			
-			txt_nom2.text=ele['nom'].decode('utf-8')
-			txt_nom2.x=ele['coordx']+38-calc
-			txt_nom2.y=ele['coordy']/768.0*win.height-15
-			txt_nom2.color=acolor
-			txt_nom2.draw()
+			if ele['cout']>0:
+				items['cout']['icon'].blit(740,110)
+				txt_cout2.text=str(ele['cout'])
+				txt_cout2.draw()
+			if ele['maxcycle']<90000:
+				items['cycle']['icon'].blit(740,65)
+				txt_maxcycle2.text=str(ele['maxcycle'])
+				txt_maxcycle2.draw()
+			if ele['tech']>0:	
+				items['tech']['icon'].blit(940,110)
+				txt_tech2.text=str(ele['tech'])
+				txt_tech2.draw()
+			if ele['maxrayon']<90000:	
+				items['rayon']['icon'].blit(940,65)
+				txt_maxrayon2.text=str(ele['maxrayon'])
+				txt_maxrayon2.draw()
+			if ele['maxtemp']<90000:	
+				items['temp']['icon'].blit(850,110)
+				txt_maxtemp2.text=str(ele['maxtemp'])
+				txt_maxtemp2.draw()
+			if ele['maxnrj']<90000:	
+				items['nrj']['icon'].blit(850,65)
+				txt_maxnrj2.text=str(ele['maxnrj'])
+				txt_maxnrj2.draw()
+			victory=ele['victory']
+			drawcondvictory(742,12,1016,50,[40,40,40])
+			glColor3ub(255,0,0)
+		pic_levels2.blit(ele['_xx'],ele['_yy']/768.0*win.height)
+		glColor3ub(255,255,255)
+		if (world,l) not in finished:
+			pic_locked.blit(ele['_xx']+10,ele['_yy']/768.0*win.height+10)
+		txt_element2.text=ele['element']
+		txt_element2.x=ele['_xx']+50
+		txt_element2.y=ele['_yy']/768.0*win.height+67
+		txt_element2.color=(int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150),255)
+		txt_element2.draw()
+		calc=(len(ele['nom'])*17-52)/2
+		drawsquare(ele['_xx']+35-calc,int(ele['_yy']/768.0*win.height+2),ele['_xx']+42-calc+len(ele['nom'])*17,int(ele['_yy']/768.0*win.height-18),1,[40,int(ele['_xx']/1024.0*135),int(ele['_xx']/1024.0*100)])			
+		txt_nom2.text=ele['nom'].decode('utf-8')
+		txt_nom2.x=ele['_xx']+38-calc
+		txt_nom2.y=ele['_yy']/768.0*win.height-15
+		txt_nom2.color=acolor
+		txt_nom2.draw()
 			
 def calc_space(nb,nbtot):
 	global unroll
@@ -789,9 +796,9 @@ def drawgrid(zoom):
 				if art['cat']!=cat:
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
 					cat=art['cat']
-	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240, int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*120+100)])
+	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
 	txt_element.text=element
-	txt_element.color=(int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150), int(items['level'+str(world)+'-'+str(level)]['coordx']/1024.0*150),255)
+	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
 	txt_element.x=win.width-384-len(element)*10
 	txt_element.y=win.height-38
 	txt_element.draw()
@@ -900,19 +907,14 @@ def drawgrid(zoom):
 ''' Fonctions liees aux menus																								 '''
 
 def settings(dummy1,dummy2,dummy3,dummy4):
-	global level,sizeworld
+	global level,world
 	reallystop()
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			writegrid("user/"+ele['file'])
+	savelevel(world,level)
+	sync()
 	level=-2
 				
 def raz(dummy1,dummy2,dummy3,dummy4):
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			readgrid(ele['file'])
+	readlevel(world,level,False)
 	
 def speed(x,y,dummy1,dummy2):
 	global play,zoom
@@ -965,15 +967,16 @@ def setfiber(x,y,dummy1,dummy2):
 				infos()
 		
 def levels(dummy1,dummy2,dummy3,dummy4):
-	global level,sizeworld
+	global level,world
 	reallystop()
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			writegrid("user/"+ele['file'])
+	savelevel(world,level)
+	sync()
 	level=-1
 
 def exits(dummy1,dummy2,dummy3,dummy4):
+	if level>=0:
+		savelevel(world,level)
+		sync()
 	pyglet.app.exit()
 	
 def stater(dummy1,dummy2,dummy3,dummy4):
@@ -1027,16 +1030,17 @@ def zoomp(x,y,dummy1,dummy2):
 ''' Fonctions gestion du monde																		'''
 
 def reallystop():
-	global play,sizeworld,level,stat,stat_var
+	global play,world,level,stat,stat_var,current,cycle,temp,nrj,rayon
 	items[items['run']['value']]='stop'
 	play=0
 	clock.unschedule(calculate)
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			readcondgrid(ele['file'])
-			erase()
-			retriern()
+	current=worlds[world][level]['current']
+	cycle=worlds[world][level]['cycle']
+	temp=worlds[world][level]['temp']
+	nrj=worlds[world][level]['nrj']
+	rayon=worlds[world][level]['rayon']
+	erase()
+	retriern()
 	stat=[0,0,0,0,0,0,0,0,0]
 	stat_var=[]
 	if len(stat_var)==0:
@@ -1044,7 +1048,7 @@ def reallystop():
 			stat_var.append([0])
 				
 def reallyrun():
-		global play,sizeworld
+		global play
 		play=0.15625
 		items[items['run']['value']]='run'
 		clock.schedule_interval(calculate,play)
@@ -1086,27 +1090,19 @@ def swap():
 	adirection[7]=bdirection[0]
 	
 def gameover_ok():
-	global over,level,sizeworld
+	global level,world
 	reallystop()
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			readcondgrid(ele['file'])
-			erase()
-			writegrid("user/"+ele['file'])
+	savelevel(world,level)
+	sync()
 	clock.schedule_once(menu,2,level)
 			
 def itsvictory_ok():
-	global over,level,finished,sizeworld
+	global world,level,finished
 	reallystop()
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world and ele['grid']==level:
-			readcondgrid(ele['file'])
-			erase()
-			writegrid("user/"+ele['file'])
-			finished.extend(ele['validate'])
-			writepref('user/pref.dat')
+	finished.extend(worlds[world][level]['link'])
+	finished=list(set(finished))
+	savelevel(world,level)
+	sync()
 	clock.schedule_once(menu,2,-1)
 	
 def gameover(x):
@@ -1427,7 +1423,7 @@ win = pyglet.window.Window(width=1024, height=768,resizable=True, visible=True)
 win.set_minimum_size(1024, 768)
 '''win = pyglet.window.Window(fullscreen=True,resizable=True)'''
 
-initgrid(30,20)
+initgrid()
 glEnable(GL_BLEND);
 '''glEnable(GL_LINE_SMOOTH);
 glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);'''
@@ -1482,11 +1478,7 @@ txt_world=pyglet.text.Label("World",font_name='OpenDyslexicAlta',font_size=30,x=
 txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_son=pyglet.text.Label("Reglages du son",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
-readpref('user/pref.dat')
-world=0
-for i in range(sizeworld):
-	if items[int("0x40000",16)+i] in finished and items[items[int("0x40000",16)+i]]['world']>world:
-		world=items[items[int("0x40000",16)+i]]['world']
+
 
 ''' *********************************************************************************************** '''
 ''' Fonctions evenementielles liees a la fenetre																	 '''
@@ -1518,7 +1510,7 @@ def on_key_press(symbol, modifiers):
 
 @win.event	
 def on_mouse_motion(x, y, dx, dy):
-	global world,selected,allcout,over,level,sizeworld,finished
+	global world,selected,allcout,over,level,worlds,finished
 	if level>=0: 
 		realx=(x-decx)/zoom
 		realy=(y-decy)/zoom
@@ -1537,11 +1529,10 @@ def on_mouse_motion(x, y, dx, dy):
 						allcout[2]=items[items[int("0x30000",16)+i]]
 		return	
 	selected=-1
-	for i in range(sizeworld):
-		ele=items[items[int("0x40000",16)+i]]
-		if ele['world']==world:
-			if x>ele['coordx']+20 and x<ele['coordx']+100 and y>ele['coordy']/768.0*win.height+0 and y<ele['coordy']/768.0*win.height+110 and (items[ele['value']] in finished or items[ele['value']]=="level0-0"):
-				selected=ele
+	for l in range(len(worlds[world])):
+		ele=worlds[world][l]
+		if x>ele['_xx']+20 and x<ele['_xx']+100 and y>ele['_yy']/768.0*win.height+0 and y<ele['_yy']/768.0*win.height+110 and ((world,l) in finished):
+			selected=ele
 	if x>940 and y>win.height-100 and x<1024 and y<win.height:
 		selected=-2
 	if x>840 and y>150 and x<920 and y<240:
@@ -1588,22 +1579,23 @@ def on_mouse_press(x, y, button, modifiers):
 	if over<0: 
 		itsvictory_ok()
 		return
-	if level<0: 
+	if level<0:
 		if selected==-2:
 			pyglet.app.exit()
-		elif selected==-4 and world>0:
-			world=world-1
-		elif selected==-3 and world<2:
-			world=world+1
-		elif selected>-1:
-			level=selected['grid']
-			if readgrid("user/"+selected['file'])==False : readgrid(selected['file'])
-			if selected['tuto']!="":
-				player.queue(pyglet.resource.media(selected['tuto']))
+		elif selected==-4:
+			if world>0:	world=world-1
+		elif selected==-3:
+			if world<len(worlds)-1: world=world+1
+		elif selected==-1:		
+			return
+		else:
+			readlevel(selected['world'],selected['level'],True)
+			if selected['video']:
+				player.queue(pyglet.resource.media('movie/level'+str(world)+"-"+str(level)+".mp4"))
 				player.play()
 				ambiance.pause()
 				selected=-1
-			return
+		return
 	realx=(x-decx)/zoom
 	realy=(y-decy)/zoom
 	for i in range(15):
