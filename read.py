@@ -15,19 +15,20 @@ def load(d):
 			globals()[k]=d[k]
 		
 def reference(var,noms):
-	sizex=len(var)
-	if len(noms)==2: sizey=len(var[0])
-	for x in range(sizex):
-		for y in range(sizey):		
-			print var[x][y]['level']
-			var[x][y][noms[0]]=x
-			if len(noms)==2: var[x][y][noms[1]]=y		
-
+	if len(noms)==2: 
+		for y in range(len(var)):
+			for x in range(len(var[y])):	
+				var[y][x][noms[0]]=y
+				var[y][x][noms[1]]=x
+	else:
+		for x in range(len(var[y])):	
+			var[x][y][noms[0]]=x	
 
 read("/home/horde/.wirechem/dbdata")
+reference(Uworlds,['world','level'])
 print Uworlds
 print finished
 print len(Uworlds[0])
-reference(Uworlds,['world','level'])
+
 
 
