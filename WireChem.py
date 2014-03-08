@@ -54,12 +54,14 @@ def load(d):
 			globals()[k]=copy.deepcopy(d[k])
 		
 def reference(var,noms):
-	sizex=len(var)
-	if len(noms)==2: sizey=len(var[0])
-	for x in range(sizex):
-		for y in range(sizey):		
-			var[x][y][noms[0]]=x
-			if len(noms)==2: var[x][y][noms[1]]=y
+	if len(noms)==2: 
+		for y in range(len(var)):
+			for x in range(len(var[y])):	
+				var[y][x][noms[0]]=y
+				var[y][x][noms[1]]=x
+	else:
+		for x in range(len(var[y])):	
+			var[x][y][noms[0]]=x	
 			
 '''Ancienne fonctions'''			
 
@@ -203,7 +205,7 @@ def savelevel(w,l):
 		Uworlds.append(0)
 		Uworlds[w]=[]
 	while len(Uworlds[w])<=l:
-		Uworlds[w].append({'level':level,'world':world})
+		Uworlds[w].append({})
 	Uworlds[w][l]={'nom':nom, 
 'element':element,
 'description':descriptif,
