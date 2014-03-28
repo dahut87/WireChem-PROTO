@@ -63,44 +63,20 @@ def reference(var,noms):
 		for x in range(len(var[y])):	
 			var[x][y][noms[0]]=x	
 			
-'''Ancienne fonctions'''			
+def duplicateref(d):
+	for k in d.keys():
+		d[d[k]['nom']]=d[k]
+		
+def interprete(d):
+	for k in d.keys():
+		if 'icon' in d[k]:
+			print d[k]
+			if type(d[k]['icon']) is str and len(d[k]['icon'])>0 and d[k]['icon'][0]=="%":
 
-def loaditems(n,file):
-	global items
-	with open(file, 'rb') as f:
-		liste=list(csv.reader(f,delimiter=';'))
-		if len(liste)!=0:
-			for i in range(1,len(liste)):
-				items[liste[i][0]]={}
-				for j in range(1,len(liste[i])):
-					if liste[i][j][:1]=="#":
-						items[liste[i][0]][liste[0][j]]=int(liste[i][j][1:])
-					elif liste[i][j][:1]=="[":
-						atemp=liste[i][j][1:-1].split(",")
-						items[liste[i][0]][liste[0][j]]=[int(atemp[k]) for k in range(len(atemp))]
-					elif liste[i][j][:1]=="{":
-						atemp=items[liste[i][0]][liste[0][j]]=liste[i][j][1:-1].split(",")
-						items[liste[i][0]][liste[0][j]]=[atemp[k] for k in range(len(atemp))]
-					elif liste[i][j][:2]=="0x":
-						items[liste[i][0]][liste[0][j]]=int(liste[i][j][2:],16)
-					elif liste[i][j][:1]=="&":
-						items[liste[i][0]][liste[0][j]]=float(liste[i][j][1:])
-					elif liste[i][j][:1]=="@":
-						items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]		
-					elif liste[i][j][:1]=="%":					
-						items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
-					else:
-						items[liste[i][0]][liste[0][j]]=liste[i][j]
-				if n!=0:
-					items[liste[i][0]]['value']=n+i-1
-				items[items[liste[i][0]]['value']]=liste[i][0]
-		f.close()
-		return len(liste)-1
-		
-	'''		json.dump(globals()[tempi],f,-1)'''
-		
+				d[k]['icon']=image.load(d[k]['icon'][1:])	
+			
 def initgrid():
-	global Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,items,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	global art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -113,18 +89,15 @@ def initgrid():
 	direction[(+1,+0)]=[(-1,+0),(-1,+1),(-1,-1),(+0,+1),(+0,-1),(+1,+1),(+1,-1),(+1,+0)]
 	direction[(+1,+1)]=[(-1,-1),(-1,+0),(+0,-1),(-1,+1),(+1,-1),(+0,+1),(+1,+0),(+1,+1)]
 	adirection=[(-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)]
-	items = {}
 	
 	verifyhome()
-	loaditems(int("0x30000", 16),"data/elements2.dat")	
-	loaditems(int("0x10000", 16),"data/menus2.dat")	
-	loaditems(int("0x20000", 16),"data/menus.dat")
-	loaditems(0,"data/elements.dat")
 	read("dbdata")
 	read(gethome()+"/dbdata")
 	reference(worlds,['world','level'])
 	reference(Uworlds,['world','level'])
-		
+	duplicateref(art)
+	duplicateref(dat)
+	interprete(dat)	
 	''' Variables globales '''
 	zoom=25
 	stat=[0,0,0,0,0,0,0,0,0]
@@ -178,20 +151,20 @@ def readlevel(w,l,user):
 	else:
 		load(worlds[w][l])
 	if tech<0:
-		items[items['setcopper']['value']]='setnothinga'
-		items[items['setfiber']['value']]='setnothinga'
-		items[items['setnothing']['value']]='setnothinga'
-		items[items['others']['value']]='setnothinga'
+		dat['setcopper']['value']='setnothinga'
+		dat['setfiber']['value']='setnothinga'
+		dat['setnothing']['value']='setnothinga'
+		dat['others']['value']='setnothinga'
 	elif tech<2:
-		items[items['setcopper']['value']]='setcopper'
-		items[items['setfiber']['value']]='setnothinga'
-		items[items['setnothing']['value']]='setnothing'
-		items[items['others']['value']]='others'
+		dat['setcopper']['value']='setcopper'
+		dat['setfiber']['value']='setnothinga'
+		dat['setnothing']['value']='setnothing'
+		dat['others']['value']='others'
 	else:
-		items[items['setcopper']['value']]='setcopper'
-		items[items['setfiber']['value']]='setfiber'
-		items[items['setnothing']['value']]='setnothing'
-		items[items['others']['value']]='others'	
+		dat['setcopper']['value']='setcopper'
+		dat['setfiber']['value']='setfiber'
+		dat['setnothing']['value']='setnothing'
+		dat['others']['value']='others'	
 	sizex=len(world_new)
 	sizey=len(world_new[0])
 	resize();	
@@ -447,18 +420,18 @@ def drawLaser(x1,y1,x2,y2,width,power,color,randomize):
 		glEnd()
 		glLineStipple(1,65535)
 	
-def drawitdem(x,y,art,thezoom,activation):
-	if 'text' in art:
-		txt_item.text=art['text'].decode('utf-8')
+def drawitem(x,y,it,thezoom,activation):
+	if 'text' in it:
+		txt_item.text=it['text'].decode('utf-8')
 		txt_item.font_size=thezoom
 		txt_item.x=x+thezoom/10
 		txt_item.y=y+thezoom/10
-		if art['activable']==0:
-			txt_item.color=(art['color'][0],art['color'][1],art['color'][2],255)
+		if it['activable']:
+			txt_item.color=(it['color'][0],it['color'][1],it['color'][2],255)
 		else:
 			if activation!=0:
-				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[art['color'][0],art['color'][1],art['color'][2],55+200*activation/10])
-				txt_item.color=(art['color'][0],art['color'][1],art['color'][2],55+200*activation/10)
+				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[it['color'][0],it['color'][1],it['color'][2],55+200*activation/10])
+				txt_item.color=(it['color'][0],it['color'][1],it['color'][2],55+200*activation/10)
 			else:
 				drawtriangles(x+1,y+1,x+thezoom-1,y+thezoom-1,[255,255,255])
 				txt_item.color=(255,255,255,255)
@@ -485,7 +458,7 @@ def drawcondvictory(x,y,x2,y2,color):
 	global victory,current
 	'''size=(x2-x)/sum(victory[i] for i in range(len(victory)))'''
 	names=["e","e","q","e","e","e","e","K","L","M","N","n","p"]
-	thecolors=[items['headb2']['color'],items['headb']['color'],items['headp']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color'],items['headb']['color'],items['headb']['color'],items['headb']['color'],items['headb']['color'],items['neut']['color'],items['prot']['color']]
+	thecolors=[art['headb2']['color'],art['headb']['color'],art['headp']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color'],art['headb']['color'],art['headb']['color'],art['headb']['color'],art['headb']['color'],art['neut']['color'],art['prot']['color']]
 	size=21
 	for i in range(len(victory)):
 		if victory[i]>0: 
@@ -564,27 +537,27 @@ def drawworld():
 			document=None
 			glColor3ub(255,255,255)
 			if ele['cout']>0:
-				items['cout']['icon'].blit(740,110)
+				dat['cout']['icon'].blit(740,110)
 				txt_cout2.text=str(ele['cout'])
 				txt_cout2.draw()
 			if ele['maxcycle']<90000:
-				items['cycle']['icon'].blit(740,65)
+				dat['cycle']['icon'].blit(740,65)
 				txt_maxcycle2.text=str(ele['maxcycle'])
 				txt_maxcycle2.draw()
 			if ele['tech']>0:	
-				items['tech']['icon'].blit(940,110)
+				dat['tech']['icon'].blit(940,110)
 				txt_tech2.text=str(ele['tech'])
 				txt_tech2.draw()
 			if ele['maxrayon']<90000:	
-				items['rayon']['icon'].blit(940,65)
+				dat['rayon']['icon'].blit(940,65)
 				txt_maxrayon2.text=str(ele['maxrayon'])
 				txt_maxrayon2.draw()
 			if ele['maxtemp']<90000:	
-				items['temp']['icon'].blit(850,110)
+				dat['temp']['icon'].blit(850,110)
 				txt_maxtemp2.text=str(ele['maxtemp'])
 				txt_maxtemp2.draw()
 			if ele['maxnrj']<90000:	
-				items['nrj']['icon'].blit(850,65)
+				dat['nrj']['icon'].blit(850,65)
 				txt_maxnrj2.text=str(ele['maxnrj'])
 				txt_maxnrj2.draw()
 			victory=ele['victory']
@@ -622,26 +595,26 @@ def drawpopup():
 	txt_drag.x=allcout[0]+45
 	txt_drag.y=allcout[1]+10
 	glColor3ub(255,255,255,255)
-	items['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
+	dat['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
 	txt_drag.text=str(allcout[2]['cout'])
 	txt_drag.draw()
 	txt_drag.x=allcout[0]+45
 	txt_drag.y=allcout[1]+45
 	glColor3ub(255,255,255,255)
-	items['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
+	dat['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
 	txt_drag.text=str(allcout[2]['tech'])
 	txt_drag.draw()
 	if tech>6:
 		txt_drag.x=allcout[0]+45
 		txt_drag.y=allcout[1]+80
 		glColor3ub(255,255,255,255)
-		items['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
+		dat['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
 		txt_drag.text=str(allcout[2]['nrj'])
 		txt_drag.draw()	
 		txt_drag.x=allcout[0]+45
 		txt_drag.y=allcout[1]+115
 		glColor3ub(255,255,255,255)
-		items['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
+		dat['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
 		txt_drag.text=str(allcout[2]['temp'])
 		txt_drag.draw()	
 
@@ -650,21 +623,21 @@ def drawbigstat(page):
 	drawsquare(2*win.width/3,50+unroll*50,win.width,win.height-50,1,[40,40,40])
 	if page==1:
 		coord=calc_space(1,3)
-		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[items['headb2']['color'],items['headb']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color']])
+		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="eX"
 		txt_victory2.draw()	
 		coord=calc_space(2,3)			
-		drawcumulgraph(calc_space(2,3),[stat_var[7],stat_var[8]],1,[items['neut']['color'],items['prot']['color']])
+		drawcumulgraph(calc_space(2,3),[stat_var[7],stat_var[8]],1,[art['neut']['color'],art['prot']['color']])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+8
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="p/n"
 		txt_victory2.draw()	
 		coord=calc_space(3,3)
-		drawgraph(calc_space(3,3),stat_var[2],1,items['headp']['color'])
+		drawgraph(calc_space(3,3),stat_var[2],1,art['headp']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
@@ -673,51 +646,51 @@ def drawbigstat(page):
 	elif page==2:
 		coord=calc_space(1,3)
 		drawgraph(coord,stat_var[9],1,[180,180,180])
-		items['nrj']['icon'].blit(coord[0],coord[1])
+		dat['nrj']['icon'].blit(coord[0],coord[1])
 		coord=calc_space(2,3)
 		drawgraph(coord,stat_var[10],1,[180,180,180])
-		items['temp']['icon'].blit(coord[0],coord[1])
+		dat['temp']['icon'].blit(coord[0],coord[1])
 		coord=calc_space(3,3)
 		drawgraph(coord,stat_var[11],1,[180,180,180])
-		items['rayon']['icon'].blit(coord[0],coord[1])
+		dat['rayon']['icon'].blit(coord[0],coord[1])
 	elif page==3:
 		coord=calc_space(1,6)
-		drawgraph(coord,stat_var[17],1,items['prot']['color'])
+		drawgraph(coord,stat_var[17],1,art['prot']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="p"
 		txt_victory2.draw()
 		coord=calc_space(2,6)
-		drawgraph(coord,stat_var[16],1,items['neut']['color'])
+		drawgraph(coord,stat_var[16],1,art['neut']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="n"
 		txt_victory2.draw()
 		coord=calc_space(3,6)
-		drawgraph(coord,stat_var[15],1,items['headb']['color'])
+		drawgraph(coord,stat_var[15],1,art['headb']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="N"
 		txt_victory2.draw()
 		coord=calc_space(4,6)
-		drawgraph(coord,stat_var[14],1,items['headb']['color'])
+		drawgraph(coord,stat_var[14],1,art['headb']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="M"
 		txt_victory2.draw()
 		coord=calc_space(5,6)
-		drawgraph(coord,stat_var[13],1,items['headb']['color'])
+		drawgraph(coord,stat_var[13],1,art['headb']['color'])
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
 		txt_victory2.text="L"
 		txt_victory2.draw()
 		coord=calc_space(6,6)
-		drawgraph(coord,stat_var[12],1,items['headb']['color'])	
+		drawgraph(coord,stat_var[12],1,art['headb']['color'])	
 		drawsquare(coord[0],coord[1],coord[0]+36,coord[1]+36,1,[40,40,40])
 		txt_victory2.x=coord[0]+12
 		txt_victory2.y=coord[1]+12
@@ -746,7 +719,7 @@ def drawvictory():
 	txt_over2.draw()
 	
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play,element,seestat
+	global temp,debug,over,allcout,play,element,seestat,art
 	glLineWidth(3)
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
@@ -757,30 +730,30 @@ def drawgrid(zoom):
 		if x*zoom+decx>win.width: break
 		for y in range(1,sizey-1):
 			if y*zoom+decy>win.height: break
-			'''drawsquare(x*zoom+decx,y*zoom+decy,(x+1)*zoom+decx,(y+1)*zoom+decy,1,items[items[world_new[x][y]]]['color'])'''
+			'''drawsquare(x*zoom+decx,y*zoom+decy,(x+1)*zoom+decx,(y+1)*zoom+decy,1,art[world_new[x][y]]['color'])'''
 			glBegin(GL_QUADS)
 			if world_new[x-1][y-1]>0 or (world_new[x-1][y]>0 and world_new[x][y-1]>0):
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],255)
 			else:
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],130)
 			glVertex2i(x*zoom+decx,y*zoom+decy)
 			if world_new[x+1][y-1]>0 or (world_new[x+1][y]>0 and world_new[x][y-1]>0):
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],255)
 			else:
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],130)
 			glVertex2i((x+1)*zoom+decx,y*zoom+decy)
 			if world_new[x+1][y+1]>0 or (world_new[x][y+1]>0 and world_new[x+1][y]>0):
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],255)
 			else:
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],130)
 			glVertex2i((x+1)*zoom+decx,(y+1)*zoom+decy)
 			if world_new[x-1][y+1]>0 or (world_new[x][y+1]>0 and world_new[x-1][y]>0):
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],255)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],255)
 			else:
-				glColor4ub(items[items[world_new[x][y]]]['color'][0],items[items[world_new[x][y]]]['color'][1],items[items[world_new[x][y]]]['color'][2],130)
+				glColor4ub(art[world_new[x][y]]['color'][0],art[world_new[x][y]]['color'][1],art[world_new[x][y]]['color'][2],130)
 			glVertex2i(x*zoom+decx,(y+1)*zoom+decy)
 			glEnd()
-			drawitdem(x*zoom+decx,y*zoom+decy,items[items[wart(x,y)]],zoom,getactive(x,y))
+			drawitem(x*zoom+decx,y*zoom+decy,art[wart(x,y)],zoom,getactive(x,y))
 	drawsquare(0,win.height,win.width,win.height-50,1,[40,40,40])
 	drawsquare(0,50,win.width,0,1,[40,40,40])
 	if unroll!=0:	
@@ -792,12 +765,12 @@ def drawgrid(zoom):
 		drawsquare(0,57+size,win.width,0,1,[40,40,40])
 		cat=65555
 		for i in range(nbelements):
-			art=items[items[int("0x30000",16)+i]]
-			if art['tech']<=tech: 
-				drawitdem(10+i*size,55,items[items[int("0x30000",16)+i]],size-6,10)
-				if art['cat']!=cat:
+			it=art[int("0x30000",16)+i]
+			if it['tech']<=tech: 
+				drawitem(10+i*size,55,art[int("0x30000",16)+i],size-6,10)
+				if it['cat']!=cat:
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
-					cat=art['cat']
+					cat=it['cat']
 	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
 	txt_element.text=element
 	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
@@ -809,15 +782,15 @@ def drawgrid(zoom):
 	for i in range(4):
 		if (i==0 and tech>0) or (i==1 and tech>6) or (i==2 and tech>7) or (i==3 and tech>8):
 			glColor3ub(255,255,255)
-			items[items[int("0x10000",16)+i]]['icon'].blit(10+i*(150+addx),win.height-45)
+			dat[int("0x10000",16)+i]['icon'].blit(10+i*(150+addx),win.height-45)
 			if (tech>=5 and addx>100):
-				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.text=str(eval(dat[int("0x10000",16)+i]))
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=y=win.height-38
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
-				txt_temp.text="/"+str(eval("max"+items[int("0x10000",16)+i]))
+				txt_temp.text="/"+str(eval("max"+dat[int("0x10000",16)+i]))
 				if txt_temp.text=="/99999": txt_temp.text="/illimité".decode('utf-8')
 				txt_temp.x=150+i*(150+addx)
 				txt_temp.y=win.height-38
@@ -825,13 +798,13 @@ def drawgrid(zoom):
 				txt_temp.font_size=12
 				txt_temp.draw()
 			elif (tech>=5):
-				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.text=str(eval(dat[int("0x10000",16)+i]))
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-29
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
-				txt_temp.text=str(eval("max"+items[int("0x10000",16)+i]))
+				txt_temp.text=str(eval("max"+dat[int("0x10000",16)+i]))
 				if txt_temp.text=="99999": txt_temp.text="illimité".decode('utf-8')
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-47
@@ -839,7 +812,7 @@ def drawgrid(zoom):
 				txt_temp.font_size=12
 				txt_temp.draw()
 			else:
-				txt_temp.text=str(eval(items[int("0x10000",16)+i]))
+				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=y=win.height-38
 				txt_temp.color=(180, 180, 180,255)
@@ -848,12 +821,12 @@ def drawgrid(zoom):
 	drawcondvictory(win.width-364,win.height-45,1020,win.height-5,[90,90,90])
 	for i in range(15):
 		glColor3ub(255,255,255)
-		if items[items[int("0x20000",16)+i]]['icon']=="/":
-			drawitdem(10+i*45,8,items[items[int("0x20000",16)+i]]['ref'],36,10)
-		elif items[items[int("0x20000",16)+i]]['icon']!="":
-			items[items[int("0x20000",16)+i]]['icon'].blit(10+i*45,8)
+		if dat[int("0x20000",16)+i]['icon']=="/":
+			drawitem(10+i*45,8,dat[int("0x20000",16)+i]['ref'],36,10)
+		elif dat[int("0x20000",16)+i]['icon']!="":
+			dat[int("0x20000",16)+i]['icon'].blit(10+i*45,8)
 		else:
-			drawsquare(10+i*45,8,46+i*45,44,1,items[items[int("0x20000",16)+i]]['color'])
+			drawsquare(10+i*45,8,46+i*45,44,1,dat[int("0x20000",16)+i]['color'])
 		if i==11 or i==6:
 			drawsquare(5+i*45,8,6+i*45,44,0,[90,90,90])
 		if i==1:
@@ -880,13 +853,13 @@ def drawgrid(zoom):
 	posx=10+15*45
 	addx=171+win.width-1024
 	if addx<500:
-		drawstat(posx,8,posx+addx,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6],stat[2],stat[7],stat[8]],[items['headb2']['color'],items['headb']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color'],items['headp']['color'],items['neut']['color'],items['prot']['color']])
+		drawstat(posx,8,posx+addx,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6],stat[2],stat[7],stat[8]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color'],art['headp']['color'],art['neut']['color'],art['prot']['color']])
 	else:
-		drawstat(posx,8,posx+(addx-20)/2,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6]],[items['headb2']['color'],items['headb']['color'],items['head']['color'],items['head2']['color'],items['headr']['color'],items['headr2']['color']])
-		drawstat(posx+(addx-20)/2+20,8,posx+addx,44,[stat[2],stat[7],stat[8]],[items['headp']['color'],items['neut']['color'],items['prot']['color']])
+		drawstat(posx,8,posx+(addx-20)/2,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']])
+		drawstat(posx+(addx-20)/2+20,8,posx+addx,44,[stat[2],stat[7],stat[8]],[art['headp']['color'],art['neut']['color'],art['prot']['color']])
 	if tech>=0:	
 		glColor3ub(255,255,255)
-		items['cout']['icon'].blit(posx+addx+4,7)
+		dat['cout']['icon'].blit(posx+addx+4,7)
 		txt_cout.text=str(cout-thecout)
 		if (cout-thecout)>0:
 			txt_cout.x=posx+addx+44
@@ -896,7 +869,7 @@ def drawgrid(zoom):
 		txt_cout.draw()
 	if tech>0:
 		glColor3ub(255,255,255)
-		items['tech']['icon'].blit(posx+addx+109,7)
+		dat['tech']['icon'].blit(posx+addx+109,7)
 		txt_tech.x=posx+addx+144
 		txt_tech.text=str(tech)
 		txt_tech.draw()
@@ -933,12 +906,12 @@ def speed(x,y,dummy1,dummy2):
 
 def others(x,y,dummy1,dummy2):
 	global tech
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or items[items[world_art[x][y]]]['tech']<tech):
-		value=items['others']['ref']['value']
-		if value==items['null']['value']:
-			value=items['nothing']['value']
-		if world_new[x][y]!=items['fiber']['value'] and world_new[x][y]<items['tail']['value']: 
-			if cout-thecout-items['others']['ref']['cout'] >= 0:
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or art[world_art[x][y]]['tech']<tech):
+		value=dat['others']['ref']['value']
+		if value==art['null']['value']:
+			value=art['nothing']['value']
+		if world_new[x][y]!=art['fiber']['value'] and world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-dat['others']['ref']['cout'] >= 0:
 				world_art[x][y] = value
 				infos()
 
@@ -948,24 +921,24 @@ def setnothinga(x,y,dummy1,dummy2):
 def setnothing(x,y,dummy1,dummy2):
 	global tech
 	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y] == items['nothing']['value']:
-			world_new[x][y] = items['nothing']['value']				
-		elif items[items[world_art[x][y]]]['tech']<=tech:
-			world_art[x][y] = items['nothing']['value']
+		if world_art[x][y] == art['nothing']['value']:
+			world_new[x][y] = art['nothing']['value']				
+		elif art[world_art[x][y]]['tech']<=tech:
+			world_art[x][y] = art['nothing']['value']
 		infos()
 		
 def setcopper(x,y,dummy1,dummy2):
 	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_new[x][y]<items['tail']['value']: 
-			if cout-thecout-items['copper']['cout'] >= 0:
-				world_new[x][y] = items['copper']['value']
+		if world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-art['copper']['cout'] >= 0:
+				world_new[x][y] = art['copper']['value']
 				infos()
 	
 def setfiber(x,y,dummy1,dummy2):
 	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y]==0 and world_new[x][y]<items['tail']['value']: 
-			if cout-thecout-items['fiber']['cout'] >= 0:
-				world_new[x][y]=items['fiber']['value']
+		if world_art[x][y]==0 and world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-art['fiber']['cout'] >= 0:
+				world_new[x][y]=art['fiber']['value']
 				infos()
 		
 def levels(dummy1,dummy2,dummy3,dummy4):
@@ -1033,7 +1006,7 @@ def zoomp(x,y,dummy1,dummy2):
 
 def reallystop():
 	global play,world,level,stat,stat_var,current,cycle,temp,nrj,rayon
-	items[items['run']['value']]='stop'
+	dat['run']['value']='stop'
 	play=0
 	clock.unschedule(calculate)
 	current=worlds[world][level]['current']
@@ -1052,19 +1025,19 @@ def reallystop():
 def reallyrun():
 		global play
 		play=0.15625
-		items[items['run']['value']]='run'
+		dat['run']['value']='run'
 		clock.schedule_interval(calculate,play)
 																			 
 def retriern():
 	for x in range(1,sizex-1):
 		for y in range(1,sizey-1):
-			art=wart(x,y)	
-			typetri=items[art][:6]
+			it=wart(x,y)	
+			typetri=art[it]['nom'][:6]
 			if typetri=="triern":
 				acttri=""
-				idtri=items[art][8]
-				if len(items[art])==10: acttri=items[art][9]
-				world_art[x][y]=items['triern'+idtri+"-"+idtri+acttri]['value']
+				idtri=art[it]['nom'][8]
+				if len(art[it]['nom'])==10: acttri=art[it]['nom'][9]
+				world_art[x][y]=art['triern'+idtri+"-"+idtri+acttri]['value']
 
 def swap():
 	global adirection
@@ -1127,18 +1100,18 @@ def infos():
 	thecout=0
 	for x in range(1,sizex-1):
 		for y in range(1,sizey-1):
-			if world_new[x][y]==items['headb2']['value']: stat[0]=stat[0]+1
-			if world_new[x][y]==items['headb']['value']: stat[1]=stat[1]+1
-			if world_new[x][y]==items['headp']['value']: stat[2]=stat[2]+1
-			if world_new[x][y]==items['head']['value']: stat[3]=stat[3]+1
-			if world_new[x][y]==items['head2']['value']: stat[4]=stat[4]+1
-			if world_new[x][y]==items['headr']['value']: stat[5]=stat[5]+1
-			if world_new[x][y]==items['headr2']['value']: stat[6]=stat[6]+1
-			if world_new[x][y]==items['neut']['value']: stat[7]=stat[7]+1
-			if world_new[x][y]==items['prot']['value']: stat[8]=stat[8]+1
+			if world_new[x][y]==art['headb2']['value']: stat[0]=stat[0]+1
+			if world_new[x][y]==art['headb']['value']: stat[1]=stat[1]+1
+			if world_new[x][y]==art['headp']['value']: stat[2]=stat[2]+1
+			if world_new[x][y]==art['head']['value']: stat[3]=stat[3]+1
+			if world_new[x][y]==art['head2']['value']: stat[4]=stat[4]+1
+			if world_new[x][y]==art['headr']['value']: stat[5]=stat[5]+1
+			if world_new[x][y]==art['headr2']['value']: stat[6]=stat[6]+1
+			if world_new[x][y]==art['neut']['value']: stat[7]=stat[7]+1
+			if world_new[x][y]==art['prot']['value']: stat[8]=stat[8]+1
 
 			if cycle!=0: desactive(x,y)
-			thecout=items[items[world_new[x][y]]]['cout']+items[items[wart(x,y)]]['cout']+thecout
+			thecout=art[world_new[x][y]]['cout']+art[wart(x,y)]['cout']+thecout
 	tempvictoire=0
 	for i in range(len(victory)):
 		if victory[i]-current[i]<0:
@@ -1157,12 +1130,12 @@ def erase():
 	for x in range(1,sizex-1):
 		for y in range(1,sizey-1):
 			unactive(x,y)
-			if world_new[x][y]==items['headp']['value'] or world_new[x][y]==items['tailp']['value']:
-				world_new[x][y]=items['fiber']['value']
-			elif world_new[x][y]==items['prot']['value'] or world_new[x][y]==items['neut']['value']:
-				world_new[x][y]=items['nothing']['value']
-			elif world_new[x][y]>=items['tail']['value']:
-				world_new[x][y]=items['copper']['value']
+			if world_new[x][y]==art['headp']['value'] or world_new[x][y]==art['tailp']['value']:
+				world_new[x][y]=art['fiber']['value']
+			elif world_new[x][y]==art['prot']['value'] or world_new[x][y]==art['neut']['value']:
+				world_new[x][y]=art['nothing']['value']
+			elif world_new[x][y]>=art['tail']['value']:
+				world_new[x][y]=art['copper']['value']
 
 def wart(x,y):
 	return world_art[x][y] & int("0xFFFFFF",16)
@@ -1236,175 +1209,175 @@ def nextgrid():
 		for y in range(1,sizey-1):
 			value=world_old[x][y]
 			flag=0
-			if (wart(x,y)==items['canonh']['value'] or wart(x,y)==items['canonh2']['value']) and ((cycle%40==0 and isactive(x,y)==False) or (cycle%10==0 and isactive(x,y))):
-				if world_new[x][y]>=items['head']['value']:
+			if (wart(x,y)==art['canonh']['value'] or wart(x,y)==art['canonh2']['value']) and ((cycle%40==0 and isactive(x,y)==False) or (cycle%10==0 and isactive(x,y))):
+				if world_new[x][y]>=art['head']['value']:
 					gameover(4)
-				elif world_new[x][y]==items['nothing']['value']:
+				elif world_new[x][y]==art['nothing']['value']:
 					temp=temp+5					
 				else:
-					world_new[x][y]=items['head']['value']
+					world_new[x][y]=art['head']['value']
 					nrj=nrj+1
-			if wart(x,y)==items['canont']['value'] and ((cycle%40==0 and isactive(x,y)==False) or (cycle%10==0 and isactive(x,y))):
-				world_new[x][y]=items['tail']['value']
-			if world_old[x][y] == items['headp']['value']:
-				world_new[x][y]=items['tailp']['value']
-			elif world_old[x][y] >= items['head']['value']:
+			if wart(x,y)==art['canont']['value'] and ((cycle%40==0 and isactive(x,y)==False) or (cycle%10==0 and isactive(x,y))):
+				world_new[x][y]=art['tail']['value']
+			if world_old[x][y] == art['headp']['value']:
+				world_new[x][y]=art['tailp']['value']
+			elif world_old[x][y] >= art['head']['value']:
 				for dx,dy in adirection:
 						if world_old[x+dx][y+dy]>=value>>8:
 							break
 				for ex,ey in direction[(dx,dy)]:
-						if world_new[x+ex][y+ey]==items['headr']['value'] and world_new[x][y]==items['headr']['value']:
-							world_old[x+ex][y+ey]=items['headr2']['value']
-							world_new[x+ex][y+ey]=items['headr2']['value']
-							world_new[x][y]=items['copper']['value']
+						if world_new[x+ex][y+ey]==art['headr']['value'] and world_new[x][y]==art['headr']['value']:
+							world_old[x+ex][y+ey]=art['headr2']['value']
+							world_new[x+ex][y+ey]=art['headr2']['value']
+							world_new[x][y]=art['copper']['value']
 							rayon=rayon+1
 							break
-						if world_new[x+ex][y+ey]==items['headb']['value'] and world_new[x][y]==items['headb']['value']:
-							world_old[x+ex][y+ey]=items['headb2']['value']
-							world_new[x+ex][y+ey]=items['headb2']['value']
-							world_new[x][y]=items['copper']['value']
+						if world_new[x+ex][y+ey]==art['headb']['value'] and world_new[x][y]==art['headb']['value']:
+							world_old[x+ex][y+ey]=art['headb2']['value']
+							world_new[x+ex][y+ey]=art['headb2']['value']
+							world_new[x][y]=art['copper']['value']
 							rayon=rayon+1
 							break
-						if (world_new[x+ex][y+ey]==items['headb']['value'] and world_new[x][y]==items['headr']['value']) or (world_new[x+ex][y+ey]==items['headr']['value'] and world_new[x][y]==items['headb']['value']): 
-							world_old[x+ex][y+ey]=items['copper']['value']
-							world_new[x+ex][y+ey]=items['copper']['value']	
-							world_new[x][y]=items['copper']['value']
+						if (world_new[x+ex][y+ey]==art['headb']['value'] and world_new[x][y]==art['headr']['value']) or (world_new[x+ex][y+ey]==art['headr']['value'] and world_new[x][y]==art['headb']['value']): 
+							world_old[x+ex][y+ey]=art['copper']['value']
+							world_new[x+ex][y+ey]=art['copper']['value']	
+							world_new[x][y]=art['copper']['value']
 							break		
-						if (world_new[x+ex][y+ey]==items['headb2']['value'] and world_new[x][y]==items['headr2']['value']) or (world_new[x+ex][y+ey]==items['headr2']['value'] and world_new[x][y]==items['headb2']['value']):
-							world_old[x+ex][y+ey]=items['nothing']['value']
-							world_new[x+ex][y+ey]=items['nothing']['value']
-							world_new[x][y]=items['nothing']['value']
+						if (world_new[x+ex][y+ey]==art['headb2']['value'] and world_new[x][y]==art['headr2']['value']) or (world_new[x+ex][y+ey]==art['headr2']['value'] and world_new[x][y]==art['headb2']['value']):
+							world_old[x+ex][y+ey]=art['nothing']['value']
+							world_new[x+ex][y+ey]=art['nothing']['value']
+							world_new[x][y]=art['nothing']['value']
 							rayon=rayon+10
 							break
-						if world_new[x+ex][y+ey]==items['headr2']['value'] and world_new[x][y]==items['headb']['value']: 
-							world_old[x+ex][y+ey]=items['headr']['value']
-							world_new[x+ex][y+ey]=items['headr']['value']
-							world_new[x][y]=items['copper']['value']
+						if world_new[x+ex][y+ey]==art['headr2']['value'] and world_new[x][y]==art['headb']['value']: 
+							world_old[x+ex][y+ey]=art['headr']['value']
+							world_new[x+ex][y+ey]=art['headr']['value']
+							world_new[x][y]=art['copper']['value']
 							rayon=rayon+1
 							break
-						if world_new[x+ex][y+ey]==items['headb2']['value'] and world_new[x][y]==items['headr']['value']: 
-							world_old[x+ex][y+ey]=items['copper']['value']
-							world_new[x+ex][y+ey]=items['copper']['value']
-							world_new[x][y]=items['headr']['value']
+						if world_new[x+ex][y+ey]==art['headb2']['value'] and world_new[x][y]==art['headr']['value']: 
+							world_old[x+ex][y+ey]=art['copper']['value']
+							world_new[x+ex][y+ey]=art['copper']['value']
+							world_new[x][y]=art['headr']['value']
 							rayon=rayon+1
 							break
-						art=wart(x+ex,y+ey)
-						if flag==0 and world_old[x+ex][y+ey]==items['copper']['value'] and world_new[x+ex][y+ey]<items['head']['value'] and art!=items['triern0-1']['value']  and art!=items['triern0-2']['value']  and art!=items['triern0-4']['value'] and (art!=items['triern0-4a']['value'] or isactive(x+ex,y+ey)) and (art!=items['triern0-8a']['value'] or isactive(x+ex,y+ey)) and (art!=items['trierp']['value'] or isactive(x+ex,y+ey)) and (art!=items['dir2']['value'] or isdroite((dx,dy))) and (art!=items['dir1']['value'] or isgauche((dx,dy))) and (art!=items['trierg']['value'] or isbig(value)) and (art!=items['trierr']['value'] or ispositive(value)) and (art!=items['trierb']['value'] or isnegative(value)):			
-							if art==items['destroyer']['value']:
-								world_new[x+ex][y+ey]=items['copper']['value']
-							elif art==items['positiver']['value'] and isactive(x+ex,y+ey):
+						it=wart(x+ex,y+ey)
+						if flag==0 and world_old[x+ex][y+ey]==art['copper']['value'] and world_new[x+ex][y+ey]<art['head']['value'] and it!=art['triern0-1']['value']  and it!=art['triern0-2']['value']  and it!=art['triern0-4']['value'] and (it!=art['triern0-4a']['value'] or isactive(x+ex,y+ey)) and (it!=art['triern0-8a']['value'] or isactive(x+ex,y+ey)) and (it!=art['trierp']['value'] or isactive(x+ex,y+ey)) and (it!=art['dir2']['value'] or isdroite((dx,dy))) and (it!=art['dir1']['value'] or isgauche((dx,dy))) and (it!=art['trierg']['value'] or isbig(value)) and (it!=art['trierr']['value'] or ispositive(value)) and (it!=art['trierb']['value'] or isnegative(value)):			
+							if it==art['destroyer']['value']:
+								world_new[x+ex][y+ey]=art['copper']['value']
+							elif it==art['positiver']['value'] and isactive(x+ex,y+ey):
 								world_new[x+ex][y+ey]=positive(value)
 								value=positive(value)
-							elif art==items['positiver2']['value']:
+							elif it==art['positiver2']['value']:
 								world_new[x+ex][y+ey]=positive(value)
 								value=positive(value)
-							elif art==items['negativer']['value'] and isactive(x+ex,y+ey):				
+							elif it==art['negativer']['value'] and isactive(x+ex,y+ey):				
 								world_new[x+ex][y+ey]=negative(value)
 								value=negative(value)
-							elif art==items['inverter']['value']:			
+							elif it==art['inverter']['value']:			
 								world_new[x+ex][y+ey]=invert(value)
 								value=invert(value)
-							elif art==items['neutraliser']['value']:				
+							elif it==art['neutraliser']['value']:				
 								world_new[x+ex][y+ey]=unsigned(value)
 								value=unsigned(value)
-							elif art==items['reactor']['value'] and value==items['headr2']['value'] and isactive(x+ex,y+ey):				
-								world_new[x+ex][y+ey]=items['copper']['value']
-								if world_new[x+ex][y+ey-1]!=items['nothing']['value']:
+							elif it==art['reactor']['value'] and value==art['headr2']['value'] and isactive(x+ex,y+ey):				
+								world_new[x+ex][y+ey]=art['copper']['value']
+								if world_new[x+ex][y+ey-1]!=art['nothing']['value']:
 									gameover(9)
 								else:
-									world_new[x+ex][y+ey-1]=items['prot']['value']
-							elif art==items['reactor']['value'] and value==items['head2']['value'] and isactive(x+ex,y+ey):				
-								world_new[x+ex][y+ey]=items['copper']['value']
-								if world_new[x+ex][y+ey-1]!=items['nothing']['value']:
+									world_new[x+ex][y+ey-1]=art['prot']['value']
+							elif it==art['reactor']['value'] and value==art['head2']['value'] and isactive(x+ex,y+ey):				
+								world_new[x+ex][y+ey]=art['copper']['value']
+								if world_new[x+ex][y+ey-1]!=art['nothing']['value']:
 									gameover(9)
 								else:
-									world_new[x+ex][y+ey-1]=items['neut']['value']
-							elif art==items['senserK']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
-								world_new[x+ex][y+ey]=items['copper']['value']
+									world_new[x+ex][y+ey-1]=art['neut']['value']
+							elif it==art['senserK']['value'] and value==art['headb']['value'] and isactive(x+ex,y+ey):
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[7]=current[7]+1
-							elif art==items['senserL']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserL']['value'] and value==art['headb']['value'] and isactive(x+ex,y+ey):
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[8]=current[8]+1
-							elif art==items['senserM']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserM']['value'] and value==art['headb']['value'] and isactive(x+ex,y+ey):
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[9]=current[9]+1
-							elif art==items['senserN']['value'] and value==items['headb']['value'] and isactive(x+ex,y+ey):
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserN']['value'] and value==art['headb']['value'] and isactive(x+ex,y+ey):
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[10]=current[10]+1
-							elif art==items['sensere']['value'] and value==items['head']['value']:
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['sensere']['value'] and value==art['head']['value']:
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[3]=current[3]+1
-							elif art==items['senserf']['value'] and value==items['headr']['value']:
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserf']['value'] and value==art['headr']['value']:
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[5]=current[5]+1
-							elif art==items['senserg']['value'] and value==items['headb2']['value']:
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserg']['value'] and value==art['headb2']['value']:
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[0]=current[0]+1
-							elif art==items['senserh']['value'] and value==items['head']['value'] and isactive(x+ex,y+ey):
-								world_new[x+ex][y+ey]=items['copper']['value']
+							elif it==art['senserh']['value'] and value==art['head']['value'] and isactive(x+ex,y+ey):
+								world_new[x+ex][y+ey]=art['copper']['value']
 								current[3]=current[3]+1
-							elif art==items['calor']['value']:				
+							elif it==art['calor']['value']:				
 								temp=temp-11
-								world_new[x+ex][y+ey]=items['copper']['value']
-							elif art==items['photonizer']['value'] and value<items['head2']['value']:		
-								world_new[x+ex][y+ey]=items['copper']['value']
+								world_new[x+ex][y+ey]=art['copper']['value']
+							elif it==art['photonizer']['value'] and value<art['head2']['value']:		
+								world_new[x+ex][y+ey]=art['copper']['value']
 								for fx,fy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)):
-									if world_new[x+ex+fx][y+ey+fy]==items['fiber']['value']:
-										world_new[x+ex+fx][y+ey+fy]=items['headp']['value']
+									if world_new[x+ex+fx][y+ey+fy]==art['fiber']['value']:
+										world_new[x+ex+fx][y+ey+fy]=art['headp']['value']
 										break
-							elif art==items['photonizer2']['value'] and value<items['head2']['value']:		
+							elif it==art['photonizer2']['value'] and value<art['head2']['value']:		
 								world_new[x+ex][y+ey]=value
 								for fx,fy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)):
-									if world_new[x+ex+fx][y+ey+fy]==items['fiber']['value']:
-										world_new[x+ex+fx][y+ey+fy]=items['headp']['value']
+									if world_new[x+ex+fx][y+ey+fy]==art['fiber']['value']:
+										world_new[x+ex+fx][y+ey+fy]=art['headp']['value']
 							else:
 								world_new[x+ex][y+ey]=value
 							flag=1
-							typetri=items[art][:6]
+							typetri=art[it]['nom'][:6]
 							if typetri=="triern":
 								acttri=""
-								numtri=int(items[art][6])
-								idtri=items[art][8]
-								if len(items[art])==10: acttri=items[art][9]
+								numtri=int(art[it]['nom'][6])
+								idtri=art[it]['nom'][8]
+								if len(art[it]['nom'])==10: acttri=art[it]['nom'][9]
 								if acttri=="a" and isactive(x+ex,y+ey):
 									if numtri>0: numtri=numtri-1
 								else:
 									if numtri>0: numtri=numtri-1
-								world_art[x+ex][y+ey]=items['triern'+str(numtri)+"-"+idtri+acttri]['value']
-							if	art!=items['nothing']['value'] and world_new[x][y]>=items['head']['value']:
-								temp=items[items[art]]['temp']+temp
+								world_art[x+ex][y+ey]=art['triern'+str(numtri)+"-"+idtri+acttri]['value']
+							if	it!=art['nothing']['value'] and world_new[x][y]>=art['head']['value']:
+								temp=art[it]['temp']+temp
 							world_new[x][y] = value>>8
 							break
-			elif value == items['tailp']['value']:
-				world_new[x][y]=items['fiber']['value']
-			elif value >= items['tail']['value'] and world_new[x][y] < items['head']['value']:
+			elif value == art['tailp']['value']:
+				world_new[x][y]=art['fiber']['value']
+			elif value >= art['tail']['value'] and world_new[x][y] < art['head']['value']:
 				newvalue=value-int("0x10", 16)
-				if newvalue<items['tail']['value']: newvalue=items['copper']['value']
+				if newvalue<art['tail']['value']: newvalue=art['copper']['value']
 				world_new[x][y] = newvalue
-			elif value == items['fiber']['value']:
-				n=sum(world_old[x+dx][y+dy]==items['headp']['value'] for dx,dy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)))
+			elif value == art['fiber']['value']:
+				n=sum(world_old[x+dx][y+dy]==art['headp']['value'] for dx,dy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)))
 				if 1 <= n <= 2:
-					world_new[x][y]=items['headp']['value']
+					world_new[x][y]=art['headp']['value']
 					for dx,dy in ((-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)):
-						if wart(x+dx,y+dy)!=0 and items[items[wart(x+dx,y+dy)]]['activable']==1: 
+						if wart(x+dx,y+dy)!=0 and art[wart(x+dx,y+dy)]['activable']==1: 
 							active(x+dx,y+dy)
 				else:
-					items['fiber']['value']
-			elif value == items['prot']['value'] or value == items['neut']['value'] :
-				if wart(x,y)==items['sensern']['value'] and value==items['neut']['value'] and isactive(x,y):
-					world_new[x][y]=items['nothing']['value']
+					art['fiber']['value']
+			elif value == art['prot']['value'] or value == art['neut']['value'] :
+				if wart(x,y)==art['sensern']['value'] and value==art['neut']['value'] and isactive(x,y):
+					world_new[x][y]=art['nothing']['value']
 					current[11]=current[11]+1
-				elif wart(x,y)==items['senserp']['value'] and value==items['prot']['value'] and isactive(x,y):
-					world_new[x][y]=items['nothing']['value']
+				elif wart(x,y)==art['senserp']['value'] and value==art['prot']['value'] and isactive(x,y):
+					world_new[x][y]=art['nothing']['value']
 					current[12]=current[12]+1
-				elif world_new[x][y-1] == items['nothing']['value']:
+				elif world_new[x][y-1] == art['nothing']['value']:
 					if y==1:
 						gameover(2)
 						return
 					else:
 						world_new[x][y-1] = value
-						world_new[x][y] = items['nothing']['value']
-				elif (world_new[x][y-1] == items['prot']['value'] or world_new[x][y-1] == items['neut']['value']) and world_new[x][y-1]!=world_new[x][y]:
+						world_new[x][y] = art['nothing']['value']
+				elif (world_new[x][y-1] == art['prot']['value'] or world_new[x][y-1] == art['neut']['value']) and world_new[x][y-1]!=world_new[x][y]:
 					gameover(3)
 					return
 	infos()
@@ -1527,8 +1500,8 @@ def on_mouse_motion(x, y, dx, dy):
 			allcout[1]=y
 			for i in range(nbelements):
 				if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
-					if items[items[int("0x30000",16)+i]]['tech']<=tech:
-						allcout[2]=items[items[int("0x30000",16)+i]]
+					if art[int("0x30000",16)+i]['tech']<=tech:
+						allcout[2]=art[int("0x30000",16)+i]
 		return	
 	selected=-1
 	for l in range(len(worlds[world])):
@@ -1565,8 +1538,8 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 		mouses=mouser	
 	if buttons == mouse.MIDDLE:
 		mouses=mousem
-	if mouses!=23 and items[items[int("0x20000",16)+mouses]]['drag']==1 and (unroll==0 or y>100) and (y>50):
-		eval(items[int("0x20000",16)+mouses]+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
+	if mouses!=23 and dat[int("0x20000",16)+mouses]['drag']==1 and (unroll==0 or y>100) and (y>50):
+		eval(dat[int("0x20000",16)+mouses]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
 			
 @win.event
 def on_mouse_press(x, y, button, modifiers):
@@ -1602,7 +1575,7 @@ def on_mouse_press(x, y, button, modifiers):
 	realy=(y-decy)/zoom
 	for i in range(15):
 		if x>=10+i*45 and x<=49+i*45 and y>=8 and y<44:
-			if 'color' in items[items[int("0x20000",16)+i]] and items[items[int("0x20000",16)+i]]['color']!=[40,40,40]:
+			if 'color' in dat[int("0x20000",16)+i] and dat[int("0x20000",16)+i]['color']!=[40,40,40]:
 				if button == mouse.LEFT:
 					mousel=i
 				if button == mouse.RIGHT:
@@ -1623,8 +1596,8 @@ def on_mouse_press(x, y, button, modifiers):
 		size=win.width/nbelements	
 		for i in range(nbelements):
 			if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
-				if items[items[int("0x30000",16)+i]]['tech']<=tech:
-					items['others']['ref']=items[items[int("0x30000",16)+i]]
+				if art[int("0x30000",16)+i]['tech']<=tech:
+					dat['others']['ref']=art[int("0x30000",16)+i]
 					if button == mouse.LEFT:
 						mousel=14
 					if button == mouse.RIGHT:
@@ -1640,7 +1613,7 @@ def on_mouse_press(x, y, button, modifiers):
 	if button == mouse.MIDDLE:
 		mouses=mousem
 	if mouses!=23:
-		eval(items[int("0x20000",16)+mouses]+"("+str(realx)+","+str(realy)+","+str(0)+","+str(0)+")")
+		eval(dat[int("0x20000",16)+mouses]['nom']+"("+str(realx)+","+str(realy)+","+str(0)+","+str(0)+")")
 		
 @win.event
 def on_resize(width,height):
