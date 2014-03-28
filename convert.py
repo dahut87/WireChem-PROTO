@@ -8,7 +8,7 @@ import pyglet
 from pyglet import image
 from os.path import expanduser
 
-global items,worlds,finished
+global items,worlds,finished,art,dat
 
 '''********************* fonctions Chargement ANCIENNE ****************************************************************'''
 
@@ -43,8 +43,8 @@ def loaditems(n,file):
 						items[liste[i][0]][liste[0][j]]=float(liste[i][j][1:])
 					elif liste[i][j][:1]=="@":
 						items[liste[i][0]][liste[0][j]]=items[liste[i][j][1:]]		
-					elif liste[i][j][:1]=="%":					
-						items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
+					#elif liste[i][j][:1]=="%":					
+					#	items[liste[i][0]][liste[0][j]]=image.load(liste[i][j][1:])	
 					else:
 						items[liste[i][0]][liste[0][j]]=liste[i][j]
 				if n!=0:
@@ -119,6 +119,8 @@ loaditems(int("0x20000", 16),"data/menus.dat")
 loaditems(0,"data/elements.dat")
 worlds=[]
 Uworlds=[]
+art={}
+dat={}
 verifyhome()
 readpref("user/pref.dat")
 linked=finished
@@ -129,7 +131,6 @@ for k in linked:
 for i in range(sizeworld):
 	ele=items[items[int("0x40000",16)+i]]
 	readgrid(ele['file'])
-	print "situation", ele['world'],ele['grid'],len(worlds)
 	while len(worlds)<=ele['world']:
 		worlds.append(0)
 		worlds[ele['world']]=[]
@@ -163,7 +164,6 @@ for i in range(sizeworld):
 
 	world_art=[]
 	if os.path.exists("user/"+ele['file']):
-		print ele['file']
 		readgrid("user/"+ele['file'])
 		while len(Uworlds)<=ele['world']:
 			Uworlds.append(0)
@@ -191,7 +191,6 @@ for i in range(sizeworld):
 'maxtemp':maxtemp,
 'world_new':world_new,
 'world_art':world_art}
-write("dbdata",["worlds"])
 write(gethome()+"/dbdata",["Uworlds","finished"])
 f=open("dbsrc", 'wb+')
 afile="""#!/usr/bin/env python
@@ -209,6 +208,27 @@ def write(afile,var):
 
 global worlds
 
-worlds="""
-f.write(afile+str(worlds).replace(", '",",\n '").replace(", [",", \n\t\t\t[")+"""\nwrite("dbdata",["worlds"])""")
+worlds="""+str(worlds).replace(", '",",\n '").replace(", [",", \n\t\t\t[")+"\n"
+f.write(afile)
+for i in range(56):
+	ele=items[items[int("0x30000",16)+i]]
+	art[ele['value']]=ele
+	art[ele['value']]['activable']=art[ele['value']]['activable']==1
+	art[ele['value']]['nom']=items[int("0x30000",16)+i]
+for i in items.keys():
+	if i<int("0x10000",16):
+		ele=items[items[i]]
+		art[ele['value']]=ele
+		art[ele['value']]['nom']=items[i]
+	elif i<int("0x30000",16):
+		ele=items[items[i]]
+		dat[ele['value']]=ele
+		dat[ele['value']]['nom']=items[i]		
+afile="""art="""+str(art).replace("}, ","},\n")+"\n"
+f.write(afile)
+afile="""dat="""+str(dat).replace("}, ","},\n")+"\n"
+f.write(afile)
+afile="""write("dbdata",["worlds","art","dat"])"""
+f.write(afile)
 f.close()
+write("dbdata",["worlds","art","dat"])
