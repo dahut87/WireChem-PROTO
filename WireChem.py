@@ -72,7 +72,6 @@ def interprete(d):
 		if 'icon' in d[k]:
 			print d[k]
 			if type(d[k]['icon']) is str and len(d[k]['icon'])>0 and d[k]['icon'][0]=="%":
-
 				d[k]['icon']=image.load(d[k]['icon'][1:])	
 			
 def initgrid():
@@ -111,7 +110,8 @@ def initgrid():
 	maxnrj=maxrayon=maxcycle=maxtemp=99999
 	allcout=[0,0,0]
 	sizex=sizey=1
-	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=debug=0
+	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=0
+	debug=1
 	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
 	if len(stat_var)==0:
@@ -142,7 +142,7 @@ def resize():
 	decy=-zoom+(win.height-zoom*(sizey-2))/2
 
 def readlevel(w,l,user):
-	global worlds,unroll,mousel,mousem,mouser,cout,selected,sizex,sizey,unroll,stat
+	global worlds,unroll,mousel,mousem,mouser,cout,selected,sizex,sizey,unroll,stat,debug,tech
 	if user:
 		if w<len(Uworlds) and l<len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
 			load(Uworlds[w][l])
@@ -150,6 +150,7 @@ def readlevel(w,l,user):
 			load(worlds[w][l])
 	else:
 		load(worlds[w][l])
+	if debug==1: tech=9
 	if tech<0:
 		dat['setcopper']['value']='setnothinga'
 		dat['setfiber']['value']='setnothinga'
@@ -171,6 +172,7 @@ def readlevel(w,l,user):
 	stat=[0,0,0,0,0,0,0,0,0]
 	unroll=over=0
 	infos()
+
 	
 def savelevel(w,l):
 	global worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
@@ -784,13 +786,13 @@ def drawgrid(zoom):
 			glColor3ub(255,255,255)
 			dat[int("0x10000",16)+i]['icon'].blit(10+i*(150+addx),win.height-45)
 			if (tech>=5 and addx>100):
-				txt_temp.text=str(eval(dat[int("0x10000",16)+i]))
+				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=y=win.height-38
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
-				txt_temp.text="/"+str(eval("max"+dat[int("0x10000",16)+i]))
+				txt_temp.text="/"+str(eval("max"+dat[int("0x10000",16)+i]['nom']))
 				if txt_temp.text=="/99999": txt_temp.text="/illimité".decode('utf-8')
 				txt_temp.x=150+i*(150+addx)
 				txt_temp.y=win.height-38
@@ -798,13 +800,13 @@ def drawgrid(zoom):
 				txt_temp.font_size=12
 				txt_temp.draw()
 			elif (tech>=5):
-				txt_temp.text=str(eval(dat[int("0x10000",16)+i]))
+				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-29
 				txt_temp.color=(180, 180, 180,255)
 				txt_temp.font_size=24
 				txt_temp.draw()
-				txt_temp.text=str(eval("max"+dat[int("0x10000",16)+i]))
+				txt_temp.text=str(eval("max"+dat[int("0x10000",16)+i]['nom']))
 				if txt_temp.text=="99999": txt_temp.text="illimité".decode('utf-8')
 				txt_temp.x=50+i*(150+addx)
 				txt_temp.y=win.height-47
