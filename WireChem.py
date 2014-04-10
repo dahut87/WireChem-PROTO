@@ -124,7 +124,7 @@ def initgrid():
 	allcout=[0,0,0]
 	sizex=sizey=1
 	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=0
-	debug=0
+	debug=1
 	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
 	if len(stat_var)==0:
