@@ -1,0 +1,57 @@
+  ------------------------------------------
+  
+  WireChem - The new chemistry game
+  
+  Remerciements
+
+  (C) Copyright 2013-2014 Nicolas Hordé
+  Licence GPL V3.0
+  
+  ------------------------------------------
+  
+  Nicolas Hordé
+  Programmeur - Designer - Créateur
+  1er Etage
+  226 boulevard clémenceau
+  87000 Limoges
+  admin@dahut.fr
+  
+  Aline Pinon
+  Créatrice -  Tests Alpha
+  1er Etage
+  226 boulevard clémenceau
+  87000 Limoges
+  aline.pinon@unilim.fr
+
+                                                                                                                             
+____i.                         ____i.                               ....                                                     
+]QQQQL                         QQQQQ'                           _wwQQQQQQgw,                               .-==              
+=QQQQQ                        <QQQQW                          _yQWWQWQQQQQWQmc                             . =;.             
+ QQQQQ;                       jWQQQf                         jWQQQQQQQQQQQQQQWm,                           ..=;.             
+ $QQQQ[                       mQQQQ[                        jQQQQQQQQQQQQQQQQQQ[                           ::=;.             
+ ]QQQQk                      _QQQQQ`                       jQQQQQQ@T!!"??$QQQQQ[                           :;;;              
+ )QQQQQ                      jQQQQB                       <QQQQQW!        -9QQQ[                        ...=;;==;;;          
+ .QQQQQc        aaaa,        mQQQQF                       mQQQQW'           "QQ[                        ::==;;;;;=;          
+  $QQQQL       <WWWW6       .QQQQQ[                      ]QQQQQ(             -$[                       .:=;;;=;=;;;          
+  3QQQQW       dQQQQQ;      ]QQQQQ`                      dQQQQE                '                       .;:-:=;;;:;:          
+  ]QQQQQ;     <QQQQQQk      dQQQQ@                      .QQQQQ(                                           .:=;;              
+  =QQQQQ[     mQQQQQQQ,    .QQQQQf                      ]QQQQW                                ]\mQQQQQQ,, ::=;;              
+   QQQQQk    <QQQQQQQQL    ]QQQQQ[                      jWQQQE                               .\dQQQQQQQm),.:;=:              
+   4QQQQQ.   mQQQQQQQQQ.   jQQQQQ'                      jQQQQk                               _dmWVVVVVQQL" :=;;              
+   ]QQQQQ[  ]QQQQQQQQQQ[   QQQQQW:I(:.                  dQQQQk                    <w;        dqQkj   .WWQ[ :;;;              
+   )QQQQQL  mWQQQQQQQQQQ. ]QQQQQf:I>:.                  mQQQQf                    ]Q(        mmWkv   .dQQf --:-              
+   -QQQQQm ]QQQQQQ4QQQQQ[ jQQQQQ[ -                     dQQQQk                    ]Q(        mdQk>   .3QQf                   
+    QWQQQQ,mQQQQQD:QQQQQm QQQQQQ`                 _.    3QQQQk                    ]Q;        mmQk:   .>QQf                   
+    3WQQQQgQQQQQQ[ $QQQQQaQQQQQB  =y;  ac <wa  .wWB$Qc  ]QQQQQ                    ]Q;_aww,.  mmWk. ..:(QQf  ac swwa.  _wwa.  
+    ]QQQQQQQQQQQW` ]QQQQQQQQQQQf  )W(  mmmQWW _mP`  "QL ]QQQQQ/               j[  ]QsQZY$QL  mmQ@???9$QQQf  Qkj@!!$m,jWT?Qm  
+    -QQQQQQQQQQQP  -QQQQQQQQQQQ[  =Q(  dQD'   j@     ]Q,-QQQQQm              jW[  jQQ'   4Q; mmQQymQQQQQQf .QQE   -QmW'  )W[ 
+     QWQQQQQQQQQ(   $QQQQQQQQQQ`  )W(  mQ'   _Qks_a_s_Q[ $WQQQQL.          _mQQ[  jQf    )Q[ mWWQQQQQQQQQf .QW'    dQ[    Wk 
+     dQQQQQQQQQ@    ]QQQQQQQQQD   )W(  m#    ]QQQQQQQQQf ]QQQQQQQa,      <yQQQQ[  jQ;    :Qf mWWQQ"""^"^"' :WW     dQ'    Qm 
+     ]QQQQQQQQQf    -QQQQQQQQQf   )W(  mE    ]Qf-------`  $QQQQQQWQQmggmQQQQQQQ[  jQ;    =Qf mQWQQ:`       :Qm     mQ.    QW 
+     ]QQQQQQQQQ'     4QQQQQQQQ[   )W[  QE    ]QL          )QQQQQQQQQQQQQQQQQQQQ[  jQ;    =Qf mQWQQ;.       :QW     WW.   :QQ 
+      QQQQQQQQ@      ]QQQQQQQQ`   ]W[  Q#    )WQ,          4WQQQQQQQQQQQQQQQQQQ[  jQ;    )QL mWQQQ;.   _a/ =QQ     QW    =QW 
+      $QQQQQQQ[      -QQQQQQQ@    ]W[ :QW     4QQwaaaaw;    4QQQQQQQQQQQQQQQQQQ[  jQ(    ]Wk $QQQQgwawwwwa =QQ    =QW    ]QW 
+      jQQQQQQW`       4QQQQQQf    ]Q[ ]WQ     -QWWWBWWW;     ?QQQQQQQQQQQQQQQQD'  dQ(    ]Wk -$QQQmaaawymE )QQ    ]WW    ]WW.
+      ]WWWQWWE        ]QQQWQW(    ]Qf ]QQ.     -4QWQQWP'      -$WQQQQQQQQQQQ@"    dQ[    ]Qk  -QWQQWWWWWQf )WQ    ]Qm    ]QQ.
+       ------          ------     -"' -""        -^"~           ~?VQQQQQWD?^      "?'    """   -VHVVHVVHV[ -!!    "!"    "!! 
+                                                                    --~-                                                     

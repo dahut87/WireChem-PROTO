@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
+
+'''
+  ------------------------------------------
+  
+  WireChem - The new chemistry game
+  
+  Programme principal
+
+  (C) Copyright 2013-2014 Nicolas Hordé
+  Licence GPL V3.0
+  
+  ------------------------------------------
+'''
+ 
 import pyglet
 import copy
 import csv
@@ -70,7 +84,6 @@ def duplicateref(d):
 def interprete(d):
 	for k in d.keys():
 		if 'icon' in d[k]:
-			print d[k]
 			if type(d[k]['icon']) is str and len(d[k]['icon'])>0 and d[k]['icon'][0]=="%":
 				d[k]['icon']=image.load(d[k]['icon'][1:])	
 			
