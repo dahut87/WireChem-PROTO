@@ -124,7 +124,7 @@ def initgrid():
 	allcout=[0,0,0]
 	sizex=sizey=1
 	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=0
-	debug=1
+	debug=0
 	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
 	if len(stat_var)==0:
@@ -147,10 +147,10 @@ def resize():
 		allsizex=2*win.width/3
 	else:
 		allsizex=win.width
-	if sizex/float(sizey)<allsizex/(win.height-102.0):
-		zoom=(win.height-102)/(sizey-2)
+	if (sizex-2)/float(sizey-2)<allsizex/(win.height-102.0):
+		zoom=(win.height-102-4)/(sizey-2)
 	else:
-		zoom=allsizex/(sizex-2)
+		zoom=(allsizex-4)/(sizex-2)
 	decx=-zoom+(allsizex-zoom*(sizex-2))/2
 	decy=-zoom+(win.height-zoom*(sizey-2))/2
 
@@ -441,7 +441,7 @@ def drawitem(x,y,it,thezoom,activation):
 		txt_item.font_size=thezoom
 		txt_item.x=x+thezoom/10
 		txt_item.y=y+thezoom/10
-		if it['activable']:
+		if not it['activable']:
 			txt_item.color=(it['color'][0],it['color'][1],it['color'][2],255)
 		else:
 			if activation!=0:
@@ -876,8 +876,8 @@ def drawgrid(zoom):
 		glColor3ub(255,255,255)
 		dat['cout']['icon'].blit(posx+addx+4,7)
 		txt_cout.text=str(cout-thecout)
+		txt_cout.x=posx+addx+44
 		if (cout-thecout)>0:
-			txt_cout.x=posx+addx+44
 			txt_cout.color=(180, 180, 180,255)
 		else:
 			txt_cout.color=(255, 0, 0,255)
@@ -1024,7 +1024,7 @@ def reallystop():
 	dat['run']['value']='stop'
 	play=0
 	clock.unschedule(calculate)
-	current=worlds[world][level]['current']
+	current=copy.deepcopy(worlds[world][level]['current'])
 	cycle=worlds[world][level]['cycle']
 	temp=worlds[world][level]['temp']
 	nrj=worlds[world][level]['nrj']
@@ -1204,8 +1204,10 @@ def negative(x):
 def invert(x):
 	if ispositive(x):
 		return negative(x)
-	else:
+	elif isnegative(x):
 		return positive(x)
+	else:
+		return x
 	
 def isbig(x):
 	return (x & int("0xF000",16))==int("0x2000",16)
