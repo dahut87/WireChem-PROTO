@@ -13,7 +13,8 @@
   
   ------------------------------------------
 '''
- 
+import datetime
+import math
 import pyglet
 import copy
 import csv
@@ -88,7 +89,7 @@ def interprete(d):
 				d[k]['icon']=image.load(d[k]['icon'][1:])	
 			
 def initgrid():
-	global art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	global users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -116,6 +117,7 @@ def initgrid():
 	nom=descriptif=element='H'
 	victory=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 	current=[0,0,0,0,0,0,0,0,0,0,0,0,0]
+	users=[]
 	stat_var=[]
 	mousel=4
 	mouser=0
@@ -186,9 +188,8 @@ def readlevel(w,l,user):
 	unroll=over=0
 	infos()
 
-	
 def savelevel(w,l):
-	global worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
+	global users,worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
 	while len(Uworlds)<=w:
 		Uworlds.append(0)
 		Uworlds[w]=[]
@@ -196,6 +197,7 @@ def savelevel(w,l):
 		Uworlds[w].append({})
 	Uworlds[w][l]={'nom':nom, 
 'element':element,
+'users':users,
 'description':descriptif,
 '_xx':worlds[world][level]['_xx'],
 '_yy':worlds[world][level]['_yy'],
@@ -597,7 +599,7 @@ def drawworld():
 			
 def calc_space(nb,nbtot):
 	global unroll
-	return [2*win.width/3+20,(nb-1)*(win.height-100-unroll*50)/nbtot+50+unroll*50+20,win.width-20,nb*(win.height-100-unroll*50)/nbtot+50+unroll*50]
+	return [2*win.width/3+20,(nb-1)*(win.height-100-math.trunc(unroll)*50)/nbtot+50+math.trunc(unroll)*50+20,win.width-20,nb*(win.height-100-math.trunc(unroll)*50)/nbtot+50+math.trunc(unroll)*50]
 
 def drawpopup():
 	global allcout
@@ -635,7 +637,7 @@ def drawpopup():
 
 def drawbigstat(page):	
 	global unroll,stat_var	
-	drawsquare(2*win.width/3,50+unroll*50,win.width,win.height-50,1,[40,40,40])
+	drawsquare(2*win.width/3,50+math.trunc(unroll)*50,win.width,win.height-50,1,[40,40,40])
 	if page==1:
 		coord=calc_space(1,3)
 		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']])
@@ -734,7 +736,7 @@ def drawvictory():
 	txt_over2.draw()
 	
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play,element,seestat,art
+	global temp,debug,over,allcout,play,element,seestat,art,users
 	glLineWidth(3)
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
@@ -771,7 +773,7 @@ def drawgrid(zoom):
 			drawitem(x*zoom+decx,y*zoom+decy,art[wart(x,y)],zoom,getactive(x,y))
 	drawsquare(0,win.height,win.width,win.height-50,1,[40,40,40])
 	drawsquare(0,50,win.width,0,1,[40,40,40])
-	if unroll!=0:	
+	if unroll==1:	
 		if debug==1:
 			nbelements=44
 		else:
@@ -786,6 +788,17 @@ def drawgrid(zoom):
 				if it['cat']!=cat:
 					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
 					cat=it['cat']
+	elif unroll==1.01:
+		savenames=["#","α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","ς","σ","τ","υ","φ","χ","ψ","ω"]
+		nbelements=len(savenames)
+		size=win.width/nbelements
+		drawsquare(0,57+size,win.width,0,1,[40,40,40])
+		drawsquare(7+1*size,55,8+1*size,55+size,0,[90,90,90]) 
+		for i in range(nbelements):
+			if savenames[i]=="#" or i<=len(users):
+				drawitem(10+i*size,55,{'color': [220, 220, 220], 'text': savenames[i], 'activable': False},size-6,10)				
+			else:
+				drawitem(10+i*size,55,{'color': [40, 40, 40], 'text': savenames[i], 'activable': False},size-6,10)
 	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
 	txt_element.text=element
 	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
@@ -834,7 +847,7 @@ def drawgrid(zoom):
 				txt_temp.font_size=24
 				txt_temp.draw()
 	drawcondvictory(win.width-364,win.height-45,1020,win.height-5,[90,90,90])
-	for i in range(15):
+	for i in range(16):
 		glColor3ub(255,255,255)
 		if dat[int("0x20000",16)+i]['icon']=="/":
 			drawitem(10+i*45,8,dat[int("0x20000",16)+i]['ref'],36,10)
@@ -842,7 +855,7 @@ def drawgrid(zoom):
 			dat[int("0x20000",16)+i]['icon'].blit(10+i*45,8)
 		else:
 			drawsquare(10+i*45,8,46+i*45,44,1,dat[int("0x20000",16)+i]['color'])
-		if i==11 or i==6:
+		if i==12 or i==7 or i==2 or i==4:
 			drawsquare(5+i*45,8,6+i*45,44,0,[90,90,90])
 		if i==1:
 			drawsquare(45+i*45,8,49+i*45,44,1,[0,0,0])
@@ -864,9 +877,9 @@ def drawgrid(zoom):
 		drawsquare(9+i*45,7,47+i*45,45,2,selectcolor)
 		glLineStipple(0,65535)
 		glLineWidth(1)
-	drawsquare(5+15*45,8,6+15*45,44,0,[90,90,90])
-	posx=10+15*45
-	addx=171+win.width-1024
+	drawsquare(5+16*45,8,6+16*45,44,0,[90,90,90])
+	posx=10+16*45
+	addx=130+win.width-1024
 	if addx<500:
 		drawstat(posx,8,posx+addx,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6],stat[2],stat[7],stat[8]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color'],art['headp']['color'],art['neut']['color'],art['prot']['color']])
 	else:
@@ -904,7 +917,17 @@ def settings(dummy1,dummy2,dummy3,dummy4):
 	level=-2
 				
 def raz(dummy1,dummy2,dummy3,dummy4):
-	readlevel(world,level,False)
+	global unroll
+	if unroll!=0:
+		unroll=0
+	else:
+		unroll=1.01		
+		
+def save(dummy1,dummy2,dummy3,dummy4):
+	global world_art,world_dat,world,level,users
+	users.append([datetime.datetime.now(),copy.deepcopy(world_new),copy.deepcopy(world_art)])
+	savelevel(world,level)
+	sync()
 	
 def speed(x,y,dummy1,dummy2):
 	global play,zoom
@@ -1560,7 +1583,7 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 			
 @win.event
 def on_mouse_press(x, y, button, modifiers):
-	global zoom,mousel,mouser,mousem,unroll,over,level,selected,world
+	global zoom,mousel,mouser,mousem,unroll,over,level,selected,world,users,world_new,world_art
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1590,7 +1613,7 @@ def on_mouse_press(x, y, button, modifiers):
 		return
 	realx=(x-decx)/zoom
 	realy=(y-decy)/zoom
-	for i in range(15):
+	for i in range(16):
 		if x>=10+i*45 and x<=49+i*45 and y>=8 and y<44:
 			if 'color' in dat[int("0x20000",16)+i] and dat[int("0x20000",16)+i]['color']!=[40,40,40]:
 				if button == mouse.LEFT:
@@ -1599,12 +1622,12 @@ def on_mouse_press(x, y, button, modifiers):
 					mouser=i	
 				if button == mouse.MIDDLE:
 					mousem=i
-				if button!="" and i==14:
-					if unroll==1:
+				if button!="" and i==15:
+					if unroll!=0:
 						unroll=0
 					else:
 						unroll=1	
-				if i>=11: return
+				if i>=12: return
 	if unroll==1:
 		if debug==1:
 			nbelements=44
@@ -1616,12 +1639,23 @@ def on_mouse_press(x, y, button, modifiers):
 				if art[int("0x30000",16)+i]['tech']<=tech:
 					dat['others']['ref']=art[int("0x30000",16)+i]
 					if button == mouse.LEFT:
-						mousel=14
+						mousel=15
 					if button == mouse.RIGHT:
-						mouser=14
+						mouser=15
 					if button == mouse.MIDDLE:
-						mousem=14
-					return	
+						mousem=15
+					return
+	elif unroll==1.01:
+		nbelements=26
+		size=win.width/nbelements	
+		for i in range(nbelements):
+			if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
+				if i==0:
+					readlevel(world,level,False)
+				else:
+					world_new=copy.deepcopy(users[len(users)-i][1])
+					world_art=copy.deepcopy(users[len(users)-i][2])
+				return
 	mouses=23
 	if button == mouse.LEFT:
 		mouses=mousel
