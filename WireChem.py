@@ -81,15 +81,19 @@ def reference(var,noms):
 def duplicateref(d):
 	for k in d.keys():
 		d[d[k]['nom']]=d[k]
-		
-def interprete(d):
-	for k in d.keys():
-		if 'icon' in d[k]:
-			if type(d[k]['icon']) is str and len(d[k]['icon'])>0 and d[k]['icon'][0]=="%":
-				d[k]['icon']=image.load(d[k]['icon'][1:])	
-			
+				
+def loadpic(d):
+	for j in range(len(d)):
+		for k in range(len(d[j])):
+			if 'icon' in d[j][k]:
+				if type(d[j][k]['icon']) is str and d[j][k]['icon']!="" and os.path.exists(d[j][k]['icon']):
+					d[j][k]['icon']=image.load(d[j][k]['icon'])
+				elif type(d[j][k]['nom']) is not str:
+					for n in range(len(d[j][k]['icon'])):
+						d[j][k]['icon'][n]=image.load(d[j][k]['icon'][n])					
+									
 def initgrid():
-	global users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,mousel,mouser,mousem,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,unroll,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	global savenames,menus,users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -102,15 +106,14 @@ def initgrid():
 	direction[(+1,+0)]=[(-1,+0),(-1,+1),(-1,-1),(+0,+1),(+0,-1),(+1,+1),(+1,-1),(+1,+0)]
 	direction[(+1,+1)]=[(-1,-1),(-1,+0),(+0,-1),(-1,+1),(+1,-1),(+0,+1),(+1,+0),(+1,+1)]
 	adirection=[(-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)]
-	
+	savenames=["#","α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","ς","σ","τ","υ","φ","χ","ψ","ω"]
 	verifyhome()
 	read("dbdata")
 	read(gethome()+"/dbdata")
 	reference(worlds,['world','level'])
 	reference(Uworlds,['world','level'])
 	duplicateref(art)
-	duplicateref(dat)
-	interprete(dat)	
+	loadpic(menus)
 	''' Variables globales '''
 	zoom=25
 	stat=[0,0,0,0,0,0,0,0,0]
@@ -119,13 +122,10 @@ def initgrid():
 	current=[0,0,0,0,0,0,0,0,0,0,0,0,0]
 	users=[]
 	stat_var=[]
-	mousel=4
-	mouser=0
-	mousem=3
 	maxnrj=maxrayon=maxcycle=maxtemp=99999
 	allcout=[0,0,0]
 	sizex=sizey=1
-	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=unroll=nrj=0
+	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=nrj=0
 	debug=0
 	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
@@ -157,7 +157,7 @@ def resize():
 	decy=-zoom+(win.height-zoom*(sizey-2))/2
 
 def readlevel(w,l,user):
-	global worlds,unroll,mousel,mousem,mouser,cout,selected,sizex,sizey,unroll,stat,debug,tech
+	global worlds,cout,selected,sizex,sizey,stat,debug,tech
 	if user:
 		if w<len(Uworlds) and l<len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
 			load(Uworlds[w][l])
@@ -165,27 +165,13 @@ def readlevel(w,l,user):
 			load(worlds[w][l])
 	else:
 		load(worlds[w][l])
+	menus[0][18]['icon']=copy.deepcopy(art['null'])
 	if debug==1: tech=9
-	if tech<0:
-		dat['setcopper']['value']='setnothinga'
-		dat['setfiber']['value']='setnothinga'
-		dat['setnothing']['value']='setnothinga'
-		dat['others']['value']='setnothinga'
-	elif tech<2:
-		dat['setcopper']['value']='setcopper'
-		dat['setfiber']['value']='setnothinga'
-		dat['setnothing']['value']='setnothing'
-		dat['others']['value']='others'
-	else:
-		dat['setcopper']['value']='setcopper'
-		dat['setfiber']['value']='setfiber'
-		dat['setnothing']['value']='setnothing'
-		dat['others']['value']='others'	
 	sizex=len(world_new)
 	sizey=len(world_new[0])
 	resize();	
 	stat=[0,0,0,0,0,0,0,0,0]
-	unroll=over=0
+	over=0
 	infos()
 
 def savelevel(w,l):
@@ -456,7 +442,7 @@ def drawitem(x,y,it,thezoom,activation):
 		
 def drawstat(x,y,x2,y2,tableau,color):
 	global stat
-	drawsquare(x,y,x2,y2,0,[90,90,90])
+	drawsquare(x+1,y+1,x2,y2,0,[90,90,90])
 	oldx=x
 	somme=sum(tableau)
 	for i in range(len(tableau)):
@@ -554,27 +540,27 @@ def drawworld():
 			document=None
 			glColor3ub(255,255,255)
 			if ele['cout']>0:
-				dat['cout']['icon'].blit(740,110)
+				pic_cout.blit(740,110)
 				txt_cout2.text=str(ele['cout'])
 				txt_cout2.draw()
 			if ele['maxcycle']<90000:
-				dat['cycle']['icon'].blit(740,65)
+				pic_cycle.blit(740,65)
 				txt_maxcycle2.text=str(ele['maxcycle'])
 				txt_maxcycle2.draw()
 			if ele['tech']>0:	
-				dat['tech']['icon'].blit(940,110)
+				pic_tech.blit(940,110)
 				txt_tech2.text=str(ele['tech'])
 				txt_tech2.draw()
 			if ele['maxrayon']<90000:	
-				dat['rayon']['icon'].blit(940,65)
+				pic_rayon.blit(940,65)
 				txt_maxrayon2.text=str(ele['maxrayon'])
 				txt_maxrayon2.draw()
 			if ele['maxtemp']<90000:	
-				dat['temp']['icon'].blit(850,110)
+				pic_temp.blit(850,110)
 				txt_maxtemp2.text=str(ele['maxtemp'])
 				txt_maxtemp2.draw()
 			if ele['maxnrj']<90000:	
-				dat['nrj']['icon'].blit(850,65)
+				pic_nrj.blit(850,65)
 				txt_maxnrj2.text=str(ele['maxnrj'])
 				txt_maxnrj2.draw()
 			victory=ele['victory']
@@ -598,11 +584,22 @@ def drawworld():
 		txt_nom2.draw()
 			
 def calc_space(nb,nbtot):
-	global unroll
-	return [2*win.width/3+20,(nb-1)*(win.height-100-math.trunc(unroll)*50)/nbtot+50+math.trunc(unroll)*50+20,win.width-20,nb*(win.height-100-math.trunc(unroll)*50)/nbtot+50+math.trunc(unroll)*50]
+	return [2*win.width/3+20,(nb-1)*(win.height-100)/nbtot+50+20,win.width-20,nb*(win.height-100)/nbtot+50]
 
 def drawpopup():
 	global allcout
+	if type(allcout[2]) is str:
+		txt_drag.x=allcout[0]-txt_drag.content_width/2
+		if txt_drag.x<0:
+			txt_drag.x=0
+		if txt_drag.x+txt_drag.content_width>win.width:
+			txt_drag.x=win.width-txt_drag.content_width
+		txt_drag.y=allcout[1]+6
+		txt_drag.text=allcout[2]
+		drawsquare(txt_drag.x-3,allcout[1],txt_drag.x+txt_drag.content_width+3,allcout[1]+25,1,[40,40,40])
+		drawsquare(txt_drag.x-3,allcout[1],txt_drag.x+txt_drag.content_width+3,allcout[1]+25,0,[255,255,255])
+		txt_drag.draw()
+		return
 	if tech<6:
 		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,1,[40,40,40])
 		drawsquare(allcout[0],allcout[1],allcout[0]+90,allcout[1]+75,0,[255,255,255])
@@ -612,32 +609,32 @@ def drawpopup():
 	txt_drag.x=allcout[0]+45
 	txt_drag.y=allcout[1]+10
 	glColor3ub(255,255,255,255)
-	dat['cout']['icon'].blit(allcout[0]+2,allcout[1]+2)
+	pic_cout.blit(allcout[0]+2,allcout[1]+2)
 	txt_drag.text=str(allcout[2]['cout'])
 	txt_drag.draw()
 	txt_drag.x=allcout[0]+45
 	txt_drag.y=allcout[1]+45
 	glColor3ub(255,255,255,255)
-	dat['tech']['icon'].blit(allcout[0]+2,allcout[1]+37)
+	pic_tech.blit(allcout[0]+2,allcout[1]+37)
 	txt_drag.text=str(allcout[2]['tech'])
 	txt_drag.draw()
 	if tech>6:
 		txt_drag.x=allcout[0]+45
 		txt_drag.y=allcout[1]+80
 		glColor3ub(255,255,255,255)
-		dat['nrj']['icon'].blit(allcout[0]+2,allcout[1]+72)
+		pic_nrj.blit(allcout[0]+2,allcout[1]+72)
 		txt_drag.text=str(allcout[2]['nrj'])
 		txt_drag.draw()	
 		txt_drag.x=allcout[0]+45
 		txt_drag.y=allcout[1]+115
 		glColor3ub(255,255,255,255)
-		dat['temp']['icon'].blit(allcout[0]+2,allcout[1]+107)
+		pic_temp.blit(allcout[0]+2,allcout[1]+107)
 		txt_drag.text=str(allcout[2]['temp'])
 		txt_drag.draw()	
 
 def drawbigstat(page):	
-	global unroll,stat_var	
-	drawsquare(2*win.width/3,50+math.trunc(unroll)*50,win.width,win.height-50,1,[40,40,40])
+	global stat_var	
+	drawsquare(2*win.width/3,50,win.width,win.height-50,1,[40,40,40])
 	if page==1:
 		coord=calc_space(1,3)
 		drawcumulgraph(calc_space(1,3),[stat_var[0],stat_var[1],stat_var[3],stat_var[4],stat_var[5],stat_var[6]],1,[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']])
@@ -663,13 +660,13 @@ def drawbigstat(page):
 	elif page==2:
 		coord=calc_space(1,3)
 		drawgraph(coord,stat_var[9],1,[180,180,180])
-		dat['nrj']['icon'].blit(coord[0],coord[1])
+		pic_nrj.blit(coord[0],coord[1])
 		coord=calc_space(2,3)
 		drawgraph(coord,stat_var[10],1,[180,180,180])
-		dat['temp']['icon'].blit(coord[0],coord[1])
+		pic_temp.blit(coord[0],coord[1])
 		coord=calc_space(3,3)
 		drawgraph(coord,stat_var[11],1,[180,180,180])
-		dat['rayon']['icon'].blit(coord[0],coord[1])
+		pic_rayon.blit(coord[0],coord[1])
 	elif page==3:
 		coord=calc_space(1,6)
 		drawgraph(coord,stat_var[17],1,art['prot']['color'])
@@ -735,8 +732,120 @@ def drawvictory():
 	txt_over2.y=win.height/2-90
 	txt_over2.draw()
 	
+def drawelement(x,y,x2,y2):
+	global element,world,level,worlds
+	drawsquare(x,y,x2,y2,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
+	txt_element.text=element
+	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
+	txt_element.x=x+(x2-x-txt_element.content_width)/2
+	txt_element.y=y+5
+	txt_element.draw()
+	
+def drawmenu(themenus):
+	global tech,play
+	for i in range(len(themenus)):
+		if themenus[i][0]['visible']:
+			if themenus[i][0]['place']=='bottom':
+				drawsquare(0,themenus[i][0]['size'],win.width,0,1,[40,40,40])
+				placey=0
+			elif themenus[i][0]['place']=='top':
+				drawsquare(0,win.height,win.width,win.height-themenus[i][0]['size'],1,[40,40,40])
+				placey=win.height-themenus[i][0]['size']
+			else:
+				for search in themenus:
+					if search[0]['place']=='bottom':
+						drawsquare(0,search[0]['size'],win.width,search[0]['size']+themenus[i][0]['size'],1,[40,40,40])
+						placey=search[0]['size']
+						break
+			sizeofall=0
+			variables=0
+			if themenus[i][0]['variable']:
+				themenus[i][0]['size']=win.width/len(themenus[i])-1
+				for j in range(1,len(themenus[i])):
+					themenus[i][j]['size']=themenus[i][0]['size']
+					if (type(themenus[i][j]['icon']) is dict):
+						themenus[i][j]['icon']['size']=themenus[i][0]['size']
+			for j in range(1,len(themenus[i])):
+				if themenus[i][j]['visible']:
+					if not themenus[i][j]['variable']:
+						sizeofall+=themenus[i][j]['size']
+					else:
+						variables+=1
+			for j in range(1,len(themenus[i])):
+				if themenus[i][j]['variable'] and themenus[i][j]['visible']:
+					themenus[i][j]['size']=(win.width-sizeofall)/variables
+			placex=10
+			for j in range(1,len(themenus[i])):
+				placetemp=placex
+				if themenus[i][j]['size']<30: continue
+				if not themenus[i][j]['visible']:  continue
+				if themenus[i][j]['tech']>tech: 
+					placex+=themenus[i][j]['size']
+					continue
+				if type(themenus[i][j]['icon']) is list:
+					if type(themenus[i][j]['nom']) is list:
+						glColor3ub(255,255,255)
+						themenus[i][j]['icon'][themenus[i][j]['choose']].blit(placex,placey+(themenus[i][0]['size']-themenus[i][j]['icon'][themenus[i][j]['choose']].height)/2)
+						placetemp+=themenus[i][j]['icon'][themenus[i][j]['choose']].width
+					else:
+						drawsquare(placex,placey+(themenus[i][0]['size']-36)/2,placex+36,placey+(themenus[i][0]['size']-36)/2+36,1,themenus[i][j]['icon'])
+				elif type(themenus[i][j]['icon']) is dict:
+					drawitem(placex,placey,themenus[i][j]['icon'],themenus[i][j]['size'],10)
+				elif type(themenus[i][j]['icon']) is str:
+					if themenus[i][j].has_key('params'):
+						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey)+","+str(placex+themenus[i][j]['size'])+","+str(placey+themenus[i][0]['size']-15)+","+themenus[i][j]['params']+")")
+					else:
+						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey)+","+str(placex+themenus[i][j]['size'])+","+str(placey+themenus[i][0]['size']-15)+")")
+				else:
+					glColor3ub(255,255,255)
+					themenus[i][j]['icon'].blit(placex,placey+(themenus[i][0]['size']-themenus[i][j]['icon'].height)/2)
+					placetemp+=themenus[i][j]['icon'].width
+				if themenus[i][j]['separe']:
+					drawsquare(5+placex+themenus[i][j]['size'],placey,6+placex+themenus[i][j]['size'],placey+themenus[i][0]['size'],0,[90,90,90])
+				if themenus[i][j]['squarred']:	
+					if int(time.time())%2==0: drawsquare(placex,placey,placex+themenus[i][j]['size'],placey+themenus[i][0]['size'],1,[255,0,0,110])
+				if themenus[i][j].has_key('text2'):
+					txt_cout.text=eval(themenus[i][j]['text'])
+					if int(eval(themenus[i][j]['text']))==0:
+						txt_cout.color=(255, 0, 0,255)
+					else:
+						txt_cout.color=(180, 180, 180,255)
+					txt_cout.x=placetemp+8
+					txt_cout.y=placey+5
+					txt_cout.draw()		
+				elif themenus[i][j].has_key('text'):
+					txt_cout.text=eval(themenus[i][j]['text'])
+					if int(eval(themenus[i][j]['text']))==0:
+						txt_cout.color=(255, 0, 0,255)
+					else:
+						txt_cout.color=(180, 180, 180,255)
+					txt_cout.x=placetemp+5
+					txt_cout.y=placey+5
+					txt_cout.draw()
+				if themenus[i][0]['selectable']:
+					if (themenus[i][0]['mouse'][0]==j):
+						selectcolor=[255,0,0,40] 
+					elif (themenus[i][0]['mouse'][1]==j):
+						selectcolor=[0,255,0,40]  
+					elif (themenus[i][0]['mouse'][2]==j):
+						selectcolor=[0,0,255,40] 
+					else:
+						selectcolor=[40,40,40,0]
+					if play>0 and ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
+						glLineWidth(random.randint(1,3))
+						glLineStipple(random.randint(0,10),random.randint(0,65535))	
+					drawsquare(placex,placey+(themenus[i][0]['size']-themenus[i][j]['size'])/2,placex+themenus[i][0]['size']-13,placey+(themenus[i][0]['size']-themenus[i][j]['size']-8)/2+themenus[i][j]['size'],2,selectcolor)
+					if play>0 and ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
+						glLineStipple(random.randint(0,10),random.randint(0,65535))
+					drawsquare(placex-1,placey-1,placex+themenus[i][j]['size']+1,placey+themenus[i][0]['size']+1,2,selectcolor)
+					glLineStipple(0,65535)
+					glLineWidth(1)
+				placex+=themenus[i][j]['size']
+	return
+	
+	
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play,element,seestat,art,users
+	global temp,debug,over,allcout,play,element,seestat,art,users,menus
 	glLineWidth(3)
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
@@ -771,280 +880,20 @@ def drawgrid(zoom):
 			glVertex2i(x*zoom+decx,(y+1)*zoom+decy)
 			glEnd()
 			drawitem(x*zoom+decx,y*zoom+decy,art[wart(x,y)],zoom,getactive(x,y))
-	drawsquare(0,win.height,win.width,win.height-50,1,[40,40,40])
-	drawsquare(0,50,win.width,0,1,[40,40,40])
-	if unroll==1:	
-		if debug==1:
-			nbelements=44
-		else:
-			nbelements=29
-		size=win.width/nbelements	
-		drawsquare(0,57+size,win.width,0,1,[40,40,40])
-		cat=65555
-		for i in range(nbelements):
-			it=art[int("0x30000",16)+i]
-			if it['tech']<=tech: 
-				drawitem(10+i*size,55,art[int("0x30000",16)+i],size-6,10)
-				if it['cat']!=cat:
-					drawsquare(7+i*size,55,8+i*size,55+size,0,[90,90,90])         
-					cat=it['cat']
-	elif unroll==1.01:
-		savenames=["#","α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","ς","σ","τ","υ","φ","χ","ψ","ω"]
-		nbelements=len(savenames)
-		size=win.width/nbelements
-		drawsquare(0,57+size,win.width,0,1,[40,40,40])
-		drawsquare(7+1*size,55,8+1*size,55+size,0,[90,90,90]) 
-		for i in range(nbelements):
-			if savenames[i]=="#" or i<=len(users):
-				drawitem(10+i*size,55,{'color': [220, 220, 220], 'text': savenames[i], 'activable': False},size-6,10)				
-			else:
-				drawitem(10+i*size,55,{'color': [40, 40, 40], 'text': savenames[i], 'activable': False},size-6,10)
-	drawsquare(win.width-409,win.height-45,win.width-369,win.height-5,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
-	txt_element.text=element
-	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
-	txt_element.x=win.width-384-len(element)*10
-	txt_element.y=win.height-38
-	txt_element.draw()
-	addx=(win.width-1024)/4
-	if addx<0: addx=0
-	for i in range(4):
-		if (i==0 and tech>0) or (i==1 and tech>6) or (i==2 and tech>7) or (i==3 and tech>8):
-			glColor3ub(255,255,255)
-			dat[int("0x10000",16)+i]['icon'].blit(10+i*(150+addx),win.height-45)
-			if (tech>=5 and addx>100):
-				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
-				txt_temp.x=50+i*(150+addx)
-				txt_temp.y=y=win.height-38
-				txt_temp.color=(180, 180, 180,255)
-				txt_temp.font_size=24
-				txt_temp.draw()
-				txt_temp.text="/"+str(eval("max"+dat[int("0x10000",16)+i]['nom']))
-				if txt_temp.text=="/99999": txt_temp.text="/illimité".decode('utf-8')
-				txt_temp.x=150+i*(150+addx)
-				txt_temp.y=win.height-38
-				txt_temp.color=(110, 110, 110,255)
-				txt_temp.font_size=12
-				txt_temp.draw()
-			elif (tech>=5):
-				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
-				txt_temp.x=50+i*(150+addx)
-				txt_temp.y=win.height-29
-				txt_temp.color=(180, 180, 180,255)
-				txt_temp.font_size=24
-				txt_temp.draw()
-				txt_temp.text=str(eval("max"+dat[int("0x10000",16)+i]['nom']))
-				if txt_temp.text=="99999": txt_temp.text="illimité".decode('utf-8')
-				txt_temp.x=50+i*(150+addx)
-				txt_temp.y=win.height-47
-				txt_temp.color=(110, 110, 110,255)
-				txt_temp.font_size=12
-				txt_temp.draw()
-			else:
-				txt_temp.text=str(eval(dat[int("0x10000",16)+i]['nom']))
-				txt_temp.x=50+i*(150+addx)
-				txt_temp.y=y=win.height-38
-				txt_temp.color=(180, 180, 180,255)
-				txt_temp.font_size=24
-				txt_temp.draw()
-	drawcondvictory(win.width-364,win.height-45,1020,win.height-5,[90,90,90])
-	for i in range(16):
-		glColor3ub(255,255,255)
-		if dat[int("0x20000",16)+i]['icon']=="/":
-			drawitem(10+i*45,8,dat[int("0x20000",16)+i]['ref'],36,10)
-		elif dat[int("0x20000",16)+i]['icon']!="":
-			dat[int("0x20000",16)+i]['icon'].blit(10+i*45,8)
-		else:
-			drawsquare(10+i*45,8,46+i*45,44,1,dat[int("0x20000",16)+i]['color'])
-		if i==12 or i==7 or i==2 or i==4:
-			drawsquare(5+i*45,8,6+i*45,44,0,[90,90,90])
-		if i==1:
-			drawsquare(45+i*45,8,49+i*45,44,1,[0,0,0])
-			drawsquare(45+i*45,8,49+i*45,44*10*len(str(play))/100,1,[255,0,0])	
-		if (mousel==i):
-			selectcolor=[255,0,0,40] 
-		elif (mouser==i):
-			selectcolor=[0,255,0,40]  
-		elif (mousem==i):
-			selectcolor=[0,0,255,40] 
-		else:
-			selectcolor=[40,40,40,0]
-		if play>0 and ((mousem==i) or (mousel==i) or (mouser==i)):
-			glLineWidth(random.randint(1,3))
-			glLineStipple(random.randint(0,10),random.randint(0,65535))	
-		drawsquare(10+i*45,8,46+i*45,44,2,selectcolor)
-		if play>0 and ((mousem==i) or (mousel==i) or (mouser==i)):
-			glLineStipple(random.randint(0,10),random.randint(0,65535))
-		drawsquare(9+i*45,7,47+i*45,45,2,selectcolor)
-		glLineStipple(0,65535)
-		glLineWidth(1)
-	drawsquare(5+16*45,8,6+16*45,44,0,[90,90,90])
-	posx=10+16*45
-	addx=130+win.width-1024
-	if addx<500:
-		drawstat(posx,8,posx+addx,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6],stat[2],stat[7],stat[8]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color'],art['headp']['color'],art['neut']['color'],art['prot']['color']])
-	else:
-		drawstat(posx,8,posx+(addx-20)/2,44,[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']])
-		drawstat(posx+(addx-20)/2+20,8,posx+addx,44,[stat[2],stat[7],stat[8]],[art['headp']['color'],art['neut']['color'],art['prot']['color']])
-	if tech>=0:	
-		glColor3ub(255,255,255)
-		dat['cout']['icon'].blit(posx+addx+4,7)
-		txt_cout.text=str(cout-thecout)
-		txt_cout.x=posx+addx+44
-		if (cout-thecout)>0:
-			txt_cout.color=(180, 180, 180,255)
-		else:
-			txt_cout.color=(255, 0, 0,255)
-		txt_cout.draw()
-	if tech>0:
-		glColor3ub(255,255,255)
-		dat['tech']['icon'].blit(posx+addx+109,7)
-		txt_tech.x=posx+addx+144
-		txt_tech.text=str(tech)
-		txt_tech.draw()
+			
+	drawmenu(menus)
 	if seestat>=1: drawbigstat(seestat)
 	if over>0: drawgameover()
 	if over<0: drawvictory()
 	if allcout[2]>0: drawpopup()
+	return	
 		
-''' *********************************************************************************************** '''
-''' Fonctions liees aux menus																								 '''
 
-def settings(dummy1,dummy2,dummy3,dummy4):
-	global level,world
-	reallystop()
-	savelevel(world,level)
-	sync()
-	level=-2
-				
-def raz(dummy1,dummy2,dummy3,dummy4):
-	global unroll
-	if unroll!=0:
-		unroll=0
-	else:
-		unroll=1.01		
-		
-def save(dummy1,dummy2,dummy3,dummy4):
-	global world_art,world_dat,world,level,users
-	users.append([datetime.datetime.now(),copy.deepcopy(world_new),copy.deepcopy(world_art)])
-	savelevel(world,level)
-	sync()
-	
-def speed(x,y,dummy1,dummy2):
-	global play,zoom
-	if x==1980 and y==2:
-		play=float(play)*2
-	else:
-		play=float(play)/2
-	if play>=5:
-		play=0.01953125
-	if play<0.01953125:
-		play=2.5
-	clock.unschedule(calculate)
-	clock.schedule_interval(calculate,play)
-
-def others(x,y,dummy1,dummy2):
-	global tech
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or art[world_art[x][y]]['tech']<tech):
-		value=dat['others']['ref']['value']
-		if value==art['null']['value']:
-			value=art['nothing']['value']
-		if world_new[x][y]!=art['fiber']['value'] and world_new[x][y]<art['tail']['value']: 
-			if cout-thecout-dat['others']['ref']['cout'] >= 0:
-				world_art[x][y] = value
-				infos()
-
-def setnothinga(x,y,dummy1,dummy2):
-	infos()
-	
-def setnothing(x,y,dummy1,dummy2):
-	global tech
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y] == art['nothing']['value']:
-			world_new[x][y] = art['nothing']['value']				
-		elif art[world_art[x][y]]['tech']<=tech:
-			world_art[x][y] = art['nothing']['value']
-		infos()
-		
-def setcopper(x,y,dummy1,dummy2):
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_new[x][y]<art['tail']['value']: 
-			if cout-thecout-art['copper']['cout'] >= 0:
-				world_new[x][y] = art['copper']['value']
-				infos()
-	
-def setfiber(x,y,dummy1,dummy2):
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y]==0 and world_new[x][y]<art['tail']['value']: 
-			if cout-thecout-art['fiber']['cout'] >= 0:
-				world_new[x][y]=art['fiber']['value']
-				infos()
-		
-def levels(dummy1,dummy2,dummy3,dummy4):
-	global level,world
-	reallystop()
-	savelevel(world,level)
-	sync()
-	level=-1
-
-def exits(dummy1,dummy2,dummy3,dummy4):
-	if level>=0:
-		savelevel(world,level)
-		sync()
-	pyglet.app.exit()
-	
-def stater(dummy1,dummy2,dummy3,dummy4):
-	global seestat
-	if seestat>3:
-		seestat=0
-	else:
-		seestat=seestat+1
-	resize()
-		
-def stop(dummy1,dummy2,dummy3,dummy4):
-	global play
-	if play>0:
-		reallystop()
-	else:
-		reallyrun()
-		
-def run(dummy1,dummy2,dummy3,dummy4):
-	global play
-	if play>0:
-		reallystop()
-	else:
-		reallyrun()
-		
-def move(dummy1,dummy2,dx,dy):
-	global decx,decy
-	decx=decx+dx
-	decy=decy+dy
-	
-def screen(dummy1,dummy2,dummy3,dummy4):
-	if win.fullscreen:
-		win.set_fullscreen(fullscreen=False)
-	else:
-		win.set_fullscreen(fullscreen=True)
-	resize()
-		
-def zoomm(x,y,dummy1,dummy2):
-	global zoom,decx,decy
-	if zoom>2:
-		decx=decx+2*x
-		decy=decy+2*y
-		zoom=zoom-2
-	
-def zoomp(x,y,dummy1,dummy2):
-	global zoom,decx,decy
-	decx=decx-2*x
-	decy=decy-2*y
-	zoom=zoom+2
-	
 ''' *********************************************************************************************** '''
 ''' Fonctions gestion du monde																		'''
 
 def reallystop():
 	global play,world,level,stat,stat_var,current,cycle,temp,nrj,rayon
-	dat['run']['value']='stop'
 	play=0
 	clock.unschedule(calculate)
 	current=copy.deepcopy(worlds[world][level]['current'])
@@ -1063,7 +912,6 @@ def reallystop():
 def reallyrun():
 		global play
 		play=0.15625
-		dat['run']['value']='run'
 		clock.schedule_interval(calculate,play)
 																			 
 def retriern():
@@ -1467,6 +1315,12 @@ pic_arrows=image.load("picture/arrows.png")
 pic_arrows2=image.load("picture/arrows2.png")
 pic_levels2=image.load("picture/levels2.png")
 pic_locked=image.load("picture/locked.png")
+pic_cycle=image.load("picture/cycle.png")
+pic_nrj=image.load("picture/nrj.png")
+pic_temp=image.load("picture/temp.png")
+pic_rayon=image.load("picture/rayon.png")
+pic_cout=image.load("picture/cout.png")
+pic_tech=image.load("picture/tech.png")
 document=pyglet.text.decode_attributed("test")
 txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
 txt_description.x=8
@@ -1494,9 +1348,223 @@ txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=F
 txt_son=pyglet.text.Label("Reglages du son",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 
+''' *********************************************************************************************** '''
+''' Fonctions liees aux menus																								 '''
+
+def settings(dummy1,dummy2,dummy3,dummy4):
+	global level,world
+	reallystop()
+	savelevel(world,level)
+	sync()
+	level=-2
+	
+def loadfromit(dummy1,dummy2,dummy3,dummy4,save):
+	global users,world_art,world_new,world,level
+	if save<99999:
+		world_new=copy.deepcopy(users[save][1])
+		world_art=copy.deepcopy(users[save][2])
+	else:
+		readlevel(world,level,False)
+				
+def loadfrom(dummy1,dummy2,dummy3,dummy4):
+	global menus,savenames,users
+	if menus[2][0]['visible']:
+			menus[2][0]['visible']=False
+			return
+	if len(menus[2])<10:
+		menus[2].append({'nom': 'loadfromit', 'params': 99999, 'tech':1, 'popup':'Version originale', 'size':0,'drag': False, 'icon': {'color': [220, 220, 220], 'text': '#', 'activable': False},'variable':False,'visible':True,'separe':True,'squarred':False})
+		for i in range(1,len(savenames)):
+			if i<=len(users):
+				menus[2].append({'nom': 'loadfromit', 'params': len(users)-i, 'tech':1, 'popup':users[len(users)-i][0].strftime("%Y-%m-%d %H:%M"), 'size':0,'drag': False, 'icon': {'color': [220, 220, 220], 'text': savenames[i], 'activable': False},'variable':False,'visible':True,'separe':False,'squarred':False})			
+			else:
+				menus[2].append({'nom': 'setnothinga', 'tech':1, 'popup':0, 'size':0,'drag': False, 'icon': {'color': [40, 40, 40], 'text': savenames[i], 'activable': False},'variable':False,'visible':True,'separe':False,'squarred':False})
+	else:
+		for i in range(1,len(savenames)):
+			if i<=len(users):
+				menus[2][i]['popup']=users[len(users)-i][0].strftime("%Y-%m-%d %H:%M")
+				menus[2][i]['icon']['color']=[220, 220, 220]
+			else:
+				menus[2][i]['popup']=0
+				menus[2][i]['icon']['color']=[40, 40, 40]
+	menus[2][0]['visible']=True
+		
+def save(dummy1,dummy2,dummy3,dummy4):
+	global world_art,world_dat,world,level,users
+	users.append([datetime.datetime.now(),copy.deepcopy(world_new),copy.deepcopy(world_art)])
+	savelevel(world,level)
+	sync()
+	
+def speed(x,y,dummy1,dummy2):
+	global play,zoom
+	if x==1980 and y==2:
+		play=float(play)*2
+	else:
+		play=float(play)/2
+	if play>=5:
+		play=0.01953125
+	if play<0.01953125:
+		play=2.5
+	clock.unschedule(calculate)
+	clock.schedule_interval(calculate,play)
+
+def others(x,y,dummy1,dummy2):
+	global tech,menus
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or art[world_art[x][y]]['tech']<tech):
+		value=menus[0][18]['icon']['value']
+		if value==art['null']['value']:
+			value=art['nothing']['value']
+		if world_new[x][y]!=art['fiber']['value'] and world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-menus[0][18]['icon']['cout'] >= 0:
+				world_art[x][y] = value
+				infos()
+
+def setnothinga(x,y,dummy1,dummy2):
+	infos()
+	
+def setnothing(x,y,dummy1,dummy2):
+	global tech
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
+		if world_art[x][y] == art['nothing']['value']:
+			world_new[x][y] = art['nothing']['value']				
+		elif art[world_art[x][y]]['tech']<=tech:
+			world_art[x][y] = art['nothing']['value']
+		infos()
+		
+def setcopper(x,y,dummy1,dummy2):
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
+		if world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-art['copper']['cout'] >= 0:
+				world_new[x][y] = art['copper']['value']
+				infos()
+	
+def setfiber(x,y,dummy1,dummy2):
+	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
+		if world_art[x][y]==0 and world_new[x][y]<art['tail']['value']: 
+			if cout-thecout-art['fiber']['cout'] >= 0:
+				world_new[x][y]=art['fiber']['value']
+				infos()
+				
+def tutoriel(dummy1,dummy2,dummy3,dummy4):
+	print "tuto"
+
+def popup(dummy1,dummy2,dummy3,dummy4):
+	print "popup"	
+	
+def simple(dummy1,dummy2,dummy3,dummy4):
+	print "simple"	
+		
+def levels(dummy1,dummy2,dummy3,dummy4):
+	global level,world
+	reallystop()
+	savelevel(world,level)
+	sync()
+	level=-1
+
+def exits(dummy1,dummy2,dummy3,dummy4):
+	if level>=0:
+		savelevel(world,level)
+		sync()
+	pyglet.app.exit()
+	
+def stater(dummy1,dummy2,dummy3,dummy4):
+	global seestat
+	if seestat>3:
+		seestat=0
+	else:
+		seestat=seestat+1
+	resize()
+		
+def stop(dummy1,dummy2,dummy3,dummy4):
+		reallystop()
+		
+def run(dummy1,dummy2,dummy3,dummy4):
+		reallyrun()
+		
+def move(dummy1,dummy2,dx,dy):
+	global decx,decy
+	decx=decx+dx
+	decy=decy+dy
+	
+def screen(dummy1,dummy2,dummy3,dummy4):
+	if win.fullscreen:
+		win.set_fullscreen(fullscreen=False)
+	else:
+		win.set_fullscreen(fullscreen=True)
+	resize()
+		
+def zoomm(x,y,dummy1,dummy2):
+	global zoom,decx,decy
+	if zoom>2:
+		decx=decx+2*x
+		decy=decy+2*y
+		zoom=zoom-2
+	
+def zoomp(x,y,dummy1,dummy2):
+	global zoom,decx,decy
+	decx=decx-2*x
+	decy=decy-2*y
+	zoom=zoom+2
+	
 
 ''' *********************************************************************************************** '''
-''' Fonctions evenementielles liees a la fenetre																	 '''
+''' Fonctions liée à la gestion des menus                                                          '''
+
+def testmenu(themenus,x,y,dx,dy,buttons,modifiers):
+	global tech,play,decx,decy,zoom
+	allcout[2]=0
+	for i in range(len(themenus)):
+		if themenus[i][0]['visible']:
+			if themenus[i][0]['place']=='bottom':
+				placey=8
+			elif themenus[i][0]['place']=='top':
+				placey=win.height-themenus[i][0]['size']+8
+			else:
+				for search in themenus:
+					if search[0]['place']=='bottom':
+						placey=search[0]['size']+8
+						break
+			placex=0
+			for j in range(1,len(themenus[i])):
+				if themenus[i][j]['size']<30: continue
+				if not themenus[i][j]['visible']:  continue
+				if themenus[i][j]['tech']>tech: 
+					placex+=themenus[i][j]['size']
+					continue
+				if x>placex and x<placex+themenus[i][j]['size'] and y>placey and y<placey+themenus[i][0]['size']-8:
+					if buttons>0:
+						realx=(x-decx)/zoom
+						realy=(y-decy)/zoom
+						if themenus[i][0]['selectable']:
+							themenus[i][0]['mouse'][buttons-1]=j
+						if themenus[i][j].has_key('choose'):
+							eval(themenus[i][j]['nom'][themenus[i][j]['choose']]+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
+							themenus[i][j]['choose']+=1
+							if themenus[i][j]['choose']>=len(themenus[i][j]['nom']):
+								themenus[i][j]['choose']=0
+						else:
+							eval(themenus[i][j]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
+					else:
+						allcout[0]=x
+						allcout[1]=y
+						if type(themenus[i][j]['nom']) is list:
+							allcout[2]=themenus[i][j]['popup'][themenus[i][j]['choose']]
+						else:
+							allcout[2]=themenus[i][j]['popup']
+				placex+=themenus[i][j]['size']
+	return
+
+def testgrid(themenus,x,y,dx,dy,buttons,modifiers):
+	for i in range(len(themenus)):
+		if themenus[i][0]['visible'] and themenus[i][0]['selectable']:
+			for j in range(3):
+				if themenus[i][themenus[i][0]['mouse'][j]]['drag'] and buttons==j+1:
+					realx=(x-decx)/zoom
+					realy=(y-decy)/zoom
+					eval(themenus[i][themenus[i][0]['mouse'][j]]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
+					break
+
+''' *********************************************************************************************** '''
+''' Fonctions evenementielles																	 '''
 				
 @win.event
 def on_key_press(symbol, modifiers):
@@ -1525,24 +1593,9 @@ def on_key_press(symbol, modifiers):
 
 @win.event	
 def on_mouse_motion(x, y, dx, dy):
-	global world,selected,allcout,over,level,worlds,finished
+	global world,selected,allcout,over,level,worlds,finished,users,menus
 	if level>=0: 
-		realx=(x-decx)/zoom
-		realy=(y-decy)/zoom
-		if unroll==1:
-			if debug==1:
-				nbelements=44
-			else:
-				nbelements=29
-			size=win.width/nbelements	
-			allcout[2]=0
-			allcout[0]=x
-			allcout[1]=y
-			for i in range(nbelements):
-				if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
-					if art[int("0x30000",16)+i]['tech']<=tech:
-						allcout[2]=art[int("0x30000",16)+i]
-		return	
+		testmenu(menus,x,y,dx,dy,0,0)
 	selected=-1
 	for l in range(len(worlds[world])):
 		ele=worlds[world][l]
@@ -1557,7 +1610,7 @@ def on_mouse_motion(x, y, dx, dy):
 				
 @win.event
 def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
-	global zoom,mousel,mouser,mousem,over,level,unroll
+	global zoom,over,level,menus
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1569,21 +1622,11 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 		itsvictory_ok()
 		return
 	if level<0: return	
-	realx=(x-decx)/zoom
-	realy=(y-decy)/zoom
-	mouses=23
-	if buttons == mouse.LEFT:
-		mouses=mousel
-	if buttons == mouse.RIGHT:
-		mouses=mouser	
-	if buttons == mouse.MIDDLE:
-		mouses=mousem
-	if mouses!=23 and dat[int("0x20000",16)+mouses]['drag']==1 and (unroll==0 or y>100) and (y>50):
-		eval(dat[int("0x20000",16)+mouses]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
-			
+	testgrid(menus,x,y,dx,dy,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(buttons)+1, modifiers)
+	
 @win.event
 def on_mouse_press(x, y, button, modifiers):
-	global zoom,mousel,mouser,mousem,unroll,over,level,selected,world,users,world_new,world_art
+	global zoom,over,level,selected,world,users,world_new,world_art,menus
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1611,61 +1654,9 @@ def on_mouse_press(x, y, button, modifiers):
 				ambiance.pause()
 				selected=-1
 		return
-	realx=(x-decx)/zoom
-	realy=(y-decy)/zoom
-	for i in range(16):
-		if x>=10+i*45 and x<=49+i*45 and y>=8 and y<44:
-			if 'color' in dat[int("0x20000",16)+i] and dat[int("0x20000",16)+i]['color']!=[40,40,40]:
-				if button == mouse.LEFT:
-					mousel=i
-				if button == mouse.RIGHT:
-					mouser=i	
-				if button == mouse.MIDDLE:
-					mousem=i
-				if button!="" and i==15:
-					if unroll!=0:
-						unroll=0
-					else:
-						unroll=1	
-				if i>=12: return
-	if unroll==1:
-		if debug==1:
-			nbelements=44
-		else:
-			nbelements=29
-		size=win.width/nbelements	
-		for i in range(nbelements):
-			if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
-				if art[int("0x30000",16)+i]['tech']<=tech:
-					dat['others']['ref']=art[int("0x30000",16)+i]
-					if button == mouse.LEFT:
-						mousel=15
-					if button == mouse.RIGHT:
-						mouser=15
-					if button == mouse.MIDDLE:
-						mousem=15
-					return
-	elif unroll==1.01:
-		nbelements=26
-		size=win.width/nbelements	
-		for i in range(nbelements):
-			if x>=5+i*size and x<=5+i*size+size and y>=55 and y<55+size:
-				if i==0:
-					readlevel(world,level,False)
-				else:
-					world_new=copy.deepcopy(users[len(users)-i][1])
-					world_art=copy.deepcopy(users[len(users)-i][2])
-				return
-	mouses=23
-	if button == mouse.LEFT:
-		mouses=mousel
-	if button == mouse.RIGHT:
-		mouses=mouser	
-	if button == mouse.MIDDLE:
-		mouses=mousem
-	if mouses!=23:
-		eval(dat[int("0x20000",16)+mouses]['nom']+"("+str(realx)+","+str(realy)+","+str(0)+","+str(0)+")")
-		
+	testmenu(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers)
+	testgrid(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
+	
 @win.event
 def on_resize(width,height):
 	resize()
