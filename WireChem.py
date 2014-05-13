@@ -88,7 +88,7 @@ def loadpic(d):
 			if 'icon' in d[j][k]:
 				if type(d[j][k]['icon']) is str and d[j][k]['icon']!="" and os.path.exists(d[j][k]['icon']):
 					d[j][k]['icon']=image.load(d[j][k]['icon'])
-				elif type(d[j][k]['nom']) is not str:
+				elif type(d[j][k]['icon']) is list and type(d[j][k]['icon'][0]) is str:
 					for n in range(len(d[j][k]['icon'])):
 						d[j][k]['icon'][n]=image.load(d[j][k]['icon'][n])					
 									
@@ -106,7 +106,7 @@ def initgrid():
 	direction[(+1,+0)]=[(-1,+0),(-1,+1),(-1,-1),(+0,+1),(+0,-1),(+1,+1),(+1,-1),(+1,+0)]
 	direction[(+1,+1)]=[(-1,-1),(-1,+0),(+0,-1),(-1,+1),(+1,-1),(+0,+1),(+1,+0),(+1,+1)]
 	adirection=[(-1,-1),(-1,+0),(-1,+1),(+0,-1),(+0,+1),(+1,-1),(+1,+0),(+1,+1)]
-	savenames=["#","α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","ς","σ","τ","υ","φ","χ","ψ","ω"]
+	savenames=["α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","ς","σ","τ","υ","φ","χ","ψ","ω"]
 	verifyhome()
 	read("dbdata")
 	read(gethome()+"/dbdata")
@@ -764,63 +764,85 @@ def drawmenu(themenus):
 				for j in range(1,len(themenus[i])):
 					themenus[i][j]['size']=themenus[i][0]['size']
 					if (type(themenus[i][j]['icon']) is dict):
-						themenus[i][j]['icon']['size']=themenus[i][0]['size']
+						themenus[i][j]['icon']['size']=themenus[i][0]['size']-12
 			for j in range(1,len(themenus[i])):
-				if themenus[i][j]['visible']:
+				if type(themenus[i][j]['visible']) is str and eval(themenus[i][j]['visible']) or (type(themenus[i][j]['visible']) is not str and themenus[i][j]['visible']):
 					if not themenus[i][j]['variable']:
 						sizeofall+=themenus[i][j]['size']
 					else:
 						variables+=1
 			for j in range(1,len(themenus[i])):
-				if themenus[i][j]['variable'] and themenus[i][j]['visible']:
+				if themenus[i][j]['variable'] and (type(themenus[i][j]['visible']) is str and eval(themenus[i][j]['visible']) or (type(themenus[i][j]['visible']) is not str and themenus[i][j]['visible'])):
 					themenus[i][j]['size']=(win.width-sizeofall)/variables
 			placex=10
 			for j in range(1,len(themenus[i])):
 				placetemp=placex
 				if themenus[i][j]['size']<30: continue
-				if not themenus[i][j]['visible']:  continue
+				if type(themenus[i][j]['visible']) is str and not eval(themenus[i][j]['visible']) or not themenus[i][j]['visible']: continue
 				if themenus[i][j]['tech']>tech: 
 					placex+=themenus[i][j]['size']
 					continue
 				if type(themenus[i][j]['icon']) is list:
-					if type(themenus[i][j]['nom']) is list:
-						glColor3ub(255,255,255)
+					if type(themenus[i][j]['icon'][0]) is not int:
+						if (type(themenus[i][j]['active']) is str and eval(themenus[i][j]['active'])) or (type(themenus[i][j]['active']) is not str and themenus[i][j]['active']) :
+							glColor3ub(255,255,255)
+						else:
+							glColor4ub(255,255,255,40)
 						themenus[i][j]['icon'][themenus[i][j]['choose']].blit(placex,placey+(themenus[i][0]['size']-themenus[i][j]['icon'][themenus[i][j]['choose']].height)/2)
 						placetemp+=themenus[i][j]['icon'][themenus[i][j]['choose']].width
 					else:
-						drawsquare(placex,placey+(themenus[i][0]['size']-36)/2,placex+36,placey+(themenus[i][0]['size']-36)/2+36,1,themenus[i][j]['icon'])
+						drawsquare(placex,placey+(themenus[i][0]['size']-36)/2,placex+36,placey+(themenus[i][0]['size']-36)/2+37,1,themenus[i][j]['icon'])
 				elif type(themenus[i][j]['icon']) is dict:
-					drawitem(placex,placey,themenus[i][j]['icon'],themenus[i][j]['size'],10)
+					if themenus[i][j]['icon'].has_key('color') and themenus[i][j]['icon'].has_key('colorise'):
+						if ((type(themenus[i][j]['active']) is str and eval(themenus[i][j]['active'])) or (type(themenus[i][j]['active']) is not str and themenus[i][j]['active'])):
+							themenus[i][j]['icon']['color']=(220,220,220)
+						else:
+							themenus[i][j]['icon']['color']=(40,40,40)
+					if themenus[i][j]['icon'].has_key('size'):
+						drawitem(placex,placey+(themenus[i][0]['size']-themenus[i][j]['icon']['size'])/2,themenus[i][j]['icon'],themenus[i][j]['icon']['size'],10)
+					else:
+						drawitem(placex,placey+(themenus[i][0]['size']-themenus[i][j]['size'])/2,themenus[i][j]['icon'],themenus[i][j]['size'],10)
 				elif type(themenus[i][j]['icon']) is str:
 					if themenus[i][j].has_key('params'):
-						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey)+","+str(placex+themenus[i][j]['size'])+","+str(placey+themenus[i][0]['size']-15)+","+themenus[i][j]['params']+")")
+						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey+(themenus[i][0]['size']-36)/2)+","+str(placex+themenus[i][j]['size'])+","+str(placey+(themenus[i][0]['size']-36)/2+37)+","+themenus[i][j]['params']+")")
 					else:
-						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey)+","+str(placex+themenus[i][j]['size'])+","+str(placey+themenus[i][0]['size']-15)+")")
+						eval(themenus[i][j]['icon']+"("+str(placex)+","+str(placey+(themenus[i][0]['size']-36)/2)+","+str(placex+themenus[i][j]['size'])+","+str(placey+(themenus[i][0]['size']-36)/2+37)+")")
 				else:
-					glColor3ub(255,255,255)
+					if (type(themenus[i][j]['active']) is str and eval(themenus[i][j]['active'])) or (type(themenus[i][j]['active']) is not str and themenus[i][j]['active']):
+						glColor3ub(255,255,255)
+					else:
+						glColor4ub(255,255,255,60)
 					themenus[i][j]['icon'].blit(placex,placey+(themenus[i][0]['size']-themenus[i][j]['icon'].height)/2)
 					placetemp+=themenus[i][j]['icon'].width
+				if themenus[i][j]['squarred']:
+					if int(time.time())%2==0: drawsquare(placex,placey+(themenus[i][0]['size']-36)/2,placex+36,placey+(themenus[i][0]['size']-36)/2+37,1,[255,0,0,110])
 				if themenus[i][j]['separe']:
-					drawsquare(5+placex+themenus[i][j]['size'],placey,6+placex+themenus[i][j]['size'],placey+themenus[i][0]['size'],0,[90,90,90])
-				if themenus[i][j]['squarred']:	
-					if int(time.time())%2==0: drawsquare(placex,placey,placex+themenus[i][j]['size'],placey+themenus[i][0]['size'],1,[255,0,0,110])
+					drawsquare(placex+themenus[i][j]['size']-5,placey+5,placex+themenus[i][j]['size']-3,placey+themenus[i][0]['size']-5,1,[90,90,90])
 				if themenus[i][j].has_key('text2'):
-					txt_cout.text=eval(themenus[i][j]['text'])
-					if int(eval(themenus[i][j]['text']))==0:
+					txt_cout.text=themenus[i][j]['text']
+					if txt_cout.text[0]=="#":
+						txt_cout.text=eval(txt_cout.text[1:])
+					if int(txt_cout.text)<0:
 						txt_cout.color=(255, 0, 0,255)
+					elif not themenus[i][j]['active']:
+						txt_cout.color=(40,40,40,255)
 					else:
 						txt_cout.color=(180, 180, 180,255)
-					txt_cout.x=placetemp+8
-					txt_cout.y=placey+5
+					txt_cout.x=placetemp
+					txt_cout.y=placey+1
 					txt_cout.draw()		
 				elif themenus[i][j].has_key('text'):
-					txt_cout.text=eval(themenus[i][j]['text'])
-					if int(eval(themenus[i][j]['text']))==0:
+					txt_cout.text=themenus[i][j]['text']
+					if txt_cout.text[0]=="#":
+						txt_cout.text=eval(txt_cout.text[1:])
+					if int(txt_cout.text)<0:
 						txt_cout.color=(255, 0, 0,255)
+					elif not themenus[i][j]['active']:
+						txt_cout.color=(40,40,40,255)
 					else:
 						txt_cout.color=(180, 180, 180,255)
-					txt_cout.x=placetemp+5
-					txt_cout.y=placey+5
+					txt_cout.x=placetemp
+					txt_cout.y=placey+15
 					txt_cout.draw()
 				if themenus[i][0]['selectable']:
 					if (themenus[i][0]['mouse'][0]==j):
@@ -829,15 +851,15 @@ def drawmenu(themenus):
 						selectcolor=[0,255,0,40]  
 					elif (themenus[i][0]['mouse'][2]==j):
 						selectcolor=[0,0,255,40] 
-					else:
-						selectcolor=[40,40,40,0]
-					if play>0 and ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
-						glLineWidth(random.randint(1,3))
-						glLineStipple(random.randint(0,10),random.randint(0,65535))	
-					drawsquare(placex,placey+(themenus[i][0]['size']-themenus[i][j]['size'])/2,placex+themenus[i][0]['size']-13,placey+(themenus[i][0]['size']-themenus[i][j]['size']-8)/2+themenus[i][j]['size'],2,selectcolor)
-					if play>0 and ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
-						glLineStipple(random.randint(0,10),random.randint(0,65535))
-					drawsquare(placex-1,placey-1,placex+themenus[i][j]['size']+1,placey+themenus[i][0]['size']+1,2,selectcolor)
+					if ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
+						if play>0:
+							glLineWidth(random.randint(1,3))
+							glLineStipple(random.randint(0,10),random.randint(0,65535))	
+						drawsquare(placex,placey+(themenus[i][0]['size']-36)/2,placex+37,placey+(themenus[i][0]['size']-36)/2+37,2,selectcolor)
+					if ((themenus[i][0]['mouse'][0]==j) or (themenus[i][0]['mouse'][1]==j) or (themenus[i][0]['mouse'][2]==j)):
+						if play>0:
+							glLineStipple(random.randint(0,10),random.randint(0,65535))
+						drawsquare(placex-1,placey+(themenus[i][0]['size']-36)/2-1,placex+38,placey+(themenus[i][0]['size']-36)/2+38,2,selectcolor)
 					glLineStipple(0,65535)
 					glLineWidth(1)
 				placex+=themenus[i][j]['size']
@@ -1351,52 +1373,47 @@ txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,
 ''' *********************************************************************************************** '''
 ''' Fonctions liees aux menus																								 '''
 
-def settings(dummy1,dummy2,dummy3,dummy4):
+def sound(state):
+	print "sound"
+	
+def nosound(state):
+	print "nosound"
+	
+def settings(state):
 	global level,world
 	reallystop()
 	savelevel(world,level)
 	sync()
 	level=-2
 	
-def loadfromit(dummy1,dummy2,dummy3,dummy4,save):
+def loadfromit(state):
 	global users,world_art,world_new,world,level
-	if save<99999:
-		world_new=copy.deepcopy(users[save][1])
-		world_art=copy.deepcopy(users[save][2])
-	else:
+	if state['j']==1:
 		readlevel(world,level,False)
+	else:
+		world_new=copy.deepcopy(users[len(users)-state['j']+1][1])
+		world_art=copy.deepcopy(users[len(users)-state['j']+1][2])
 				
-def loadfrom(dummy1,dummy2,dummy3,dummy4):
+def loadfrom(state):
 	global menus,savenames,users
 	if menus[2][0]['visible']:
 			menus[2][0]['visible']=False
 			return
-	if len(menus[2])<10:
-		menus[2].append({'nom': 'loadfromit', 'params': 99999, 'tech':1, 'popup':'Version originale', 'size':0,'drag': False, 'icon': {'color': [220, 220, 220], 'text': '#', 'activable': False},'variable':False,'visible':True,'separe':True,'squarred':False})
-		for i in range(1,len(savenames)):
-			if i<=len(users):
-				menus[2].append({'nom': 'loadfromit', 'params': len(users)-i, 'tech':1, 'popup':users[len(users)-i][0].strftime("%Y-%m-%d %H:%M"), 'size':0,'drag': False, 'icon': {'color': [220, 220, 220], 'text': savenames[i], 'activable': False},'variable':False,'visible':True,'separe':False,'squarred':False})			
-			else:
-				menus[2].append({'nom': 'setnothinga', 'tech':1, 'popup':0, 'size':0,'drag': False, 'icon': {'color': [40, 40, 40], 'text': savenames[i], 'activable': False},'variable':False,'visible':True,'separe':False,'squarred':False})
-	else:
-		for i in range(1,len(savenames)):
-			if i<=len(users):
-				menus[2][i]['popup']=users[len(users)-i][0].strftime("%Y-%m-%d %H:%M")
-				menus[2][i]['icon']['color']=[220, 220, 220]
-			else:
-				menus[2][i]['popup']=0
-				menus[2][i]['icon']['color']=[40, 40, 40]
+	if len(menus[2])<=1:
+		menus[2].append({'click': 'loadfromit', 'motion':'popup', 'tech':1, 'value':'Version originale', 'size':0, 'icon': {'color': [255, 100, 100], 'text': '#', 'activable': False},'active':True,'variable':True,'visible':True,'separe':True,'squarred':False})
+		for i in range(len(savenames)):
+				menus[2].append({'click': 'loadfromit', 'motion':'popup', 'tech':1, 'value':'#users[len(users)-'+str(i)+'-1][0].strftime("%Y-%m-%d %H:%M")', 'size':0, 'icon': {'color': [255, 255, 255], 'colorise':True,  'text': savenames[i], 'activable': False},'active':'len(users)>'+str(i),'variable':True,'visible':True,'separe':False,'squarred':False})
 	menus[2][0]['visible']=True
 		
-def save(dummy1,dummy2,dummy3,dummy4):
+def save(state):
 	global world_art,world_dat,world,level,users
 	users.append([datetime.datetime.now(),copy.deepcopy(world_new),copy.deepcopy(world_art)])
 	savelevel(world,level)
 	sync()
 	
-def speed(x,y,dummy1,dummy2):
+def speed(state):
 	global play,zoom
-	if x==1980 and y==2:
+	if state.has_key('-'):
 		play=float(play)*2
 	else:
 		play=float(play)/2
@@ -1406,67 +1423,80 @@ def speed(x,y,dummy1,dummy2):
 		play=2.5
 	clock.unschedule(calculate)
 	clock.schedule_interval(calculate,play)
+	
+def othersit(state):
+	menus[0][18]['icon']=copy.deepcopy(menus[3][state['j']]['value'])
 
-def others(x,y,dummy1,dummy2):
+def others(state):
 	global tech,menus
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0 and (world_art[x][y]==0 or art[world_art[x][y]]['tech']<tech):
+	if state['onmenu']:
+		if menus[3][0]['visible']:
+			menus[3][0]['visible']=False
+			return
+		if len(menus[3])<=1:
+			for i in range(196608,196608+len(savenames)):
+				menus[3].append({'click': 'othersit', 'motion':'popup', 'tech':art[i]['tech'], 'value':art[i], 'size':0, 'icon':art[i],'active':True,'variable':True,'visible':True,'separe':False,'squarred':False})
+		menus[3][0]['visible']=True
+		return
+	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0 and (world_art[state['realx']][state['realy']]==0 or art[world_art[state['realx']][state['realy']]]['tech']<tech):
 		value=menus[0][18]['icon']['value']
 		if value==art['null']['value']:
 			value=art['nothing']['value']
-		if world_new[x][y]!=art['fiber']['value'] and world_new[x][y]<art['tail']['value']: 
+		if world_new[state['realx']][state['realy']]!=art['fiber']['value'] and world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-menus[0][18]['icon']['cout'] >= 0:
-				world_art[x][y] = value
+				world_art[state['realx']][state['realy']] = value
 				infos()
 
-def setnothinga(x,y,dummy1,dummy2):
-	infos()
+def setnothinga(state):
+	state()
 	
-def setnothing(x,y,dummy1,dummy2):
+def setnothing(state):
 	global tech
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y] == art['nothing']['value']:
-			world_new[x][y] = art['nothing']['value']				
-		elif art[world_art[x][y]]['tech']<=tech:
-			world_art[x][y] = art['nothing']['value']
+	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
+		if world_art[state['realx']][state['realy']] == art['nothing']['value']:
+			world_new[state['realx']][state['realy']] = art['nothing']['value']				
+		elif art[world_art[state['realx']][state['realy']]]['tech']<=tech:
+			world_art[state['realx']][state['realy']] = art['nothing']['value']
 		infos()
 		
-def setcopper(x,y,dummy1,dummy2):
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_new[x][y]<art['tail']['value']: 
+def setcopper(state):
+	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
+		if world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-art['copper']['cout'] >= 0:
-				world_new[x][y] = art['copper']['value']
+				world_new[state['realx']][state['realy']] = art['copper']['value']
 				infos()
 	
-def setfiber(x,y,dummy1,dummy2):
-	if x>=1 and y>=1 and x<sizex-1 and y<sizey-1 and play==0:
-		if world_art[x][y]==0 and world_new[x][y]<art['tail']['value']: 
+def setfiber(state):
+	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
+		if world_art[state['realx']][state['realy']]==0 and world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-art['fiber']['cout'] >= 0:
-				world_new[x][y]=art['fiber']['value']
+				world_new[state['realx']][state['realy']]=art['fiber']['value']
 				infos()
 				
-def tutoriel(dummy1,dummy2,dummy3,dummy4):
+def settutoriel(state):
 	print "tuto"
 
-def popup(dummy1,dummy2,dummy3,dummy4):
+def setpopup(state):
 	print "popup"	
 	
-def simple(dummy1,dummy2,dummy3,dummy4):
+def setsimple(state):
 	print "simple"	
 		
-def levels(dummy1,dummy2,dummy3,dummy4):
+def levels(state):
 	global level,world
 	reallystop()
 	savelevel(world,level)
 	sync()
 	level=-1
 
-def exits(dummy1,dummy2,dummy3,dummy4):
+def exits(state):
+	global level,world
 	if level>=0:
 		savelevel(world,level)
 		sync()
 	pyglet.app.exit()
 	
-def stater(dummy1,dummy2,dummy3,dummy4):
+def stater(state):
 	global seestat
 	if seestat>3:
 		seestat=0
@@ -1474,43 +1504,83 @@ def stater(dummy1,dummy2,dummy3,dummy4):
 		seestat=seestat+1
 	resize()
 		
-def stop(dummy1,dummy2,dummy3,dummy4):
+def stop(state):
 		reallystop()
 		
-def run(dummy1,dummy2,dummy3,dummy4):
+def run(state):
 		reallyrun()
 		
-def move(dummy1,dummy2,dx,dy):
+def move(state):
 	global decx,decy
-	decx=decx+dx
-	decy=decy+dy
+	decx=decx+state['dx']
+	decy=decy+state['dy']
 	
-def screen(dummy1,dummy2,dummy3,dummy4):
-	if win.fullscreen:
-		win.set_fullscreen(fullscreen=False)
-	else:
-		win.set_fullscreen(fullscreen=True)
+def fullscreen(state):
+	win.set_fullscreen(fullscreen=True)
+	resize()
+	
+def windowed(state):
+	win.set_fullscreen(fullscreen=False)
 	resize()
 		
-def zoomm(x,y,dummy1,dummy2):
+def zoomm(state):
 	global zoom,decx,decy
-	if zoom>2:
-		decx=decx+2*x
-		decy=decy+2*y
-		zoom=zoom-2
+	decx=decx+2*state['realx']
+	decy=decy+2*state['realy']
+	zoom=zoom-2
 	
-def zoomp(x,y,dummy1,dummy2):
+def zoomp(state):
 	global zoom,decx,decy
-	decx=decx-2*x
-	decy=decy-2*y
+	decx=decx-2*state['realx']
+	decy=decy-2*state['realy']
 	zoom=zoom+2
 	
+def popup(state):
+	global allcout,menus
+	allcout[0]=state['x']
+	allcout[1]=state['y']	
+	if type(menus[state['i']][state['j']]['value']) is list:
+		allcout[2]=menus[state['i']][state['j']]['value'][menus[state['i']][state['j']]['choose']]
+	else:
+		allcout[2]=menus[state['i']][state['j']]['value']
+	if type(allcout[2]) is str and allcout[2][0]=="#":
+		allcout[2]=eval(allcout[2][1:])
 
 ''' *********************************************************************************************** '''
-''' Fonctions liée à la gestion des menus                                                          '''
+''' Fonctions liée à la gestion des menus  															'''
 
+def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
+	global menus,decx,decy,zoom
+	realx=(x-decx)/zoom
+	realy=(y-decy)/zoom
+	state={'x':x,'y':y,'realx':realx, 'realy':realy, 'dx':dx, 'dy':dy, 'i':i, 'j':j, 'buttons':buttons, 'modifiers':modifiers, 'onmenu': onmenu}
+	if buttons==0: 
+		state['event']='motion'
+	else:
+		if dx==0 and dy==0:
+			state['event']='click'
+		else:
+			state['event']='drag'
+	'''print state'''
+	if onmenu and state['event']=='click' and menus[i][0]['selectable']:
+		menus[i][0]['mouse'][buttons-1]=j
+	if menus[i][j].has_key(state['event']):
+		if type(menus[i][j][state['event']]) is list:
+			if callable(eval(menus[i][j][state['event']][menus[i][j]['choose']])): 
+				eval(menus[i][j][state['event']][menus[i][j]['choose']]+"("+str(state)+")")
+				if state['event']=='click':
+					menus[i][j]['choose']+=1
+					if menus[i][j]['choose']>=len(menus[i][j]['click']):
+						menus[i][j]['choose']=0
+				return True
+		else:
+			if callable(eval(menus[i][j][state['event']])): 
+				eval(menus[i][j][state['event']]+"("+str(state)+")")
+				return True
+	return False
+			
 def testmenu(themenus,x,y,dx,dy,buttons,modifiers):
-	global tech,play,decx,decy,zoom
+	global tech
 	allcout[2]=0
 	for i in range(len(themenus)):
 		if themenus[i][0]['visible']:
@@ -1526,43 +1596,21 @@ def testmenu(themenus,x,y,dx,dy,buttons,modifiers):
 			placex=0
 			for j in range(1,len(themenus[i])):
 				if themenus[i][j]['size']<30: continue
-				if not themenus[i][j]['visible']:  continue
-				if themenus[i][j]['tech']>tech: 
+				if type(themenus[i][j]['visible']) is str and not eval(themenus[i][j]['visible']) or not themenus[i][j]['visible']: continue
+				if themenus[i][j]['tech']>tech or not ((type(themenus[i][j]['active']) is str and eval(themenus[i][j]['active'])) or (type(themenus[i][j]['active']) is not str and themenus[i][j]['active'])): 
 					placex+=themenus[i][j]['size']
 					continue
 				if x>placex and x<placex+themenus[i][j]['size'] and y>placey and y<placey+themenus[i][0]['size']-8:
-					if buttons>0:
-						realx=(x-decx)/zoom
-						realy=(y-decy)/zoom
-						if themenus[i][0]['selectable']:
-							themenus[i][0]['mouse'][buttons-1]=j
-						if themenus[i][j].has_key('choose'):
-							eval(themenus[i][j]['nom'][themenus[i][j]['choose']]+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
-							themenus[i][j]['choose']+=1
-							if themenus[i][j]['choose']>=len(themenus[i][j]['nom']):
-								themenus[i][j]['choose']=0
-						else:
-							eval(themenus[i][j]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
-					else:
-						allcout[0]=x
-						allcout[1]=y
-						if type(themenus[i][j]['nom']) is list:
-							allcout[2]=themenus[i][j]['popup'][themenus[i][j]['choose']]
-						else:
-							allcout[2]=themenus[i][j]['popup']
+					return launch(x,y,dx,dy,i,j,buttons,modifiers,True)
 				placex+=themenus[i][j]['size']
 	return
 
 def testgrid(themenus,x,y,dx,dy,buttons,modifiers):
 	for i in range(len(themenus)):
-		if themenus[i][0]['visible'] and themenus[i][0]['selectable']:
-			for j in range(3):
-				if themenus[i][themenus[i][0]['mouse'][j]]['drag'] and buttons==j+1:
-					realx=(x-decx)/zoom
-					realy=(y-decy)/zoom
-					eval(themenus[i][themenus[i][0]['mouse'][j]]['nom']+"("+str(realx)+","+str(realy)+","+str(dx)+","+str(dy)+")")
-					break
-
+		if themenus[i][0]['visible'] and themenus[i][0]['selectable'] and themenus[i][0].has_key('mouse'):
+			if buttons>0:
+				launch(x,y,dx,dy,i,themenus[i][0]['mouse'][buttons-1],buttons,modifiers,False)
+					
 ''' *********************************************************************************************** '''
 ''' Fonctions evenementielles																	 '''
 				
@@ -1585,17 +1633,18 @@ def on_key_press(symbol, modifiers):
 	if symbol==key.BACKSPACE:
 		erase()
 	elif symbol==key.RETURN:
-		run(0,0,0,0)
+		if play>0:
+			stop({})
+		else:
+			run({})
 	elif symbol==key.NUM_SUBTRACT:
-		speed(1980,2,0,0)
+		speed({'-':True})
 	elif symbol==key.NUM_ADD:
-		speed(1980,1,0,0)
+		speed({'+':True})
 
 @win.event	
 def on_mouse_motion(x, y, dx, dy):
 	global world,selected,allcout,over,level,worlds,finished,users,menus
-	if level>=0: 
-		testmenu(menus,x,y,dx,dy,0,0)
 	selected=-1
 	for l in range(len(worlds[world])):
 		ele=worlds[world][l]
@@ -1607,6 +1656,8 @@ def on_mouse_motion(x, y, dx, dy):
 		selected=-3
 	if x>920 and y>150 and x<1024 and y<240:
 		selected=-4	
+	if level<0: return
+	testmenu(menus,x,y,dx,dy,0,0)
 				
 @win.event
 def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
@@ -1654,8 +1705,8 @@ def on_mouse_press(x, y, button, modifiers):
 				ambiance.pause()
 				selected=-1
 		return
-	testmenu(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers)
-	testgrid(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
+	if not testmenu(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers):
+		testgrid(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
 	
 @win.event
 def on_resize(width,height):
