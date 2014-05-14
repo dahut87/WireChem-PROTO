@@ -1,69 +1,72 @@
-  ------------------------------------------
-  
-  WireChem - The new chemistry game
-  
-  A faire !!!
+----------------------------------------------------------------
+##    WireChem
 
-  (C) Copyright 2013-2014 Nicolas Hordé
-  Licence GPL V3.0
-  
-  ------------------------------------------
-  
-GAME PLAY
+![The new chemistry game](logo.png)
+
+http://wirechem.dahut.fr
+
+*(C) Copyright 2013-2014 Nicolas Hordé
+  Licence GPL V3.0*
+
+----------------------------------------------------------------
+###  A faire !!!!
+
+#### GAME PLAY
  
-  -Implémenter l'automate cellulaire "Sand" dans le déplacement des 
+* Implémenter l'automate cellulaire "Sand" dans le déplacement des 
   protons & neutrons sur  le plateau de jeu.
-  -Ajouter une fenêtre qui s'affiche au lancement de la paillasse pour
+* Ajouter une fenêtre qui s'affiche au lancement de la paillasse pour
   récapituler les objectifs & moyens.
-  -Ajouter des popups au survol des éléments de jeu afin d'informer le
+* Ajouter des popups au survol des éléments de jeu afin d'informer le
   joueur sur leur nature et leur état.
   
-STRUCTURE/PROGRAMMATION
+#### STRUCTURE/PROGRAMMATION
   
-  -Modifier la méthode d'accès aux variables "dat" & "art".
-  -Optimiser le code pour rendre l'usage d'OpenGL plus efficient.
-  -Repenser le mode simulation de façon orienté objet.
-  -Ajouter un makefile pour automatiser la construction du programme.
+* Modifier la méthode d'accès aux variables "dat" & "art".
+* Optimiser le code pour rendre l'usage d'OpenGL plus efficient.
+* Repenser le mode simulation de façon orienté objet.
+* Ajouter un makefile pour automatiser la construction du programme.
   
-STATISTIQUES
-  -Gérer le stockage des statistiques de victoire dans la base de donnée
+#### STATISTIQUES
+
+* Gérer le stockage des statistiques de victoire dans la base de donnée
   utilisateur.
-  -Ajouter les statistiques de victoire dans le menu principal.
-  -Ajouter les statistiques dans le mode simulation dans le dernier 
+* Ajouter les statistiques de victoire dans le menu principal.
+* Ajouter les statistiques dans le mode simulation dans le dernier 
   panneau prévu à cet effet.
-  -Permettre la compilation et l'envoie de statistiques concernant le
+* Permettre la compilation et l'envoie de statistiques concernant le
   joueur vers le site internet de WireChem.
   
-CONCEPTION
+#### CONCEPTION
   
-  -Finir la conception du labo N°2.
+* Finir la conception du labo N°2.
   
-FONCTIONNALITES
+#### FONCTIONNALITES
   
-  -Ajouter un mode création de labo/paillasses qui faciliterait l'ajout 
+* Ajouter un mode création de labo/paillasses qui faciliterait l'ajout 
  et la configuration.
-  -Finir la fenêtre des préférences du jeu.
+* Finir la fenêtre des préférences du jeu.
  
-BOGUES
+#### BOGUES
 
-  -Supprimer le bug lorsque 2 électrons se croisent de face, ils rebond-
+* Supprimer le bug lorsque 2 électrons se croisent de face, ils rebond-
  issent.
-  -Corriger les bogues qui apparaissent parfois lors de l'usage des 
+* Corriger les bogues qui apparaissent parfois lors de l'usage des 
  transmuteurs "canaliseurs".
+* Fermeture sous windows
  
-DESIGN/MULTIMEDIA
+#### DESIGN/MULTIMEDIA
 
-  -Créer des fonds plus attractifs pour le menu principal de choix de
+* Créer des fonds plus attractifs pour le menu principal de choix de
  labo.
-  -Améliorer la qualité de la vidéo d'introduction.
-  -Enregistrer des vidéos de tutoriel pour chaque paillasse du niveau 1.
-  -Améliorer la qualités de l'accompagnement sonore & le diversifier.
-  -Ajouter des bruitages de jeu pour rendre les simulations plus immers-
+* Améliorer la qualité de la vidéo d'introduction.
+* Enregistrer des vidéos de tutoriel pour chaque paillasse du niveau 1.
+* Améliorer la qualités de l'accompagnement sonore & le diversifier.
+* Ajouter des bruitages de jeu pour rendre les simulations plus immers-
   ives.
   
-DOCUMENTATION/COMMUNICATION
+#### DOCUMENTATION/COMMUNICATION
 
-  -Améliorer les textes des documentations, utiliser le markdown.
-  -Faire un logo ASCII art digne de ce nom.
-  
+* Améliorer les textes des documentations.
+* Faire un logo ASCII art digne de ce nom.
   
