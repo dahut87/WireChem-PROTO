@@ -209,15 +209,15 @@ def savelevel(w,l):
 ''' *********************************************************************************************** '''
 ''' Fonctions programmees																							 '''
 
-def  menu(dt,leveler):
+def prog_menu(dt,leveler):
 	global level,over
 	level=leveler
 	over=0
 		
-def calculate(dt):
+def prog_calculate(dt):
 	nextgrid()
 	
-def refresh(dt):
+def prog_refresh(dt):
 	global world,level
 	if player.source and player.source.video_format:
 		glColor3ub(255,255,255)
@@ -915,26 +915,31 @@ def drawgrid(zoom):
 ''' Fonctions gestion du monde																		'''
 
 def reallystop():
-	global play,world,level,stat,stat_var,current,cycle,temp,nrj,rayon
+	global play,world,level,stat,stat_var,current,cycle,temp,nrj,rayon,tech
 	play=0
-	clock.unschedule(calculate)
-	current=copy.deepcopy(worlds[world][level]['current'])
-	cycle=worlds[world][level]['cycle']
-	temp=worlds[world][level]['temp']
-	nrj=worlds[world][level]['nrj']
-	rayon=worlds[world][level]['rayon']
-	erase()
-	retriern()
-	stat=[0,0,0,0,0,0,0,0,0]
-	stat_var=[]
-	if len(stat_var)==0:
-		for i in range(len(statedvar)):
-			stat_var.append([0])
+	clock.unschedule(prog_calculate)
+	if level<3:
+		readlevel(world,level,False)
+	else:
+		current=copy.deepcopy(worlds[world][level]['current'])
+		cycle=worlds[world][level]['cycle']
+		temp=worlds[world][level]['temp']
+		nrj=worlds[world][level]['nrj']
+		rayon=worlds[world][level]['rayon']
+		erase()
+		retriern()
+		stat=[0,0,0,0,0,0,0,0,0]
+		stat_var=[]
+		if len(stat_var)==0:
+			for i in range(len(statedvar)):
+				stat_var.append([0])
+	menus[0][1]['choose']=0
 				
 def reallyrun():
-		global play
-		play=0.15625
-		clock.schedule_interval(calculate,play)
+	global play
+	play=0.15625
+	clock.schedule_interval(prog_calculate,play)
+	menus[0][1]['choose']=1
 																			 
 def retriern():
 	for x in range(1,sizex-1):
@@ -977,7 +982,7 @@ def gameover_ok():
 	reallystop()
 	savelevel(world,level)
 	sync()
-	clock.schedule_once(menu,2,level)
+	clock.schedule_once(prog_menu,2,level)
 			
 def itsvictory_ok():
 	global world,level,finished
@@ -986,21 +991,21 @@ def itsvictory_ok():
 	finished=list(set(finished))
 	savelevel(world,level)
 	sync()
-	clock.schedule_once(menu,2,-1)
+	clock.schedule_once(prog_menu,2,-1)
 	
 def gameover(x):
 	global over
 	over=x
 	sound.queue(pyglet.resource.media("sound/gameover.mp3"))
 	sound.play()
-	clock.unschedule(calculate)
+	clock.unschedule(prog_calculate)
 
 def itsvictory():
 	global over
 	over=-1
 	sound.queue(pyglet.resource.media("sound/victoire.mp3"))
 	sound.play()
-	clock.unschedule(calculate)
+	clock.unschedule(prog_calculate)
 
 def infos():
 	global stat,sizex,sizey,cycle,thecout,victory,current
@@ -1315,7 +1320,7 @@ glHint(GL_LINE_SMOOTH_HINT,  GL_NICEST);'''
 glEnable(GL_LINE_STIPPLE)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 win.set_caption("Wirechem: The new chemistry game")
-clock.schedule(refresh)
+clock.schedule(prog_refresh)
 player = pyglet.media.Player()
 ambiance = pyglet.media.Player()
 sound = pyglet.media.Player()
@@ -1373,20 +1378,20 @@ txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,
 ''' *********************************************************************************************** '''
 ''' Fonctions liees aux menus																								 '''
 
-def sound(state):
+def click_sound(state):
 	print "sound"
 	
-def nosound(state):
+def click_nosound(state):
 	print "nosound"
 	
-def settings(state):
+def click_settings(state):
 	global level,world
 	reallystop()
 	savelevel(world,level)
 	sync()
 	level=-2
 	
-def loadfromit(state):
+def click_loadit(state):
 	global users,world_art,world_new,world,level
 	if state['j']==1:
 		readlevel(world,level,False)
@@ -1394,24 +1399,24 @@ def loadfromit(state):
 		world_new=copy.deepcopy(users[len(users)-state['j']+1][1])
 		world_art=copy.deepcopy(users[len(users)-state['j']+1][2])
 				
-def loadfrom(state):
+def click_load(state):
 	global menus,savenames,users
 	if menus[2][0]['visible']:
 			menus[2][0]['visible']=False
 			return
 	if len(menus[2])<=1:
-		menus[2].append({'click': 'loadfromit', 'motion':'popup', 'tech':1, 'value':'Version originale', 'size':0, 'icon': {'color': [255, 100, 100], 'text': '#', 'activable': False},'active':True,'variable':True,'visible':True,'separe':True,'squarred':False})
+		menus[2].append({'click': 'click_loadit', 'motion':'motion_popup', 'tech':1, 'value':'Version originale', 'size':0, 'icon': {'color': [255, 100, 100], 'text': '#', 'activable': False},'active':True,'variable':True,'visible':True,'separe':True,'squarred':False})
 		for i in range(len(savenames)):
-				menus[2].append({'click': 'loadfromit', 'motion':'popup', 'tech':1, 'value':'#users[len(users)-'+str(i)+'-1][0].strftime("%Y-%m-%d %H:%M")', 'size':0, 'icon': {'color': [255, 255, 255], 'colorise':True,  'text': savenames[i], 'activable': False},'active':'len(users)>'+str(i),'variable':True,'visible':True,'separe':False,'squarred':False})
+				menus[2].append({'click': 'click_loadit', 'motion':'motion_popup', 'tech':1, 'value':'#users[len(users)-'+str(i)+'-1][0].strftime("%Y-%m-%d %H:%M")', 'size':0, 'icon': {'color': [255, 255, 255], 'colorise':True,  'text': savenames[i], 'activable': False},'active':'len(users)>'+str(i),'variable':True,'visible':True,'separe':False,'squarred':False})
 	menus[2][0]['visible']=True
 		
-def save(state):
+def click_save(state):
 	global world_art,world_dat,world,level,users
 	users.append([datetime.datetime.now(),copy.deepcopy(world_new),copy.deepcopy(world_art)])
 	savelevel(world,level)
 	sync()
 	
-def speed(state):
+def click_speed(state):
 	global play,zoom
 	if state.has_key('-'):
 		play=float(play)*2
@@ -1421,21 +1426,21 @@ def speed(state):
 		play=0.01953125
 	if play<0.01953125:
 		play=2.5
-	clock.unschedule(calculate)
-	clock.schedule_interval(calculate,play)
+	clock.unschedule(prog_calculate)
+	clock.schedule_interval(prog_calculate,play)
 	
-def othersit(state):
+def click_choose(state):
 	menus[0][18]['icon']=copy.deepcopy(menus[3][state['j']]['value'])
 
-def others(state):
+def click_drag_transmuter(state):
 	global tech,menus
 	if state['onmenu']:
 		if menus[3][0]['visible']:
 			menus[3][0]['visible']=False
 			return
 		if len(menus[3])<=1:
-			for i in range(196608,196608+len(savenames)):
-				menus[3].append({'click': 'othersit', 'motion':'popup', 'tech':art[i]['tech'], 'value':art[i], 'size':0, 'icon':art[i],'active':True,'variable':True,'visible':True,'separe':False,'squarred':False})
+			for i in range(196608,196637):
+				menus[3].append({'click': 'click_choose', 'motion':'motion_popup', 'tech':art[i]['tech'], 'value':art[i], 'size':0, 'icon':art[i],'active':True,'variable':True,'visible':True,'separe':False,'squarred':False})
 		menus[3][0]['visible']=True
 		return
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0 and (world_art[state['realx']][state['realy']]==0 or art[world_art[state['realx']][state['realy']]]['tech']<tech):
@@ -1447,10 +1452,10 @@ def others(state):
 				world_art[state['realx']][state['realy']] = value
 				infos()
 
-def setnothinga(state):
+def click_nothing(state):
 	state()
 	
-def setnothing(state):
+def click_drag_nothing(state):
 	global tech
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
 		if world_art[state['realx']][state['realy']] == art['nothing']['value']:
@@ -1459,44 +1464,44 @@ def setnothing(state):
 			world_art[state['realx']][state['realy']] = art['nothing']['value']
 		infos()
 		
-def setcopper(state):
+def click_drag_copper(state):
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
 		if world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-art['copper']['cout'] >= 0:
 				world_new[state['realx']][state['realy']] = art['copper']['value']
 				infos()
 	
-def setfiber(state):
+def click_drag_fiber(state):
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
 		if world_art[state['realx']][state['realy']]==0 and world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-art['fiber']['cout'] >= 0:
 				world_new[state['realx']][state['realy']]=art['fiber']['value']
 				infos()
 				
-def settutoriel(state):
+def click_tutoriel(state):
 	print "tuto"
 
-def setpopup(state):
+def click_popup(state):
 	print "popup"	
 	
-def setsimple(state):
+def click_simple(state):
 	print "simple"	
 		
-def levels(state):
+def click_menu(state):
 	global level,world
 	reallystop()
 	savelevel(world,level)
 	sync()
 	level=-1
 
-def exits(state):
+def click_exit(state):
 	global level,world
 	if level>=0:
 		savelevel(world,level)
 		sync()
 	pyglet.app.exit()
 	
-def stater(state):
+def click_stat(state):
 	global seestat
 	if seestat>3:
 		seestat=0
@@ -1504,39 +1509,40 @@ def stater(state):
 		seestat=seestat+1
 	resize()
 		
-def stop(state):
+def click_stop(state):
 		reallystop()
 		
-def run(state):
+def click_run(state):
 		reallyrun()
 		
-def move(state):
+def drag_move(state):
 	global decx,decy
 	decx=decx+state['dx']
 	decy=decy+state['dy']
 	
-def fullscreen(state):
+def click_fullscreen(state):
 	win.set_fullscreen(fullscreen=True)
 	resize()
 	
-def windowed(state):
+def click_windowed(state):
 	win.set_fullscreen(fullscreen=False)
 	resize()
 		
-def zoomm(state):
+def click_zoomm(state):
 	global zoom,decx,decy
 	decx=decx+2*state['realx']
 	decy=decy+2*state['realy']
 	zoom=zoom-2
 	
-def zoomp(state):
+def click_zoomp(state):
 	global zoom,decx,decy
 	decx=decx-2*state['realx']
 	decy=decy-2*state['realy']
 	zoom=zoom+2
 	
-def popup(state):
+def motion_popup(state):
 	global allcout,menus
+	if menus[0][12]['choose']==0: return
 	allcout[0]=state['x']
 	allcout[1]=state['y']	
 	if type(menus[state['i']][state['j']]['value']) is list:
@@ -1567,11 +1573,12 @@ def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
 	if menus[i][j].has_key(state['event']):
 		if type(menus[i][j][state['event']]) is list:
 			if callable(eval(menus[i][j][state['event']][menus[i][j]['choose']])): 
-				eval(menus[i][j][state['event']][menus[i][j]['choose']]+"("+str(state)+")")
+				choosed=menus[i][j]['choose']
 				if state['event']=='click':
 					menus[i][j]['choose']+=1
 					if menus[i][j]['choose']>=len(menus[i][j]['click']):
 						menus[i][j]['choose']=0
+				eval(menus[i][j][state['event']][choosed]+"("+str(state)+")")
 				return True
 		else:
 			if callable(eval(menus[i][j][state['event']])): 
@@ -1634,13 +1641,13 @@ def on_key_press(symbol, modifiers):
 		erase()
 	elif symbol==key.RETURN:
 		if play>0:
-			stop({})
+			reallystop()
 		else:
-			run({})
+			reallyrun()
 	elif symbol==key.NUM_SUBTRACT:
-		speed({'-':True})
+		click_speed({'-':True})
 	elif symbol==key.NUM_ADD:
-		speed({'+':True})
+		click_speed({'+':True})
 
 @win.event	
 def on_mouse_motion(x, y, dx, dy):
