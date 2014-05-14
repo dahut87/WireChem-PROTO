@@ -41,6 +41,28 @@ worlds=[[{'nom': 'Introduction',
 			[0, 0, 0, 0, 0], 
 			[0, 0, 196637, 0, 0], 
 			[0, 0, 0, 0, 0]],
+'tuto':'''
+mSG               CECI EST LE TUTO ;)
+waIT    2
+next
+wait 1
+rEct    90  ,90 ,200 ,   200
+next
+next
+tech 8
+select 0,2,2
+set   0,   6
+wait 2
+MSg cool       non ?
+tech -1
+wait 4
+del
+unset   0,   6
+''',
+
+
+
+
  'description': "Prise en main de l'interface de WireChem{#169} et amener l'\xc3\xa9lectron neutre sur le senseur.",
  'temp': 0,
  'nrj': 0,
@@ -1048,7 +1070,7 @@ menus=[
 {'motion':'motion_popup','click': 'click_menu', 'tech':-1, 'value':'Laboratoires', 'size':45,'icon': 'picture/levels.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': ['click_fullscreen','click_windowed'], 'tech':-1, 'value':['Plein ecran','Fenetre'], 'size':45,'icon': ['picture/screen.png','picture/windows.png'], 'choose': 0,'variable':False,'visible':'win.width>1450','separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': ['click_sound','click_nosound'], 'tech':-1, 'value':['Activer son','Desactiver son'], 'size':45, 'icon': ['picture/sound.png','picture/nosound.png'], 'choose': 0,'variable':False,'visible':'win.width>1450','separe':False,'squarred':False,'active': True},
-{'motion':'motion_popup','click': ['click_tutoriel','click_popup','click_simple'], 'tech':-1, 'value':['Activer Tutoriel','Activer Aide','Sans Aide/Tutoriel',], 'size':45,'icon': ['picture/tuto.png','picture/popup.png','picture/nothing.png'], 'choose': 2,'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
+{'motion':'motion_popup','click': ['click_tutoriel','click_popup','click_simple'], 'tech':-1, 'value':['Activer Tutoriel','Activer Aide','Sans Aide/Tutoriel',], 'size':45,'icon': ['picture/tuto.png','picture/popup.png','picture/nothing.png'], 'choose': 1,'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_settings', 'tech':-1, 'value':'Options...', 'size':45,'icon': 'picture/settings.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_exit', 'tech':-1, 'value':'Quitter', 'size':45,'icon': 'picture/exits.png','variable':False,'visible':True,'separe':True,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_drag_copper', 'drag': 'click_drag_copper' ,'tech':0, 'value':'Cuivre', 'size':45,'icon': [240, 100, 38],'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},

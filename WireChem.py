@@ -93,7 +93,7 @@ def loadpic(d):
 						d[j][k]['icon'][n]=image.load(d[j][k]['icon'][n])					
 									
 def initgrid():
-	global savenames,menus,users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	global msg,rect,tuto,savenames,menus,users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
 	
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
@@ -126,7 +126,8 @@ def initgrid():
 	allcout=[0,0,0]
 	sizex=sizey=1
 	seestat=thecout=world=over=play=cycle=rayon=temp=cout=decx=decy=nrj=0
-	debug=0
+	debug=rect=0
+	msg=tuto=''
 	tech=selected=level=-1
 	statedvar=[stat[0],stat[1],stat[2],stat[3],stat[4],stat[5],stat[6],stat[7],stat[8],nrj,temp,rayon,current[7],current[8],current[9],current[10],current[11],current[12]]
 	if len(stat_var)==0:
@@ -175,7 +176,7 @@ def readlevel(w,l,user):
 	infos()
 
 def savelevel(w,l):
-	global users,worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
+	global tuto,users,worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
 	while len(Uworlds)<=w:
 		Uworlds.append(0)
 		Uworlds[w]=[]
@@ -184,6 +185,7 @@ def savelevel(w,l):
 	Uworlds[w][l]={'nom':nom, 
 'element':element,
 'users':users,
+'tuto':tuto,
 'description':descriptif,
 '_xx':worlds[world][level]['_xx'],
 '_yy':worlds[world][level]['_yy'],
@@ -865,9 +867,19 @@ def drawmenu(themenus):
 				placex+=themenus[i][j]['size']
 	return
 	
-	
+def drawtuto():
+	global tuto,rect,msg,menus
+	drawsquare(win.width-384,menus[0][0]['size'],win.width,menus[0][0]['size']+200,2,[40,40,40,200])	
+	if type(rect) is list:
+		drawsquare(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,2,[255,0,0,20])	
+	txt_message.x=win.width-384
+	txt_message.y=menus[0][0]['size']
+	document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+msg.decode('utf-8')+"}".encode('utf8'))
+	txt_message.document=document
+	txt_message.draw()
+			
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play,element,seestat,art,users,menus
+	global temp,debug,over,allcout,play,element,seestat,art,users,menus,tuto
 	glLineWidth(3)
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
@@ -902,11 +914,11 @@ def drawgrid(zoom):
 			glVertex2i(x*zoom+decx,(y+1)*zoom+decy)
 			glEnd()
 			drawitem(x*zoom+decx,y*zoom+decy,art[wart(x,y)],zoom,getactive(x,y))
-			
 	drawmenu(menus)
 	if seestat>=1: drawbigstat(seestat)
 	if over>0: drawgameover()
 	if over<0: drawvictory()
+	if tuto!='' and menus[0][12]['choose']==1: drawtuto()
 	if allcout[2]>0: drawpopup()
 	return	
 		
@@ -1352,6 +1364,7 @@ document=pyglet.text.decode_attributed("test")
 txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
 txt_description.x=8
 txt_description.y=8
+txt_message=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=384,height=200)
 txt_cout2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=120,bold=False,italic=False,color=(180, 180, 180,255))
 txt_maxcycle2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=75,bold=False,italic=False,color=(180, 180, 180,255))
 txt_tech2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=980,y=120,bold=False,italic=False,color=(180, 180, 180,255))
@@ -1617,7 +1630,53 @@ def testgrid(themenus,x,y,dx,dy,buttons,modifiers):
 		if themenus[i][0]['visible'] and themenus[i][0]['selectable'] and themenus[i][0].has_key('mouse'):
 			if buttons>0:
 				launch(x,y,dx,dy,i,themenus[i][0]['mouse'][buttons-1],buttons,modifiers,False)
+				
 					
+''' *********************************************************************************************** '''
+''' Fonctions tutoriel			
+																	 '''
+def compiler():
+	global tuto
+	tutoexec=tuto.splitlines(False)
+	result=[]
+	for line in tutoexec:
+		clock.tick()
+		if line=='': continue
+		cmd=line.split(" ")[0].lower()
+		arg=line[len(cmd):].lstrip().split(',')
+		for i in range(len(arg)):
+			arg[i]=arg[i].lstrip().rstrip()
+		result.append((cmd,arg))
+	tuto=[result,0]
+						
+def execute(dt):
+	global tuto,rect,tech,msg,menus
+	if tuto[1]>=len(tuto[0]): return
+	cmd,arg=tuto[0][tuto[1]]
+	print cmd,arg
+	if cmd=='rect':
+		rect=[int(arg[0]),int(arg[1]),int(arg[2]),int(arg[3])]
+	elif cmd=='wait':
+		if int(arg[0])>0: dt=int(arg[0])
+	elif cmd=='next':
+		nextgrid()
+	elif cmd=='del':
+		rect=0
+		msg=''
+	elif cmd=='tech':
+		tech= int(arg[0])
+	elif cmd=='msg':
+		msg= str(arg[0])
+	elif cmd=='select':
+		if menus[int(arg[0])][0].has_key('mouse'):
+			menus[int(arg[0])][0]['mouse'][int(arg[2])]=int(arg[1])
+	elif cmd=='set':
+		menus[int(arg[0])][int(arg[1])]['squarred']=True
+	elif cmd=='unset':
+		menus[int(arg[0])][int(arg[1])]['squarred']=False
+	tuto[1]+=1
+	clock.schedule_once(execute,dt)
+
 ''' *********************************************************************************************** '''
 ''' Fonctions evenementielles																	 '''
 				
@@ -1684,7 +1743,7 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 	
 @win.event
 def on_mouse_press(x, y, button, modifiers):
-	global zoom,over,level,selected,world,users,world_new,world_art,menus
+	global zoom,over,level,selected,world,users,world_new,world_art,menus,tuto
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1705,12 +1764,16 @@ def on_mouse_press(x, y, button, modifiers):
 		elif selected==-1:		
 			return
 		else:
-			readlevel(selected['world'],selected['level'],True)
-			if selected['video']:
+			'''readlevel(selected['world'],selected['level'],True)'''
+			readlevel(selected['world'],selected['level'],False)
+			if video:
 				player.queue(pyglet.resource.media('movie/level'+str(world)+"-"+str(level)+".mp4"))
 				player.play()
 				ambiance.pause()
 				selected=-1
+			if type(tuto) is str and tuto!='':
+				compiler()
+				execute(0.1)
 		return
 	if not testmenu(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers):
 		testgrid(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
