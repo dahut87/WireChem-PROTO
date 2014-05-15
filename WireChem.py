@@ -158,7 +158,8 @@ def resize():
 	decy=-zoom+(win.height-zoom*(sizey-2))/2
 
 def readlevel(w,l,user):
-	global worlds,cout,selected,sizex,sizey,stat,debug,tech
+	global tuto,worlds,cout,selected,sizex,sizey,stat,debug,tech
+	tuto=''
 	if user:
 		if w<len(Uworlds) and l<len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
 			load(Uworlds[w][l])
@@ -366,6 +367,20 @@ def drawsquare(x,y,x2,y2,full,color):
 		glVertex2i(x2,y2)
 		glVertex2i(x,y2)
 		glEnd()
+		
+def drawarrow(x,y,x2,y2,color):
+	glColor3ub(color[0],color[1],color[2]) 
+	glBegin(GL_LINE_LOOP)
+	glVertex2i(x,y)
+	glVertex2i(x2,y2)
+	glEnd()
+	angle=math.atan(float(y2-y)/(x2-x))
+	glBegin(GL_POLYGON)
+	glVertex2i(x2,y2)
+	glVertex2i(int(20*math.cos(angle+160*3.14/180))+x2,int(20*math.sin(angle+160*3.14/180))+y2)
+	glVertex2i(int(10*math.cos(angle+180*3.14/180))+x2,int(10*math.sin(angle+180*3.14/180))+y2)	
+	glVertex2i(int(20*math.cos(angle-160*3.14/180))+x2,int(20*math.sin(angle-160*3.14/180))+y2)	
+	glEnd()	
 	
 def drawsemisquare(x,y,x2,y2,color):
 	if len(color)==4:
@@ -871,7 +886,10 @@ def drawtuto():
 	global tuto,rect,msg,menus
 	drawsquare(win.width-384,menus[0][0]['size'],win.width,menus[0][0]['size']+200,2,[40,40,40,200])	
 	if type(rect) is list:
-		drawsquare(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,2,[255,0,0,20])	
+		if rect[4]==0:
+			drawsquare(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,2,[255,0,0,20])
+		else:
+			drawarrow(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,[255,0,0])
 	txt_message.x=win.width-384
 	txt_message.y=menus[0][0]['size']
 	document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+msg.decode('utf-8')+"}".encode('utf8'))
@@ -1569,7 +1587,7 @@ def motion_popup(state):
 ''' Fonctions liée à la gestion des menus  															'''
 
 def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
-	global menus,decx,decy,zoom
+	global menus,decx,decy,zoom,tuto
 	realx=(x-decx)/zoom
 	realy=(y-decy)/zoom
 	state={'x':x,'y':y,'realx':realx, 'realy':realy, 'dx':dx, 'dy':dy, 'i':i, 'j':j, 'buttons':buttons, 'modifiers':modifiers, 'onmenu': onmenu}
@@ -1583,6 +1601,21 @@ def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
 	'''print state'''
 	if onmenu and state['event']=='click' and menus[i][0]['selectable']:
 		menus[i][0]['mouse'][buttons-1]=j
+	if tuto!='' and tuto[1]<len(tuto[0]): 
+		cmd,arg=tuto[0][tuto[1]]
+		if cmd=='wait':
+			if arg[0].lower()==state['event']:
+				if buttons==int(arg[1]) or len(arg)==1 or arg[1]=='' or int(arg[1])==0:
+					tuto[1]+=1
+					clock.schedule_once(execute,dt)				
+			elif arg[0].lower()=='menu':
+				if buttons==int(arg[1]) or len(arg)==1 or arg[1]=='' or int(arg[1])==0:
+					tuto[1]+=1
+					clock.schedule_once(execute,dt)	
+			else:
+				if state['event']=='click':
+					tuto[1]+=1
+					clock.schedule_once(execute,dt)				
 	if menus[i][j].has_key(state['event']):
 		if type(menus[i][j][state['event']]) is list:
 			if callable(eval(menus[i][j][state['event']][menus[i][j]['choose']])): 
@@ -1655,9 +1688,9 @@ def execute(dt):
 	cmd,arg=tuto[0][tuto[1]]
 	print cmd,arg
 	if cmd=='rect':
-		rect=[int(arg[0]),int(arg[1]),int(arg[2]),int(arg[3])]
+		rect=[int(arg[0]),int(arg[1]),int(arg[2]),int(arg[3]),0]
 	elif cmd=='wait':
-		if int(arg[0])>0: dt=int(arg[0])
+		if int(arg[0])>0 and len(arg)==1 and arg[0]!='': dt=int(arg[0])
 	elif cmd=='next':
 		nextgrid()
 	elif cmd=='del':
@@ -1674,8 +1707,17 @@ def execute(dt):
 		menus[int(arg[0])][int(arg[1])]['squarred']=True
 	elif cmd=='unset':
 		menus[int(arg[0])][int(arg[1])]['squarred']=False
-	tuto[1]+=1
-	clock.schedule_once(execute,dt)
+	elif cmd=='arrow':
+		rect=[int(arg[0]),int(arg[1]),int(arg[2]),int(arg[3]),1]
+	elif cmd=='menu':
+		launch(0,0,0,0,int(arg[0]),int(arg[1]),int(arg[2]),0,True)
+	elif cmd=='click':
+		launch(int(arg[0]),int(arg[1]),0,0,0,0,int(arg[2]),0,False)
+	elif cmd=='drag':
+		launch(int(arg[0]),int(arg[1]),int(arg[2])-int(arg[0]),int(arg[3])-int(arg[1]),0,0,int(arg[4]),0,False)
+	if dt!=0: 
+		clock.schedule_once(execute,dt)
+		tuto[1]+=1
 
 ''' *********************************************************************************************** '''
 ''' Fonctions evenementielles																	 '''
@@ -1683,6 +1725,11 @@ def execute(dt):
 @win.event
 def on_key_press(symbol, modifiers):
 	global play,over,level
+	if tuto!='' and tuto[1]<len(tuto[0]): 
+		cmd,arg=tuto[0][tuto[1]]
+		if cmd=='wait' and len(arg)==1 and arg[0]=='':
+			tuto[1]+=1
+			clock.schedule_once(execute,dt)				
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()

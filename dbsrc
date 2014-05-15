@@ -43,19 +43,26 @@ worlds=[[{'nom': 'Introduction',
 			[0, 0, 0, 0, 0]],
 'tuto':'''
 mSG               CECI EST LE TUTO ;)
+arrow 700,100,420,50
 waIT    2
 next
-wait 1
+wait
+msg <appuie sur touche>
 rEct    90  ,90 ,200 ,   200
 next
 next
 tech 8
+menu 0,1
+wait 2
+menu 0,1
 select 0,2,2
 set   0,   6
 wait 2
 MSg cool       non ?
 tech -1
 wait 4
+wait menu,1
+wait click,2
 del
 unset   0,   6
 ''',
