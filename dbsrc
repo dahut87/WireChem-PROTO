@@ -42,29 +42,32 @@ worlds=[[{'nom': 'Introduction',
 			[0, 0, 196637, 0, 0], 
 			[0, 0, 0, 0, 0]],
 'tuto':'''
-mSG               CECI EST LE TUTO ;)
-arrow 700,100,420,50
-waIT    2
-next
+msg Bienvenu dans le tutoriel de la première paillasse de WireChem; nous allons vous expliquer pas à pas le fonctionnement du jeu.                                   <appuyez sur une touche ou cliquez pour la suite>
 wait
-msg <appuie sur touche>
-rEct    90  ,90 ,200 ,   200
-next
-next
-tech 8
-menu 0,1
-wait 2
-menu 0,1
-select 0,2,2
-set   0,   6
-wait 2
-MSg cool       non ?
-tech -1
-wait 4
-wait menu,1
-wait click,2
+msg L'interface du jeu est séparé en 3 grandes zones disctinctes; Chaque zone à ses particularités et elles évoluent au fur et à mesure que le jeu avance.
+wait 7
+rect 0,768,1024,700
+set 1,5
+msg La barre du haut est une barre d'information; elle nous informe de l'état du jeu. Actuellement elle n'est remplie que de l'objectif du jeu que vous pouvez voir clignoter.
+wait 7
+unset 1,5
+rect 0,700,1024,68
+msg La partie centrale est la zone de jeu a proprement parler; la ou vous allez creer votre modèle et ainsi vérifier par simulation que votre modèle rempli les objectifs de la paillasse.
+wait 7
+rect 0,0,1024,68
+msg La barre du bas comporte plusieurs icônes que l'on peut selectionner afin de réaliser différentes actions. Les 3 rectangles de couleurs représentent les 3 actions déclencheable par l'appuie d'un des boutons de la souris.
+wait 7
+arrow 635,145,320,26
+set 0,7
+msg Ainsi lors vous appuierez sur le bouton gauche n'importe ou sur l'écran vous aller déclencher l'action dézoomer. Essayer appuyer sur le bouton gauche pour tester l'action.
+wait click,1
+unset 0,7
+arrow 635,145,230,26
+set 0,5
+msg Bravo !! L'action réalisée par le bouton droit est de couleur bleu et celle de la molette est en vert. L'action sélectionnée pour le bouton de la molette necessite un glisser déposer; il fait bouger le plateau de jeu, essayez !
+wait drag,2
+unset 0,5
 del
-unset   0,   6
 ''',
 
 
@@ -1065,7 +1068,7 @@ art={
 
 menus=[
 [
-{'motion':'motion_motion_popup','place':'bottom','visible':True,'size':50,'variable':False,'selectable':True,'mouse':[1,5,6]},
+{'motion':'motion_motion_popup','place':'bottom','visible':True,'size':50,'variable':False,'selectable':True,'mouse':[7,5,6]},
 {'motion':'motion_popup','click': ['click_run','click_stop'], 'tech':-1, 'value':['Simuler','Fin simulation'], 'size':45, 'icon': ['picture/run.png','picture/stop.png'], 'choose': 0,'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_speed', 'tech':0, 'value':'Vitesse', 'size':45,'icon': 'picture/speed.png','variable':False,'visible':True,'separe':True,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_load', 'tech':1, 'value':'Charger', 'size':45,'icon': 'picture/raz.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},

@@ -14,11 +14,11 @@ http://wirechem.dahut.fr
 Les coordonnées sont celles du 1024x768 avec interpolation selon la 
 resolution choisie. Les commandes sont insensibles à la casse.
 
-*Fonctions d'attente*
+**Fonctions d'attente**
 
 ####WAIT
 
-Attend un click ou un appuie sur une touche.
+Attend un clic ou un appui sur une touche.
 
 ####WAIT sec
 
@@ -30,33 +30,38 @@ Attend le click sur le menu.
 
 ####WAIT DRAG,[bouton]
 
-Attend un deplacement de curseur.
+Attend un déplacement de curseur avec le bouton appuyé, il est possible
+de préciser lequel.
 
 ####WAIT CLICK,[bouton]
 
-Attend un click du bouton.
+Attend un clic du bouton précisé ou n'importe quel bouton si non précisé
 
-*Fonctions d'affichage*
+**Fonctions d'affichage**
 
 ####MSG message
 
-envoie un message à l'écran avec mise en forme.
+envoie un message à l'écran avec mise en forme. Les virgules doivent être
+remplacées par des points virgules.
 
 ####RECT x1,y1,x2,y2
 
 dessine un carré rouge pour attirer l'attention de l'utilisateur sur une
-zone à l'écran dont les coordonnées sont spécifiées.
+zone à l'écran dont les coordonnées sont spécifiées. Il ne peut y avoir
+qu'un rectangle ou fléche à l'écran : choisissez !
 
 ####ARROW x1,y1,x2,y2
 
-dessine une flèche rouge pour attirer l'attention de l'utilisateur sur une
-zone à l'écran dont les coordonnées sont spécifiées.
+dessine une flèche rouge pour attirer l'attention de l'utilisateur sur 
+une zone à l'écran dont les coordonnées sont spécifiées. Il ne peut y 
+avoir qu'un rectangle ou fléche à l'écran : choisissez !
 
 ####DEL
 
-efface tout ce qui a été dessiné à l'écran.
+efface tout ce qui a été dessiné à l'écran. Flèche, rectangle et message 
+texte.
 
-*Fonctions menu*
+**Fonctions menu**
 
 ####MENU menu,element,button
 
@@ -68,13 +73,13 @@ Choisi un élément de menu.
 
 ####SET menu,element    ou UNSET
 
-Met en surbrillance un élément du menu.
+Met en clignotance un élément du menu.
 
 ####UNSET menu,element
 
-Retire la surbrillance d'un élément du menu.
+Retire la clignotance d'un élément du menu.
 
-*fonctions gameplay*
+**fonctions gameplay**
 
 ####NEXT
 
@@ -84,7 +89,7 @@ Fait la prochaine génération de la grille de simulation.
 
 Change le niveau technologique.
 
-*fonction souris*
+**fonction souris**
 
 ####CLICK x,y,button
 
