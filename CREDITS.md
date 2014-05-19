@@ -15,12 +15,12 @@ http://wirechem.dahut.fr
   *Programmeur - Designer - Créateur*
  <admin@dahut.fr>
  `1er Etage
-  226 boulevard clémenceau
+  226 boulevard de vanteaux
   87000 Limoges`
   
   **Aline Pinon**
   *Créatrice -  Tests Alpha*
 <alyn19.pinon@gmail.com>
  `1er Etage
-  226 boulevard clémenceau
+  226 boulevard de vanteaux
   87000 Limoges`
