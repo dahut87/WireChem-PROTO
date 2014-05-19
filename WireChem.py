@@ -94,8 +94,8 @@ def loadpic(d):
 						d[j][k]['icon'][n]=image.load(d[j][k]['icon'][n])					
 									
 def initgrid():
-	global msg,rect,tuto,savenames,menus,users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
-	
+	global loc,msg,rect,tuto,savenames,menus,users,art,Uworlds,statedvar,stat_var,seestat,adirection,worlds,finished,allcout,selected,world,level,over,sizex,sizey,world_old,world_new,world_art,dat,direction,zoom,play,stat,cycle,cout,thecout,rayon,debug,temp,decx,decy,nrj,tech,victory,current,maxnrj,maxrayon,maxcycle,maxtemp,nom,descriptif,element
+	loc=[0,0,1,1]
 	''' Directions des electrons en fonction de la position de la queue '''
 	direction = {}
 	direction[(-1,-1)]=[(+1,+1),(+1,+0),(+0,+1),(+1,-1),(-1,+1),(+0,-1),(-1,+0),(-1,-1)]
@@ -510,16 +510,36 @@ def drawsettings():
 	txt_video.draw()
 			
 def drawworld():
-	global selected,victory,finished,world,level
+	global selected,victory,finished,world,level,loc
+	loc[0]+=loc[2]
+	loc[1]+=loc[3]
+	if loc[0]>1024:
+		loc[2]=-1
+	if loc[1]>768:
+		loc[3]=-1
+	if loc[0]<0:
+		loc[2]=1
+	if loc[1]<0:
+		loc[3]=1
+	glColor4ub(255,255,255,200)
+	pic_test.blit(loc[0],loc[1])
+	pic_test.blit(loc[0]-1024,loc[1])
+	pic_test.blit(loc[0]-1024,loc[1]-768)
+	pic_test.blit(loc[0],loc[1]-768)
+	glColor3ub(255,255,255)
+	for obj in worlds[world]:
+		if obj.has_key('special'):
+			break	
+	txt_obj.text=obj['element']
+	txt_obj.color=(color_leveler[world][0],color_leveler[world][1],color_leveler[world][2],100)
+	txt_obj.x=(1024-txt_obj.content_width)/2-50
+	txt_obj.y=75*win.height/768
+	txt_obj.draw()
 	drawsquare(740,148,1016,8,1,[40,40,40])
 	drawsquare(8,148,1016,8,0,[90,90,90])
-	glColor3ub(255,255,255)
+	glColor3ub(255,255,255)	
 	pic_logo.blit(185,win.height-200)
-	pic_logo2.blit(45,win.height-160)
-	txt_world.x=20
-	txt_world.y=win.height-50
-	txt_world.text="Labo "+str(world+1)
-	txt_world.draw()
+	pic_logo2.blit(45,win.height-150)
 	if selected==-2:
 		glColor3ub(255,0,0)
 	else:
@@ -542,7 +562,7 @@ def drawworld():
 		for n in ele['link']:
 			if n!="" and n[0]==world:
 				if n in finished:
-					drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*win.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*win.height+50),random.randint(0,6),20,[0,100,0],12)	
+					drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*win.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*win.height+50),random.randint(0,8),20,color_leveler[world],12)	
 				else:
 					drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*win.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*win.height+50),2,20,[40,40,40],0)		
 	for l in range(len(worlds[world])):
@@ -587,22 +607,26 @@ def drawworld():
 			victory=ele['victory']
 			drawcondvictory(742,12,1016,50,[40,40,40])
 			glColor3ub(255,0,0)
-		pic_levels2.blit(ele['_xx'],ele['_yy']/768.0*win.height)
+		pic_leveler[world].blit(ele['_xx'],ele['_yy']/768.0*win.height)
 		glColor3ub(255,255,255)
-		if (world,l) not in finished:
-			pic_locked.blit(ele['_xx']+10,ele['_yy']/768.0*win.height+10)
 		txt_element2.text=ele['element']
-		txt_element2.x=ele['_xx']+50
-		txt_element2.y=ele['_yy']/768.0*win.height+67
+		txt_element2.x=ele['_xx']+(pic_leveler[world].width-txt_element2.content_width)/2
+		txt_element2.y=ele['_yy']/768.0*win.height+20
 		txt_element2.color=(int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150),255)
 		txt_element2.draw()
-		calc=(len(ele['nom'])*17-52)/2
-		drawsquare(ele['_xx']+35-calc,int(ele['_yy']/768.0*win.height+2),ele['_xx']+42-calc+len(ele['nom'])*17,int(ele['_yy']/768.0*win.height-18),1,[40,int(ele['_xx']/1024.0*135),int(ele['_xx']/1024.0*100)])			
+		if (world,l) not in finished:
+			glColor3ub(255,255,255)
+			pic_locked.blit(ele['_xx']+10,ele['_yy']/768.0*win.height+50)
 		txt_nom2.text=ele['nom'].decode('utf-8')
-		txt_nom2.x=ele['_xx']+38-calc
+		calc=(txt_nom2.content_width-pic_leveler[world].width)/2
+		'''drawsquare(ele['_xx']-calc,int(ele['_yy']/768.0*win.height+2),ele['_xx']-calc+txt_nom2.content_width,int(ele['_yy']/768.0*win.height-18),1,[40,int(ele['_xx']/1024.0*135),int(ele['_xx']/1024.0*100)])		'''	
+		txt_nom2.x=ele['_xx']-calc
 		txt_nom2.y=ele['_yy']/768.0*win.height-15
 		txt_nom2.color=acolor
 		txt_nom2.draw()
+		if ele.has_key('special'):
+			glColor3ub(255,255,255)
+			pic_special.blit(ele['_xx']+70,ele['_yy']/768.0*win.height)
 			
 def calc_space(nb,nbtot):
 	return [2*win.width/3+20,(nb-1)*(win.height-100)/nbtot+50+20,win.width-20,nb*(win.height-100)/nbtot+50]
@@ -1374,7 +1398,9 @@ pic_logo2=image.load("picture/logo2.png")
 pic_exit2=image.load("picture/exit2.png")
 pic_arrows=image.load("picture/arrows.png")
 pic_arrows2=image.load("picture/arrows2.png")
-pic_levels2=image.load("picture/levels2.png")
+pic_special=image.load("picture/boss.png")	
+pic_leveler=[image.load("picture/leveler0.png"),image.load("picture/leveler1.png"),image.load("picture/leveler2.png"),image.load("picture/leveler3.png"),image.load("picture/leveler4.png")]
+color_leveler=[[0,192,244],[235,118,118],[5,157,60],[215,33,255],[201,209,98]]
 pic_locked=image.load("picture/locked.png")
 pic_cycle=image.load("picture/cycle.png")
 pic_nrj=image.load("picture/nrj.png")
@@ -1382,12 +1408,14 @@ pic_temp=image.load("picture/temp.png")
 pic_rayon=image.load("picture/rayon.png")
 pic_cout=image.load("picture/cout.png")
 pic_tech=image.load("picture/tech.png")
+pic_test=image.load("picture/test.png")
 document=pyglet.text.decode_attributed("test")
 txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
 txt_description.x=8
 txt_description.y=8
 txt_message=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=384,height=200)
 txt_cout2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=120,bold=False,italic=False,color=(180, 180, 180,255))
+txt_obj=pyglet.text.Label("",font_name='vademecum',font_size=380,x=0,y=0,bold=False,italic=False,color=(255, 80, 80,230))
 txt_maxcycle2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=780,y=75,bold=False,italic=False,color=(180, 180, 180,255))
 txt_tech2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=980,y=120,bold=False,italic=False,color=(180, 180, 180,255))
 txt_maxrayon2=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=970,y=75,bold=False,italic=False,color=(180, 180, 180,255))
@@ -1405,7 +1433,6 @@ txt_tech=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=18,bold=
 txt_over=pyglet.text.Label("",font_name='Mechanihan',font_size=100,x=win.width/2-350,y=win.height/2-200,color=(255,255,255,255))
 txt_over2=pyglet.text.Label("",font_name='Mechanihan',font_size=30,x=0,y=win.height/2-90,color=(255,255,255,255))
 txt_drag=pyglet.text.Label("",font_name='Mechanihan',font_size=14,x=950,y=win.height-20,color=(255,255,255,255))
-txt_world=pyglet.text.Label("World",font_name='OpenDyslexicAlta',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_temp=pyglet.text.Label("",font_name='Mechanihan',font_size=20,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_son=pyglet.text.Label("Reglages du son",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
 txt_video=pyglet.text.Label("Options Video",font_name='Mechanihan',font_size=30,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255))
