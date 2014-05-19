@@ -37,6 +37,14 @@ de préciser lequel.
 
 Attend un clic du bouton précisé ou n'importe quel bouton si non précisé
 
+####WAIT copper/fiber/transmuter
+
+Attend la création d'un élément de jeu
+
+####WAIT erase/create
+
+Attend la création ou la suppression d'un élément de jeu
+
 **Fonctions d'affichage**
 
 ####MSG message

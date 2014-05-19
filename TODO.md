@@ -17,9 +17,8 @@ http://wirechem.dahut.fr
   protons & neutrons sur  le plateau de jeu.
 * Ajouter une fenêtre qui s'affiche au changement de niveau 
 technologique afin de présenter les nouveautés accessibles.
-* Ajouter des bulles d'aide au survol des éléments de jeu afin d'
+* Ajouter des bulles d'aide au survol des éléments de la grille jeu pour
 informer le joueur sur leur nature et leur état.
-* Ajouter un véritable tutoriel.
 * Ajouter un mode Pas a pas (liseré vert) qui permettra de passer pas a
 pas le fonctionnement du modèle, la victoire n'est pas comptabilisé dans
 ce mode, ajout d'un élément de menu pour le pas à pas.
@@ -34,6 +33,9 @@ achats et récapituler la situation.
  ..)
  - Amélioration d'un transmuteur (canon à électron consommant 75% d'
  energie, positiveur chauffant moins...)
+* Le niveau special est celui qui debloque le monde suivant,  il est mis
+en évidence avec un icone biohazard. Il est impossible d'enregistrer et
+le temps est limité.
   
 #### STRUCTURE/PROGRAMMATION
   
@@ -58,10 +60,11 @@ selection des labos et les bulles d'aide.
 #### CONCEPTION
   
 * Finir la conception du labo N°2.
+* Créer le tutoriel pour chaque niveau du monde hydrogène.
   
 #### FONCTIONNALITES
   
-* Ajouter un mode création de labo/paillasses qui faciliterait l'ajout 
+* Ajouter un mode création de niveau qui faciliterait l'ajout 
  et la configuration.
 * Finir la fenêtre des préférences du jeu.
 * Changer la forme du curseur lors de certaines actions.
@@ -79,10 +82,7 @@ selection des labos et les bulles d'aide.
  
 #### DESIGN/MULTIMEDIA
 
-* Créer des fonds plus attractifs pour le menu principal de choix de
- labo.
 * Améliorer la qualité de la vidéo d'introduction.
-* Enregistrer des vidéos de tutoriel pour chaque paillasse du niveau 1.
 * Améliorer la qualités de l'accompagnement sonore & le diversifier.
 * Ajouter des bruitages de jeu pour rendre les simulations plus immers-
   ives.
@@ -90,5 +90,4 @@ selection des labos et les bulles d'aide.
 #### DOCUMENTATION/COMMUNICATION
 
 * Améliorer les textes des documentations.
-* Faire un logo ASCII art digne de ce nom.
   

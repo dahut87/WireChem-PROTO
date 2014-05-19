@@ -20,7 +20,7 @@ http://wirechem.dahut.fr
   
   **Aline Pinon**
   *Créatrice -  Tests Alpha*
-<aline.pinon@unilim.fr>
+<alyn19.pinon@gmail.com>
  `1er Etage
   226 boulevard clémenceau
   87000 Limoges`
