@@ -73,39 +73,76 @@ worlds=[[{'nom': 'Introduction',
 				[0, 0, 0, 0, 0]], 
 				
  'tuto':'''
-msg Bienvenu dans le tutoriel de la première paillasse de WireChem; nous allons vous expliquer pas à pas le fonctionnement du jeu.                                   <cliquez ou appuyez sur une touche pour continuer>
+select 0,5,2
+select 0,6,3
+select 0,7,1
+msg Bienvenu(e) dans le tutoriel de la première paillasse de WireChem; nous allons vous expliquer pas à pas le fonctionnement du jeu.                                   <cliquez ou appuyez sur une touche pour continuer>
 wait
-msg L'interface du jeu est séparée en 3 grandes zones distinctes; chaque zone voit ses particularités évoluer au fur et à mesure de l'avancée du jeu.
-wait 8
+msg L'interface du jeu est séparée en 3 grandes zones distinctes; chaque zone verra ses particularités évoluer au fur et à mesure de l'avancée du jeu.
+wait 5
 rect 2,766,1022,720
 set 1,5
-msg La barre du haut est une barre d'informations sur l'état du jeu. Actuellement elle n'est remplie que de l'objectif de la paillasse que clignote en rouge.
+msg La barre du haut est une barre d'informations sur l'état du jeu. Actuellement elle n'est remplie que de l'objectif de la paillasse qui clignote en rouge.
 wait 8
 unset 1,5
 rect 2,720,1022,50
 msg La partie centrale est la zone de jeu à proprement parler où vous allez créer votre modèle puis vérifier par simulation qu'il remplisse les objectifs de la paillasse.
 wait 8
 rect 2,2,1022,50
-msg La barre du bas comporte plusieurs icônes que l'on peut selectionner afin de réaliser différentes actions. Les 3 rectangles de couleurs représentent les 3 actions déclenchables par la souris.
+msg La barre du bas comporte plusieurs icônes que l'on peut sélectionner afin de réaliser différentes actions. Les 3 rectangles de couleurs représentent les actions déclenchables par les trois boutons de la souris.
 wait 8
-arrow 635,145,300,48
+arrow 635,145,300,50
 set 0,7
-msg Ainsi en cliquant avec le bouton gauche n'importe où sur l'écran vous allez déclencher l'action dézoomer. <Testez cette action en appuyant sur le bouton gauche.>
+msg En cliquant avec le bouton gauche n'importe où sur l'écran; vous allez déclencher l'action dézoomer représentée en rouge.            <Testez cette action en appuyant sur le bouton gauche.>
 wait click,1
 unset 0,7
-arrow 635,145,200,48
+arrow 635,145,210,50
 set 0,5
-msg Bravo !! L'action réalisée par le bouton droit est de couleur bleue et celle par la molette de couleur verte. L'action sélectionnée par le bouton de la molette nécessite un glisser déposer ce qui fait bouger le plateau de jeu. <Essayez la molette!>
+msg Bravo !! L'action réalisée par le bouton droit est affichée en bleu et celle par le bouton de la molette en vert. Celle-ci nécessite un glisser déposer ce qui fait bouger le plateau de jeu.      <Essayez le bouton de la molette!>
 wait drag,2
 unset 0,5
-arrow 635,145,380,48
-set 0,8
-
-
-
-
-
+arrow 635,145,390,50
+set 0,9
+msg Ce bouton vous fera quitter la paillasse Intruction pour revenir au Labo 1 qui la contient.
+wait 4
+unset 0,9
+arrow 635,145,480,50
+set 0,13
+msg Ce bouton d'options vous permettra de régler les options vidéo du jeu ainsi que le son.
+wait 4
+unset 0,13
+arrow 635,145,530,50
+set 0,14
+msg Par ici la sortie !!! non; n'y touchez surtout pas tout de suite; le jeu ne fait que commencer ...
+wait 4
+unset 0,14
 del
+center
+msg Passons maintenant à l'objectif de la paillasse : obtenir un électron neutre sur le senseur.                       <cliquez ou appuyez sur une touche pour continuer>
+wait
+arrow 144,260,145,370
+msg Un électron neutre est représenté en gris et possède une tête plus foncée précédant une queue plus claire. 
+wait 3
+arrow 54,260,55,370
+wait 3
+msg Voici le senseur... Cet élément accepte les électrons comme l'indique le e. Il est neutre d'où sa couleur grise et valide l'objectif à atteindre pour cette paillase.  
+arrow 974,260,975,340
+wait 5
+msg Les électrons ne peuvent se déplacer que sur des pistes de cuivre qui sont de couleur orange.
+arrow 499,260,500,370 
+wait 5
+del
+msg Voici le déplacement pas à pas de l'électron sur la piste de cuivre qui le sépare du senseur.
+wait 3
+next
+wait 1
+next
+wait 1
+next
+wait 2
+arrow 635,145,30,50
+set 0,1
+msg "Le bouton play permet de passer en mode simulation. Alors la limite de la zone de jeu devient rouge et l'interface s'anime. Passons à la pratique !!                  <cliquez sur le bouton play pour la lancer>
 '''},
 
  {'nom': 'Trajectoires',
@@ -162,7 +199,54 @@ del
 				[0, 1, 1, 1, 0, 0, 1, 0, 0], 
 				[0, 1, 1, 1, 1, 1, 1, 0, 0], 
 				[0, 0, 0, 1, 0, 0, 0, 0, 0], 
-				[0, 0, 0, 0, 0, 0, 0, 0, 0]]}, 
+				[0, 0, 0, 0, 0, 0, 0, 0, 0]],
+
+ 'tuto':'''
+msg Nous allons voir comment se déplace un électron; ici neutre; mais les règles de déplacements seront valables pour tous les types d'électrons.                 <cliquez ou appuyez sur une touche pour continuer>
+wait 
+msg Les positionnements de la tête et de la queue de l'électron indiquent son sens; ici de la gauche vers la droite. L'électron se trouve face à deux pistes allant en diagonale par rapport à son emplacement initial.              Que fera-t-il?
+arrow 30,510,110,510
+wait 10
+msg Suivez maintenant pas à pas le trajet de l'électron...
+wait 3
+del
+next
+msg Dans ce cas; l'électron a autant de chances d'emprunter l'une que l'autre des deux pistes.                             Le choix se fait de façon aléatoire.
+wait 10
+next
+wait 1
+next
+wait 1
+next
+msg L'électron se trouve à nouveau face à une intersection mais cette fois les pistes sont perpendiculaires par rapport à sa position actuelle. 
+wait 10
+next
+wait 1
+next
+msg Comme pour les diagonales; il a autant de chances d'aller vers la piste du haut que vers celle du bas.                        A noter qu'il se déplace préférentiellement en diagonale s'il le peut afin de toujours prendre le chemin le plus court.
+wait 10
+next
+wait 1
+next
+wait 1
+next
+msg Dans ce cas de figure; si la piste de cuivre sur laquelle il se trouve le permet; l'électron ira toujours tout droit en raison de son inertie.
+wait 10
+next
+wait 1
+next
+wait 1
+next
+wait 1
+next
+wait 1
+next
+wait 1
+next
+msg Pour que l'électron atteigne le senseur et que l'objectif de cette paillasse soit rempli; à vous de continuer la simulation en cliquant sur le bouton play !!
+wait menu,0,1
+msg Le mode play est parti !!!
+'''},
  
  {'nom': 'Pistes',
   'description': "Utiliser des pistes afin de réaliser un circuit qui permet l'arrivée d'un électron neutre sur le senseur.",
@@ -208,7 +292,47 @@ del
 				[0, 0, 0, 0, 0], 
 				[0, 0, 0, 0, 0], 
 				[0, 0, 1, 0, 0], 
-				[0, 0, 0, 0, 0]]}, 
+				[0, 0, 0, 0, 0]], 
+				
+ 'tuto':'''
+msg De nouveaux icônes sont apparus ! Voyons ensemble les possibilités de chacun ...
+wait 5
+arrow 804,670,805,720
+msg Voici le détail des conditions de victoire pour atteindre l'objectif de chaque paillasse.                                   Il faut ici un électron neutre.
+wait 7
+arrow 34,670,35,720
+set 1,1
+msg Cet icône correspond au nombre de cycles. Un cycle représente pour chaque élément mobile du jeu; comme les électrons; 1 déplacement.            Le nombre de cycles ne varie qu'en mode simulation.
+wait 12
+unset 1,1
+arrow 635,145,75,50
+set 0,2
+msg Ce bouton représente la vitesse en mode simulation; plus vous cliquerez dessus plus la vitesse des éléments mobiles du jeu va augmenter. La jauge sur le côté augmentera jusqu'à revenir à la vitesse la plus lente.
+wait 12
+unset 0,2
+del
+set 0,22
+msg Cet icône ne trompe pas; vous avez ici votre réserve d'argent disponible pour cette paillasse. Attention à ne pas tout dépenser; sinon vous ne pourrez plus ajouter d'élément dans la zone de jeu.
+wait 12
+unset 0,22
+msg A partir de cette paillasse; vous allez prendre en main la création de votre modèle de simulation !!
+wait 7
+arrow 635,145,565,50
+set 0,15
+msg Vous aurez besoin de pistes de cuivre. Cliquez pour cela sur l'icône orange. <Sélectionnez l'outil cuivre> 
+wait menu,0,15
+unset 0,15
+del
+msg Créer ensuite votre piste soit en cliquant une fois pour déposer une case de piste; soit en cliquant en continu pour tracer un trajet. 
+wait create
+msg Bravo !! Si vous souhaitez rectifier votre tracé; cliquez sur la case noire.  <Sélectionnez l'outil effacer> 
+set 0,17
+wait menu,0,17
+unset 0,17 
+msg Effacer vos erreurs...Vous ne pouvez retirer que les éléments que vous avez ajoutés à la zone de jeu. 
+wait erase
+msg Vous progressez dans l'apprentissage des bases de Wirechem; vous êtes maintenant prêt à finir la paillasse alors à vous de jouer !!
+'''},
  
  {'nom': 'Positiveur',
   'description': "Comprendre le fonctionnement de l'élément positiveur et générer 8 électrons positifs sur le senseur.",
@@ -1118,7 +1242,7 @@ menus=[
 {'motion':'motion_popup','click': 'click_menu', 'tech':-1, 'value':'Laboratoires', 'size':45,'icon': 'picture/levels.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': ['click_fullscreen','click_windowed'], 'tech':-1, 'value':['Plein ecran','Fenetre'], 'size':45,'icon': ['picture/screen.png','picture/windows.png'], 'choose': 0,'variable':False,'visible':'win.width>1450','separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': ['click_sound','click_nosound'], 'tech':-1, 'value':['Activer son','Desactiver son'], 'size':45, 'icon': ['picture/sound.png','picture/nosound.png'], 'choose': 0,'variable':False,'visible':'win.width>1450','separe':False,'squarred':False,'active': True},
-{'motion':'motion_popup','click': ['click_tutoriel','click_popup','click_simple'], 'tech':-1, 'value':['Activer Tutoriel','Activer Aide','Sans Aide/Tutoriel',], 'size':45,'icon': ['picture/tuto.png','picture/popup.png','picture/nothing.png'], 'choose': 1,'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
+{'motion':'motion_popup','click': ['click_tutoriel','click_popup','click_simple'], 'tech':3, 'value':['Activer Tutoriel','Activer Aide','Sans Aide/Tutoriel',], 'size':45,'icon': ['picture/tuto.png','picture/popup.png','picture/nothing.png'], 'choose': 1,'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_settings', 'tech':-1, 'value':'Options...', 'size':45,'icon': 'picture/settings.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_exit', 'tech':-1, 'value':'Quitter', 'size':45,'icon': 'picture/exits.png','variable':False,'visible':True,'separe':True,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_drag_copper', 'drag': 'click_drag_copper' ,'tech':0, 'value':'Cuivre', 'size':45,'icon': [240, 100, 38],'variable':False,'visible':True,'separe':False,'squarred':False,'active': True},

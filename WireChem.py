@@ -912,17 +912,18 @@ def drawmenu(themenus):
 	
 def drawtuto():
 	global tuto,rect,msg,menus
-	drawsquare(win.width-384,menus[0][0]['size'],win.width,menus[0][0]['size']+200,2,[40,40,40,200])	
 	if type(rect) is list:
 		if rect[4]==0:
-			drawsquare(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,2,[255,0,0,20])
+			drawsquare(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,2,[255,0,0,75])
 		else:
-			drawarrow(rect[0]*win.width/1024,rect[1]*win.height/768,rect[2]*win.width/1024,rect[3]*win.height/768,[255,0,0])
+			drawarrow(int(rect[0]/1024.0*win.width),int(rect[1]/768.0*win.height),int(rect[2]/1024.0*win.width),int(rect[3]/768.0*win.height),[255,0,0])
+	drawsquare(win.width-384,menus[0][0]['size'],win.width,menus[0][0]['size']+200,2,[40,40,40,200])	
 	txt_message.x=win.width-384
 	txt_message.y=menus[0][0]['size']
 	document=pyglet.text.decode_attributed("{font_name 'OpenDyslexicAlta'}{font_size 18}{color (255, 255, 255, 255)}"+msg.decode('utf-8')+"}".encode('utf8'))
 	txt_message.document=document
 	txt_message.draw()
+
 			
 def drawgrid(zoom):
 	global temp,debug,over,allcout,play,element,seestat,art,users,menus,tuto
@@ -1513,25 +1514,42 @@ def click_drag_transmuter(state):
 			if cout-thecout-menus[0][18]['icon']['cout'] >= 0:
 				world_art[state['realx']][state['realy']] = value
 				infos()
+				if tuto=='' or tuto[1]>=len(tuto[0]): return
+				cmd,arg=tuto[0][tuto[1]]
+				if (cmd=='wait' and len(arg)==1) and (arg[0]=='transmuteur' or arg[0]=='create'):
+					tuto[1]+=1
+					clock.schedule_once(execute,0.1)		
 
 def click_nothing(state):
 	state()
 	
 def click_drag_nothing(state):
-	global tech
+	global tech,tuto,play
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
 		if world_art[state['realx']][state['realy']] == art['nothing']['value']:
-			world_new[state['realx']][state['realy']] = art['nothing']['value']				
-		elif art[world_art[state['realx']][state['realy']]]['tech']<=tech:
+			if world_new[state['realx']][state['realy']]<=art['fiber']['value']:
+				world_new[state['realx']][state['realy']] = art['nothing']['value']				
+		elif art[world_art[state['realx']][state['realy']]]['tech']<=tech and art[world_art[state['realx']][state['realy']]]['tech']!=0:
 			world_art[state['realx']][state['realy']] = art['nothing']['value']
 		infos()
+		if tuto=='' or tuto[1]>=len(tuto[0]): return
+		cmd,arg=tuto[0][tuto[1]]
+		if cmd=='wait' and len(arg)==1 and arg[0]=='erase':
+			tuto[1]+=1
+			clock.schedule_once(execute,0.1)		
 		
 def click_drag_copper(state):
+	global tuto,cout,thecout
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
 		if world_new[state['realx']][state['realy']]<art['tail']['value']: 
 			if cout-thecout-art['copper']['cout'] >= 0:
 				world_new[state['realx']][state['realy']] = art['copper']['value']
 				infos()
+				if tuto=='' or tuto[1]>=len(tuto[0]): return
+				cmd,arg=tuto[0][tuto[1]]
+				if (cmd=='wait' and len(arg)==1) and (arg[0]=='copper' or arg[0]=='create'):
+					tuto[1]+=1
+					clock.schedule_once(execute,0.1)				
 	
 def click_drag_fiber(state):
 	if state['realx']>=1 and state['realy']>=1 and state['realx']<sizex-1 and state['realy']<sizey-1 and play==0:
@@ -1539,6 +1557,11 @@ def click_drag_fiber(state):
 			if cout-thecout-art['fiber']['cout'] >= 0:
 				world_new[state['realx']][state['realy']]=art['fiber']['value']
 				infos()
+				if tuto=='' or tuto[1]>=len(tuto[0]): return
+				cmd,arg=tuto[0][tuto[1]]
+				if (cmd=='wait' and len(arg)==1) and (arg[0]=='fiber' or arg[0]=='create'):
+					tuto[1]+=1
+					clock.schedule_once(execute,0.1)		
 				
 def click_tutoriel(state):
 	print "tuto"
@@ -1636,11 +1659,11 @@ def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
 		cmd,arg=tuto[0][tuto[1]]
 		if cmd=='wait':
 			if arg[0].lower()==state['event']:
-				if buttons==int(arg[1]) or (len(arg)==1 and arg[1]=='' and int(arg[1])==0):
+				if len(arg)==1 or buttons==int(arg[1]) or arg[1]=='' or int(arg[1])==0:
 					tuto[1]+=1
 					clock.schedule_once(execute,0.1)			
-			elif arg[0].lower()=='menu':
-				if buttons==int(arg[1]) or (len(arg)==1 and arg[1]=='' and int(arg[1])==0):
+			elif arg[0].lower()=='menu' and state['event']=='click' and onmenu==True:
+				if i==int(arg[1]) and j==int(arg[2]):
 					tuto[1]+=1
 					clock.schedule_once(execute,0.1)	
 			else:
@@ -1723,7 +1746,7 @@ def execute(dummy):
 	if cmd=='rect':
 		rect=[int(arg[0]),int(arg[1]),int(arg[2]),int(arg[3]),0]
 	elif cmd=='wait':
-		if len(arg)==1 and arg[0]!='' and int(arg[0])>0: 
+		if len(arg)==1 and arg[0]!='' and len(arg[0])<3 and int(arg[0])>0: 
 			dt=int(arg[0])
 		else:
 			dt=0
@@ -1732,13 +1755,15 @@ def execute(dummy):
 	elif cmd=='del':
 		rect=0
 		msg=''
+	elif cmd=='center':
+		resize()
 	elif cmd=='tech':
 		tech= int(arg[0])
 	elif cmd=='msg':
 		msg= str(arg[0].replace(';',','))
 	elif cmd=='select':
 		if menus[int(arg[0])][0].has_key('mouse'):
-			menus[int(arg[0])][0]['mouse'][int(arg[2])]=int(arg[1])
+			menus[int(arg[0])][0]['mouse'][int(arg[2])-1]=int(arg[1])
 	elif cmd=='set':
 		menus[int(arg[0])][int(arg[1])]['squarred']=True
 	elif cmd=='unset':
