@@ -1261,7 +1261,7 @@ menus=[
 {'motion':'motion_popup','click': 'click_stat', 'tech':2, 'value':'Statistiques electrons', 'size':0, 'icon': 'drawstat', 'params': '''[stat[0],stat[1],stat[3],stat[4],stat[5],stat[6]],[art['headb2']['color'],art['headb']['color'],art['head']['color'],art['head2']['color'],art['headr']['color'],art['headr2']['color']]''', 'variable':True,'visible':'win.width>=1280','separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_stat', 'tech':2, 'value':'Statistiques hors electrons', 'size':0, 'icon': 'drawstat', 'params': '''[stat[2],stat[7],stat[8]],[art['headp']['color'],art['neut']['color'],art['prot']['color']]''','variable':True,'visible':'win.width>=1280','separe':False,'squarred':False,'active': True},
 {'motion':'motion_popup','click': 'click_cout', 'tech':0,'text':'#str(cout-thecout)', 'value':'Argent', 'size':140, 'icon': 'picture/cout.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
-{'motion':'motion_popup','click': 'click_tech', 'tech':1,'text':'#str(tech)', 'value':'Degre technologique', 'size':65, 'icon': 'picture/tech.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
+{'motion':'motion_popup','scroll': 'scroll_tech', 'click': 'click_tech', 'tech':1,'text':'#str(tech)', 'value':'Degre technologique', 'size':65, 'icon': 'picture/tech.png','variable':False,'visible':True,'separe':False,'squarred':False,'active': True},
 ]
 ,
 [

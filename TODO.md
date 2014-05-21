@@ -40,10 +40,10 @@ le temps est limité.
 #### STRUCTURE/PROGRAMMATION
   
 * Modifier la méthode d'accès aux variables "dat" & "art".
-* Optimiser le code pour rendre l'usage d'OpenGL plus efficient.
+* Optimiser le code pour rendre l'usage d'OpenGL plus efficient en
+utilisant les vertex list et les batch graphic.
 * Repenser le mode simulation de façon orienté objet.
 * Ajouter un makefile pour automatiser la construction du programme.
-* Ajouter l'évènement "scroll,release" à la gestion des menus.
 * Creer un gestionnaire de zones sensibles pour gérer le menu de 
 selection des labos et les bulles d'aide.
   
