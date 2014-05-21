@@ -522,10 +522,10 @@ def drawworld():
 	if loc[1]<0:
 		loc[3]=1
 	glColor4ub(255,255,255,200)
-	pic_test.blit(loc[0],loc[1])
-	pic_test.blit(loc[0]-1024,loc[1])
-	pic_test.blit(loc[0]-1024,loc[1]-768)
-	pic_test.blit(loc[0],loc[1]-768)
+	pic_fond.blit(loc[0],loc[1])
+	pic_fond.blit(loc[0]-1024,loc[1])
+	pic_fond.blit(loc[0]-1024,loc[1]-768)
+	pic_fond.blit(loc[0],loc[1]-768)
 	glColor3ub(255,255,255)
 	for obj in worlds[world]:
 		if obj.has_key('special'):
@@ -779,7 +779,7 @@ def drawvictory():
 	
 def drawelement(x,y,x2,y2):
 	global element,world,level,worlds
-	drawsquare(x,y,x2,y2,1,[240,int(worlds[world][level]['_xx']/1024.0*120+100), int(worlds[world][level]['_xx']/1024.0*120+100)])
+	drawsquare(x,y,x2,y2,1,color_leveler[world])
 	txt_element.text=element
 	txt_element.color=(int(worlds[world][level]['_xx']/1024.0*150),int(worlds[world][level]['_xx']/1024.0*150), int(worlds[world][level]['_xx']/1024.0*150),255)
 	txt_element.x=x+(x2-x-txt_element.content_width)/2
@@ -926,7 +926,9 @@ def drawtuto():
 
 			
 def drawgrid(zoom):
-	global temp,debug,over,allcout,play,element,seestat,art,users,menus,tuto
+	global temp,debug,over,allcout,play,element,seestat,art,users,menus,tuto,loc
+	glColor4ub(255,255,255,150)
+	pic_fond2.blit_tiled(0,0,0,win.width,win.height)
 	glLineWidth(3)
 	if play>0:
 		drawsquare(decx-1+zoom,decy-1+zoom,decx+zoom*(sizex-1)+1,decy+zoom*(sizey-1)+2,0,[255,0,0])	
@@ -1409,7 +1411,8 @@ pic_temp=image.load("picture/temp.png")
 pic_rayon=image.load("picture/rayon.png")
 pic_cout=image.load("picture/cout.png")
 pic_tech=image.load("picture/tech.png")
-pic_test=image.load("picture/test.png")
+pic_fond=image.load("picture/fond.png")
+pic_fond2=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond2.png"))
 document=pyglet.text.decode_attributed("test")
 txt_description=pyglet.text.layout.TextLayout(document,dpi=72,multiline=True,width=732,height=140)
 txt_description.x=8
@@ -1562,7 +1565,38 @@ def click_drag_fiber(state):
 				if (cmd=='wait' and len(arg)==1) and (arg[0]=='fiber' or arg[0]=='create'):
 					tuto[1]+=1
 					clock.schedule_once(execute,0.1)		
-				
+
+def click_tech(state):
+	global tech,debug
+	if debug: tech+=1
+	if tech>9: tech=-1
+	
+def scroll_tech(state):
+	global tech,debug
+	if debug: 
+		tech+=state['dy']
+		if tech>9: tech=-1	
+		if tech<-1: tech=9
+		
+def click_cout(state):
+	global cout,debug
+	if debug: 
+		if state['buttons']==1:
+			if state['modifiers'] & key.MOD_CTRL:
+				cout+=1
+			else:
+				cout-=1
+		elif state['buttons']==2:
+			if state['modifiers'] & key.MOD_CTRL:
+				cout+=10
+			else:
+				cout-=10
+		elif state['buttons']==3:
+			if state['modifiers'] & key.MOD_CTRL:
+				cout+=100
+			else:
+				cout-=100
+					
 def click_tutoriel(state):
 	print "tuto"
 
@@ -1640,18 +1674,11 @@ def motion_popup(state):
 ''' *********************************************************************************************** '''
 ''' Fonctions liée à la gestion des menus  															'''
 
-def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
+def launch(event,x,y,dx,dy,i,j,buttons,modifiers,onmenu):
 	global menus,decx,decy,zoom,tuto,debug
 	realx=(x-decx)/zoom
 	realy=(y-decy)/zoom
-	state={'x':x,'y':y,'realx':realx, 'realy':realy, 'dx':dx, 'dy':dy, 'i':i, 'j':j, 'buttons':buttons, 'modifiers':modifiers, 'onmenu': onmenu}
-	if buttons==0: 
-		state['event']='motion'
-	else:
-		if dx==0 and dy==0:
-			state['event']='click'
-		else:
-			state['event']='drag'
+	state={'x':x,'y':y,'realx':realx, 'realy':realy, 'dx':dx, 'dy':dy, 'i':i, 'j':j, 'buttons':buttons, 'modifiers':modifiers, 'onmenu': onmenu,'event': event}
 	if debug: print state
 	if onmenu and state['event']=='click' and menus[i][0]['selectable']:
 		menus[i][0]['mouse'][buttons-1]=j
@@ -1687,37 +1714,39 @@ def launch(x,y,dx,dy,i,j,buttons,modifiers,onmenu):
 				return True
 	return False
 			
-def testmenu(themenus,x,y,dx,dy,buttons,modifiers):
-	global tech
+def testmenu(event,x,y,dx,dy,buttons,modifiers):
+	global tech,menus
 	allcout[2]=0
-	for i in range(len(themenus)):
-		if themenus[i][0]['visible']:
-			if themenus[i][0]['place']=='bottom':
+	for i in range(len(menus)):
+		if menus[i][0]['visible']:
+			if menus[i][0]['place']=='bottom':
 				placey=8
-			elif themenus[i][0]['place']=='top':
-				placey=win.height-themenus[i][0]['size']+8
+			elif menus[i][0]['place']=='top':
+				placey=win.height-menus[i][0]['size']+8
 			else:
-				for search in themenus:
+				for search in menus:
 					if search[0]['place']=='bottom':
 						placey=search[0]['size']+8
 						break
 			placex=0
-			for j in range(1,len(themenus[i])):
-				if themenus[i][j]['size']<30: continue
-				if type(themenus[i][j]['visible']) is str and not eval(themenus[i][j]['visible']) or not themenus[i][j]['visible']: continue
-				if themenus[i][j]['tech']>tech or not ((type(themenus[i][j]['active']) is str and eval(themenus[i][j]['active'])) or (type(themenus[i][j]['active']) is not str and themenus[i][j]['active'])): 
-					placex+=themenus[i][j]['size']
+			for j in range(1,len(menus[i])):
+				if menus[i][j]['size']<30: continue
+				if type(menus[i][j]['visible']) is str and not eval(menus[i][j]['visible']) or not menus[i][j]['visible']: continue
+				if menus[i][j]['tech']>tech or not ((type(menus[i][j]['active']) is str and eval(menus[i][j]['active'])) or (type(menus[i][j]['active']) is not str and menus[i][j]['active'])): 
+					placex+=menus[i][j]['size']
 					continue
-				if x>placex and x<placex+themenus[i][j]['size'] and y>placey and y<placey+themenus[i][0]['size']-8:
-					return launch(x,y,dx,dy,i,j,buttons,modifiers,True)
-				placex+=themenus[i][j]['size']
+				if x>placex and x<placex+menus[i][j]['size'] and y>placey and y<placey+menus[i][0]['size']-8:
+					return launch(event,x,y,dx,dy,i,j,buttons,modifiers,True)
+				placex+=menus[i][j]['size']
 	return
 
-def testgrid(themenus,x,y,dx,dy,buttons,modifiers):
-	for i in range(len(themenus)):
-		if themenus[i][0]['visible'] and themenus[i][0]['selectable'] and themenus[i][0].has_key('mouse'):
+def testgrid(event,x,y,dx,dy,buttons,modifiers):
+	global menus
+	for i in range(len(menus)):
+		if menus[i][0]['visible'] and menus[i][0]['selectable'] and menus[i][0].has_key('mouse'):
+			print "pop"
 			if buttons>0:
-				launch(x,y,dx,dy,i,themenus[i][0]['mouse'][buttons-1],buttons,modifiers,False)
+				launch(event,x,y,dx,dy,i,menus[i][0]['mouse'][buttons-1],buttons,modifiers,False)
 				
 					
 ''' *********************************************************************************************** '''
@@ -1831,11 +1860,23 @@ def on_mouse_motion(x, y, dx, dy):
 	if x>920 and y>150 and x<1024 and y<240:
 		selected=-4	
 	if level<0: return
-	testmenu(menus,x,y,dx,dy,0,0)
-				
+	testmenu('motion',x,y,dx,dy,0,0)
+	
+@win.event	
+def on_mouse_release(x, y, button, modifiers):
+	global level,menus	
+	if not testmenu('release',x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers):
+		testgrid('release',x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
+			
+@win.event
+def on_mouse_scroll(x, y, scroll_x, scroll_y):
+	global level,menus	
+	if level<0: return	
+	testmenu('scroll',x,y,scroll_x,scroll_y,0,0)
+	
 @win.event
 def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
-	global zoom,over,level,menus
+	global over,level,menus
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1847,11 +1888,11 @@ def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
 		itsvictory_ok()
 		return
 	if level<0: return	
-	testgrid(menus,x,y,dx,dy,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(buttons)+1, modifiers)
+	testgrid('drag',x,y,dx,dy,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(buttons)+1, modifiers)
 	
 @win.event
 def on_mouse_press(x, y, button, modifiers):
-	global zoom,over,level,selected,world,users,world_new,world_art,menus,tuto
+	global over,level,selected,world,users,world_new,world_art,menus,tuto
 	if player.source and player.source.video_format:
 		player.next()
 		ambiance.play()
@@ -1872,8 +1913,7 @@ def on_mouse_press(x, y, button, modifiers):
 		elif selected==-1:		
 			return
 		else:
-			'''readlevel(selected['world'],selected['level'],True)'''
-			readlevel(selected['world'],selected['level'],False)
+			readlevel(selected['world'],selected['level'],True)
 			if video:
 				player.queue(pyglet.resource.media('movie/level'+str(world)+"-"+str(level)+".mp4"))
 				player.play()
@@ -1883,8 +1923,8 @@ def on_mouse_press(x, y, button, modifiers):
 				compiler()
 				execute(0)
 		return
-	if not testmenu(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers):
-		testgrid(menus,x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
+	if not testmenu('click',x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1,modifiers):
+		testgrid('click',x,y,0,0,[mouse.LEFT,mouse.MIDDLE,mouse.RIGHT].index(button)+1, modifiers)
 	
 @win.event
 def on_resize(width,height):
