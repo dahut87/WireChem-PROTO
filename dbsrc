@@ -606,12 +606,32 @@ wait 8
  'tuto':'''
 del	
 set 0,16 
+arrow 635,145,615,50
 msg Vous venez de faire connaissance avec les photons; la fibre et le photoniseur. Vous pouvez maintenant avoir accès à la fibre sur le même principe que les pistes de cuivre; et au photoniseur dans le menu des transmuteurs.
-wait 10
+wait 12
 unset 0,16
-msg 
-
-
+arrow 635,145,345,50
+set 0,8
+msg L'icone des statistiques est maintenant disponible.                               <Cliquez une première fois dessus...>
+wait menu,0,8
+msg 3 graphiques apparaissent à droite : vous pouvez suivre en temps réel le nombre de photons; de protons/neutrons et d'électrons qui circulent sur votre modèle.
+wait 8
+msg Passez au deuxième volet de statistiques en cliquant à nouveau sur cet icône.                                <Allez-y...>
+wait menu,0,8
+msg Vous pouvez suivre ici la quantité de radiations émises par votre modèle ainsi que l'élévation de la température et sa consommation en énergie.
+wait 8
+msg Accédez ensuite au troisième et dernier volet de statistiques. 						<Cliquez encore une fois...>
+wait menu,0,8
+msg Ici vous pouvez visualiser la formation des différents types d'électrons nécessaire pour remplir les conditions de victoire propres à chaque niveau. Vous pouvez également suivre celui des neutrons et des protons.
+wait 11
+msg Si vous appuyez à nouveau sur l'icône statistiques; la zone dédiée aux statistiques disparaît et la zone de jeu contenant votre modèle reprend la totalité de l'espace de la fenêtre.    <Allez-y...>
+wait menu,0,8
+unset 0,8
+rect 720,2,835,48
+msg Ce rectangle vous permet de voir en temps réel les proportions des différents éléments mobiles présents sur votre modèle (électrons; photons; protons et neutrons) en suivant le code couleur du jeu.
+wait 11 
+del
+msg Vous venez de découvrir les nouveaux éléments de ce niveau; à vous maintenant de jouer !!!
 '''},	
  
  {'nom': 'Protons',
@@ -668,7 +688,24 @@ msg
 				[0, 0, 2, 2, 1, 1, 2, 1, 0], 
 				[0, 2, 0, 0, 0, 0, 1, 1, 0], 
 				[0, 0, 0, 0, 0, 0, 0, 0, 0], 
-				[0, 0, 0, 0, 0, 0, 0, 0, 0]]}, 
+				[0, 0, 0, 0, 0, 0, 0, 0, 0]], 
+				
+ 'tuto':'''
+del	
+msg Un modèle vous est proposé mais celui-ci ne fonctionne pas. De plus; les dépenses sont bien trop importantes puisqu'elles ont mis votre porte-monnaie dans le rouge !! 
+wait 10
+msg A vous de corriger ce modèle afin de remplir les conditions de victoire attendues tout en gardant un oeil sur vos dépenses. 
+wait 8
+arrow 925,400,926,470
+msg Vous devez créer deux protons : pour cela il faut que deux super-électrons négatifs passent dans le réacteur activé. Un proton n'a pas besoin de piste pour se déplacer; il tombe en suivant les règles de la gravité.
+wait 12
+arrow 925,350,926,290
+msg Le protoniseur va accepter le proton et le décompter dans les conditions de victoire. Attention : rien de doit obstruer le chemin d'un proton; ce sera aussi valable pour un neutron !!!
+wait 12
+del
+msg Passons maintenant au jeu; il faudra commencer par avoir de l'argent ce qui veut dire effacer quelques cases; mais lesquelles ??                          Bonne chance...
+wait 8
+'''},					
  
  {'nom': 'Hydrogène',
   'description': "Générer le premier atome complet : l'hydrogène avec un proton et un électron négatif sur la couche K.",
@@ -725,7 +762,21 @@ msg
 				[0, 0, 0, 0, 0, 0, 0, 0, 0], 
 				[0, 0, 0, 0, 0, 0, 0, 0, 0], 
 				[0, 0, 0, 0, 0, 0, 0, 0, 0], 
-				[0, 0, 0, 0, 0, 0, 0, 0, 0]]}], 
+				[0, 0, 0, 0, 0, 0, 0, 0, 0]],
+
+ 'tuto':'''
+del	
+msg _____ Ce nouvel élément "1" est une porte et ne sera disponible que dans des niveaux plus avancés de Wirechem. Cette porte ne laissera passer qu'un seul électron puis se fermera en affichant le nombre "0".
+wait 12
+set 0,12
+msg Enfin un dernier icône; l'icône activant le tutoriel et/ou l'aide : vous avez donc la possibilité de me faire disparaître en cliquant dessus; ainsi que les bulles d'aide en cliquant une seconde fois sur l'icône. <Essayez !!>
+wait menu,0,12
+wait menu,0,12
+unset 0,12
+msg Voilà; vous arrivez à l'ultime niveau du monde de l'Hydrogène; je pense vous avoir donné toutes les informations nécessaires pour jouer. A vous de découvrir les niveaux et mondes suivants !!
+wait 12
+'''}], 
+				
  
 [{'nom': 'Deutérium',
   'description': "Générer le Deutérium, un isostope de l'hydrogène, celui-ci comporte un neutron en plus du proton et de l'électron négatif sur la couche K.",
