@@ -151,7 +151,7 @@ def savelevel(w,l):
 
 #initialisation du jeu
 def init():
-	global worlds,debug
+	global worlds,debug,level
 	verifyhome()
 	read("dbdata")
 	read(gethome()+"/dbdata")
@@ -167,8 +167,8 @@ def init():
    
 debug=False
 worlds={}
+world=level=0
 init()
-print debug
 
 ''' *********************************************************************************************** '''
 ''' Classes graphiques																		'''
@@ -260,52 +260,53 @@ class abutton(object):
 		del self
 		self=None
 		
+		
+	def launch(self,state):
+		name=self.name.split('_')
+		if len(name)>1 and hasattr(self.window, "on_mouse_"+state['event']+"_"+name[0]) and callable(eval("self.window.on_mouse_"+state['event']+"_"+name[0])):
+			eval("self.window.on_mouse_"+state['event']+"_"+name[0]+"("+str(name[1])+","+str(state)+")")			
+		if hasattr(self.window, "on_mouse_"+state['event']+"_"+self.name) and callable(eval("self.window.on_mouse_"+state['event']+"_"+self.name)):
+			if self.typeof=='multicon':
+				self.index+=1
+				if self.index>=len(self.content):
+					self.index=0
+				self.update(0)
+			eval("self.window.on_mouse_"+state['event']+"_"+self.name+"("+str(state)+")")
+		
 	def on_mouse_press(self, x, y, button, modifiers):
 		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
-			if hasattr(self.window, "on_mouse_press_"+self.name) and callable(eval("self.window.on_mouse_press_"+self.name)):		
-				state={'x':x,'y':y, 'dx':0, 'dy':0, 'buttons':button, 'modifiers':modifiers, 'event': 'press'}	
-				if self.typeof=='multicon':
-					self.index+=1
-					if self.index>=len(self.content):
-						self.index=0
-					self.update(0)
-				eval("self.window.on_mouse_press_"+self.name+"("+str(state)+")")
+			state={'x':x,'y':y, 'dx':0, 'dy':0, 'buttons':button, 'modifiers':modifiers, 'event': 'press'}
+			self.launch(state)
 				
 	def on_mouse_release(self, x, y, button, modifiers):
 		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
-			if hasattr(self.window, "on_mouse_release_"+self.name) and callable(eval("self.window.on_mouse_release_"+self.name)):		
-				state={'x':x,'y':y, 'dx':0, 'dy':0, 'buttons':button, 'modifiers':modifiers, 'event': 'release'}		
-				eval("self.window.on_mouse_release_"+self.name+"("+str(state)+")")
+			state={'x':x,'y':y, 'dx':0, 'dy':0, 'buttons':button, 'modifiers':modifiers, 'event': 'release'}
+			self.launch(state)
 				
 	def on_mouse_drag(self, x, y,  dx, dy, buttons, modifiers):
-		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
-			if hasattr(self.window, "on_mouse_drag_"+self.name) and callable(eval("self.window.on_mouse_drag_"+self.name)):		
-				state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':buttons, 'modifiers':modifiers, 'event': 'drag'}		
-				eval("self.window.on_mouse_drag_"+self.name+"("+str(state)+")")
-			
+		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():	
+			state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':buttons, 'modifiers':modifiers, 'event': 'drag'}		
+			self.launch(state)
+							
 	def on_mouse_scroll(self, x, y,  scroll_x, scroll_y):
-		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
-			if hasattr(self.window, "on_mouse_scroll_"+self.name) and callable(eval("self.window.on_mouse_scroll_"+self.name)):		
-				state={'x':x,'y':y, 'dx':scroll_x, 'dy':scroll_y, 'buttons':0, 'modifiers':0, 'event': 'scroll'}		
-				eval("self.window.on_mouse_scroll_"+self.name+"("+str(state)+")")
-	
+		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():	
+			state={'x':x,'y':y, 'dx':scroll_x, 'dy':scroll_y, 'buttons':0, 'modifiers':0, 'event': 'scroll'}		
+			self.launch(state)
+					
 	def on_mouse_motion(self, x, y, dx, dy):
 		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height:
 			if self.isvisible() and self.isactive():
 				if self.enter==0:
 					self.enter=1
-					if hasattr(self.window, "on_mouse_enter_"+self.name) and callable(eval("self.window.on_mouse_enter_"+self.name)):
-						state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'enter'}
-						eval("self.window.on_mouse_enter_"+self.name+"("+str(state)+")")
-				if hasattr(self.window, "on_mouse_motion_"+self.name) and callable(eval("self.window.on_mouse_motion_"+self.name)):	
-					state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'motion'}
-					eval("self.window.on_mouse_motion_"+self.name+"("+str(state)+")")
+					state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'enter'}
+					self.launch(state)
+				state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'motion'}
+				self.launch(state)
 		else:
 			if self.enter==1:
 				self.enter=0
 				state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'leave'}
-				if hasattr(self.window, "on_mouse_leave_"+self.name) and callable(eval("self.window.on_mouse_leave_"+self.name)):	
-					eval("self.window.on_mouse_leave_"+self.name+"("+str(state)+")")	
+				self.launch(state)	
 					
 	def setselected(self,select):
 		self.selected=select
@@ -381,7 +382,7 @@ class game(pyglet.window.Window):
 #Classe du menu principal
 class menu(pyglet.window.Window):
 	def __init__(self, *args, **kwargs):
-		global debug,worlds
+		global debug,worlds,world
 		super(menu, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True, caption="Wirechem: The new chemistry game")
 		self.batch = pyglet.graphics.Batch()
 		self.p0 = pyglet.graphics.OrderedGroup(0)
@@ -390,14 +391,39 @@ class menu(pyglet.window.Window):
 		self.p3 = pyglet.graphics.OrderedGroup(3)
 		self.clocks=[clock.schedule(self.draw)]
 		self.loc=[0,0,1,1]
+		self.images=[pyglet.image.load('picture/leveler0.png'),pyglet.image.load('picture/leveler1.png'),pyglet.image.load('picture/leveler2.png'),pyglet.image.load('picture/leveler3.png'),pyglet.image.load('picture/leveler4.png')]
+		self.colors=[[0,192,244],[235,118,118],[5,157,60],[215,33,255],[201,209,98]]
 		self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
-		self.buttons=[abutton(self,'logo',185, self.height-200, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
+		self.buttons=[
+		abutton(self,'logo',185, self.height-200, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
 		abutton(self,'logo2',45, self.height-150, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
-		abutton(self,'arrows',840, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows.png'), 'test', 'icon', '', ''),
-		abutton(self,'arrows2',920, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows2.png'), 'test', 'icon', '', ''),		
-		abutton(self,'exit2',940, self.height-100, 0, 0 , True, False, True, False, pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')]
+		abutton(self,'menu_0',840, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows.png'), 'test', 'icon', '', ''),
+		abutton(self,'menu_1',920, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows2.png'), 'test', 'icon', '', ''),		
+		abutton(self,'menu_2',940, self.height-100, 0, 0 , True, False, True, False, pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')
+		]
+		self.levels=[
+		abutton(self,'level_0',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_1',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_2',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_3',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_4',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),		
+		abutton(self,'level_5',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_6',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_7',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_8',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
+		abutton(self,'level_9',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', '')
+		]
+		self.update()
 		
-        
+	def update(self):
+		global world
+		for l in range(len(worlds[world])):
+			ele=worlds[world][l]
+			self.levels[l].x=ele['_xx']
+			self.levels[l].y=ele['_yy']/768.0*self.height
+			self.levels[l].content=self.images[world]
+			self.levels[l].update(0)
+					
 	def draw(self,dt):
 		glClearColor(0,0,0,255)
 		self.clear()
@@ -411,18 +437,30 @@ class menu(pyglet.window.Window):
 			self.loc[2]=1
 		if self.loc[1]<0:
 			self.loc[3]=1
+		self.fond.anchor_x=self.loc[0]
+		self.fond.anchor_y=self.loc[1]
 		self.fond.blit_tiled(0, 0, 0, self.width, self.height)
 		self.batch.draw()
 		
-	def on_mouse_press_exit2(self, state):
+	def on_mouse_press_menu_2(self, state):
 		pyglet.app.exit()
 		
-	def on_mouse_enter_exit2(self, state):
-		self.buttons[4].setselected([255,0,0])
+	def on_mouse_enter_menu(self, n, state):
+		self.buttons[2+n].setselected([255,0,0])
 		
-	def on_mouse_leave_exit2(self, state):
-		self.buttons[4].setselected(False)
+	def on_mouse_leave_menu(self, n, state):
+		self.buttons[2+n].setselected(False)
 		
+	def on_mouse_enter_level(self, n, state):
+		global world
+		self.levels[n].setselected(self.colors[world])
+		
+	def on_mouse_leave_level(self, n, state):
+		self.levels[n].setselected(False)
+
+	def on_mouse_press_level(self, n, state):
+		print "level "+str(n)
+
 ''' *********************************************************************************************** '''
 ''' Lancement du menu principal																					'''
    
