@@ -32,12 +32,14 @@ from pyglet import image
 from os.path import expanduser
 	
 ''' *********************************************************************************************** '''
-''' Fonctions d'initialisation																							 '''
+''' Fonctions de chargement  																		'''
 
+#Enregistre les données utilisateurs
 def sync():
 	global Uworlds,finished
 	write(gethome()+"/dbdata",["Uworlds","finished"])
 
+#Vérifie l'existence de la base de donnée utilisateur
 def verifyhome():
 	global Uworlds,finished
 	if not os.path.exists(gethome()):
@@ -46,11 +48,13 @@ def verifyhome():
 		Uworlds=[[{0:0}]]
 		finished=[(0,0)]
 		sync()
-	
+
+#Trouve le chemin vers le repertoire utilisateur	
 def gethome():
 	home = expanduser("~")+"/.wirechem"
 	return home
 
+#Ecrit les variables spécifiés dans la base selectionnée (utilisateur ou système)
 def write(afile,var):
 	d=shelve.open(afile,writeback=True)
 	for k in var:
@@ -58,17 +62,20 @@ def write(afile,var):
 	d.sync()
 	d.close()	
 
+#Lit une base de donnée
 def read(afile):
 	d=shelve.open(afile,writeback=True)
 	for k in d.keys():
 		globals()[k]=copy.deepcopy(d[k])
 	d.close()
 	
+#Charge le dictionnaire sous forme de variables
 def load(d):
 	for k in d.keys():
 		if k[0]!="_":
 			globals()[k]=copy.deepcopy(d[k])
 		
+#Référence les variables
 def reference(var,noms):
 	if len(noms)==2: 
 		for y in range(len(var)):
@@ -79,10 +86,94 @@ def reference(var,noms):
 		for x in range(len(var[y])):	
 			var[x][y][noms[0]]=x	
 			
+#duplique les références
 def duplicateref(d):
 	for k in d.keys():
 		d[d[k]['nom']]=d[k]
 		
+		
+''' *********************************************************************************************** '''
+''' Sauvegarde/Restauration '''
+
+def readlevel(w,l,user):
+	global tuto,worlds,cout,selected,sizex,sizey,stat,tech
+	tuto=''
+	if user:
+		if w<len(Uworlds) and l<len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
+			load(Uworlds[w][l])
+		else:
+			load(worlds[w][l])
+	else:
+		load(worlds[w][l])
+	menus[0][18]['icon']=copy.deepcopy(art['null'])
+	sizex=len(world_new)
+	sizey=len(world_new[0])
+	resize();	
+	stat=[0,0,0,0,0,0,0,0,0]
+	over=0
+	infos()
+
+def savelevel(w,l):
+	global tuto,users,worlds,Uworlds,nom,descriptif,video,link,tech,cout,victory,current,cycle,nrj,rayon,temp,maxcycle,maxnrj,maxrayon,maxtemp,world_new,world_art
+	while len(Uworlds)<=w:
+		Uworlds.append(0)
+		Uworlds[w]=[]
+	while len(Uworlds[w])<=l:
+		Uworlds[w].append({})
+		Uworlds[w][l]={'nom':nom,
+'element':element,
+'users':users,
+'tuto':tuto,
+'description':descriptif,
+'_xx':worlds[world][level]['_xx'],
+'_yy':worlds[world][level]['_yy'],
+'video':video,
+'link':link,
+'level':level,
+'world':world,
+'tech':tech,
+'cout':cout,
+'victory':victory,
+'current':worlds[world][level]['current'],
+'cycle':cycle,
+'nrj':nrj,
+'rayon':rayon,
+'temp':temp,
+'maxcycle':maxcycle,
+'maxnrj':maxnrj,
+'maxrayon':maxrayon,
+'maxtemp':maxtemp,
+'world_new':world_new,
+'world_art':world_art}
+		
+''' *********************************************************************************************** '''
+''' Fonction d'initialisation  																				'''
+
+#initialisation du jeu
+def init():
+	global worlds,debug
+	verifyhome()
+	read("dbdata")
+	read(gethome()+"/dbdata")
+	reference(worlds,['world','level'])
+	reference(Uworlds,['world','level'])
+	if len(sys.argv)>1 and sys.argv[1]=='debug': 
+		debug=True
+	else:
+		debug=False
+		
+''' *********************************************************************************************** '''
+''' initialisation																		'''
+   
+debug=False
+worlds={}
+init()
+print debug
+
+''' *********************************************************************************************** '''
+''' Classes graphiques																		'''
+
+#Bouton sensible a plusieurs évènements
 class abutton(object):
 	def update(self,dt):
 		try:
@@ -127,22 +218,23 @@ class abutton(object):
 				else:
 					self.sprite.scale=float(self.height)/image.height
 				self.sprite.opacity=color
-		if type(self.seleted) is tuple:
-			color=(self.seleted[0],self.seleted[1],self.seleted[2],255)
+		if type(self.selected) is tuple:
+			color=(self.selected[0],self.selected[1],self.selected[2],255)
 			self.vertex_list2 = self.window.batch.add(4,pyglet.gl.GL_LINE_LOOP, self.window.p2,
 				('v2i', (self.x, self.y, self.x+self.width, self.y, self.x+self.width, self.y+self.height, self.x, self.y+self.height)),
 				('c4B',  color * 4))
-		elif type(self.seleted) is list:
-			self.sprite.opacity=(self.seleted[0],self.seleted[1],self.seleted[2])
+		elif type(self.selected) is list:
+			self.sprite.color=(self.selected[0],self.selected[1],self.selected[2])
 		if self.hilite and int(time.time())%2==0:
 			color=(255,0,0,128)
 			self.vertex_list3 = self.window.batch.add(4,pyglet.gl.GL_QUADS, self.window.p2,
 				('v2i', (self.x, self.y, self.x+self.width, self.y, self.x+self.width, self.y+self.height, self.x, self.y+self.height)),
 				('c4B',  color * 4))		
 				
-	def __init__(self, window, name, x, y, width, height , active, hilite, visible, seleted, content, hint, typeof, text, text2):
+	def __init__(self, window, name, x, y, width, height , active, hilite, visible, selected, content, hint, typeof, text, text2):
 		self.name=name
 		self.index=0
+		self.enter=0
 		self.x=x
 		self.y=y
 		self.width=width
@@ -153,7 +245,7 @@ class abutton(object):
 		self.content=content
 		self.typeof=typeof
 		self.hint=hint
-		self.seleted=seleted
+		self.selected=selected
 		self.window=window
 		self.window.push_handlers(self.on_mouse_press)
 		self.window.push_handlers(self.on_mouse_motion)
@@ -198,10 +290,26 @@ class abutton(object):
 				eval("self.window.on_mouse_scroll_"+self.name+"("+str(state)+")")
 	
 	def on_mouse_motion(self, x, y, dx, dy):
-		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible(): 
-			if hasattr(self.window, "on_mouse_motion_"+self.name) and callable(eval("self.window.on_mouse_motion_"+self.name)):
-				state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'motion'}	
-				eval("self.window.on_mouse_motion_"+self.name+"("+str(state)+")")
+		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height:
+			if self.isvisible() and self.isactive():
+				if self.enter==0:
+					self.enter=1
+					if hasattr(self.window, "on_mouse_enter_"+self.name) and callable(eval("self.window.on_mouse_enter_"+self.name)):
+						state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'enter'}
+						eval("self.window.on_mouse_enter_"+self.name+"("+str(state)+")")
+				if hasattr(self.window, "on_mouse_motion_"+self.name) and callable(eval("self.window.on_mouse_motion_"+self.name)):	
+					state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'motion'}
+					eval("self.window.on_mouse_motion_"+self.name+"("+str(state)+")")
+		else:
+			if self.enter==1:
+				self.enter=0
+				state={'x':x,'y':y, 'dx':dx, 'dy':dy, 'buttons':0, 'modifiers':0, 'event': 'leave'}
+				if hasattr(self.window, "on_mouse_leave_"+self.name) and callable(eval("self.window.on_mouse_leave_"+self.name)):	
+					eval("self.window.on_mouse_leave_"+self.name+"("+str(state)+")")	
+					
+	def setselected(self,select):
+		self.selected=select
+		self.update(0)					
 				
 	def isvisible(self):
 		if type(self.visible) is bool:
@@ -255,6 +363,7 @@ class abutton(object):
 ''' *********************************************************************************************** '''
 ''' Gestion du plateau de jeu																						 '''
 				
+#Classe du plateau de jeu
 class game(pyglet.window.Window):
 	def __init__(self, *args, **kwargs):
 		super(game, self).__init__(resizable=True, fullscreen=False, visible=True, caption="Wirechem: The new chemistry game")
@@ -269,8 +378,10 @@ class game(pyglet.window.Window):
 ''' *********************************************************************************************** '''
 ''' Gestion du menu principal																						 '''	
 				
+#Classe du menu principal
 class menu(pyglet.window.Window):
 	def __init__(self, *args, **kwargs):
+		global debug,worlds
 		super(menu, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True, caption="Wirechem: The new chemistry game")
 		self.batch = pyglet.graphics.Batch()
 		self.p0 = pyglet.graphics.OrderedGroup(0)
@@ -278,24 +389,43 @@ class menu(pyglet.window.Window):
 		self.p2 = pyglet.graphics.OrderedGroup(2)
 		self.p3 = pyglet.graphics.OrderedGroup(3)
 		self.clocks=[clock.schedule(self.draw)]
+		self.loc=[0,0,1,1]
+		self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
 		self.buttons=[abutton(self,'logo',185, self.height-200, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
 		abutton(self,'logo2',45, self.height-150, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
 		abutton(self,'arrows',840, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows.png'), 'test', 'icon', '', ''),
 		abutton(self,'arrows2',920, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows2.png'), 'test', 'icon', '', ''),		
 		abutton(self,'exit2',940, self.height-100, 0, 0 , True, False, True, False, pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')]
+		
         
 	def draw(self,dt):
 		glClearColor(0,0,0,255)
 		self.clear()
+		self.loc[0]+=self.loc[2]
+		self.loc[1]+=self.loc[3]
+		if self.loc[0]>1024:
+			self.loc[2]=-1
+		if self.loc[1]>768:
+			self.loc[3]=-1
+		if self.loc[0]<0:
+			self.loc[2]=1
+		if self.loc[1]<0:
+			self.loc[3]=1
+		self.fond.blit_tiled(0, 0, 0, self.width, self.height)
 		self.batch.draw()
 		
 	def on_mouse_press_exit2(self, state):
 		pyglet.app.exit()
 		
+	def on_mouse_enter_exit2(self, state):
+		self.buttons[4].setselected([255,0,0])
+		
+	def on_mouse_leave_exit2(self, state):
+		self.buttons[4].setselected(False)
+		
 ''' *********************************************************************************************** '''
-''' Initialisation																					'''
-     
-
+''' Lancement du menu principal																					'''
+   
 menu_principal = menu()
 menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
