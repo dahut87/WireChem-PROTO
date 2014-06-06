@@ -158,14 +158,16 @@ def init():
 	reference(worlds,['world','level'])
 	reference(Uworlds,['world','level'])
 	if len(sys.argv)>1 and sys.argv[1]=='debug': 
-		debug=True
+		debug=1
+	elif len(sys.argv)>1 and sys.argv[1]=='edit' :
+		debug=2
 	else:
-		debug=False
+		debug=0
 		
 ''' *********************************************************************************************** '''
 ''' initialisation																		'''
    
-debug=False
+debug=0
 worlds={}
 world=level=0
 init()
@@ -193,12 +195,11 @@ class abutton(object):
 		except:
 			foo=0		
 		if self.isvisible():
-			if not self.isactive():
-				color=127
-			else:
-				color=255
 			if self.typeof=='color':
-				color=(self.content[0],self.content[1],self.content[2],color)
+				if not self.isactive():
+					color=(self.content[0],self.content[1],self.content[2],127)
+				else:
+					color=(self.content[0],self.content[1],self.content[2],255)
 				self.vertex_list = self.window.batch.add(4,pyglet.gl.GL_QUADS, self.window.p1,
                                           ('v2i', (self.x, self.y, self.x+self.width, self.y, self.x+self.width, self.y+self.height, self.x, self.y+self.height)),
                                           ('c4B',  color * 4))
@@ -217,13 +218,16 @@ class abutton(object):
 					self.sprite.scale=float(self.width)/image.width
 				else:
 					self.sprite.scale=float(self.height)/image.height
-				self.sprite.opacity=color
+				if not self.isactive():
+					self.sprite.color=(60,60,60)
+				else:
+					self.sprite.color=(255,255,255)
 		if type(self.selected) is tuple:
 			color=(self.selected[0],self.selected[1],self.selected[2],255)
 			self.vertex_list2 = self.window.batch.add(4,pyglet.gl.GL_LINE_LOOP, self.window.p2,
 				('v2i', (self.x, self.y, self.x+self.width, self.y, self.x+self.width, self.y+self.height, self.x, self.y+self.height)),
 				('c4B',  color * 4))
-		elif type(self.selected) is list:
+		elif type(self.selected) is list and self.isactive():
 			self.sprite.color=(self.selected[0],self.selected[1],self.selected[2])
 		if self.hilite and int(time.time())%2==0:
 			color=(255,0,0,128)
@@ -262,9 +266,11 @@ class abutton(object):
 		
 		
 	def launch(self,state):
+		global debug
 		name=self.name.split('_')
 		if len(name)>1 and hasattr(self.window, "on_mouse_"+state['event']+"_"+name[0]) and callable(eval("self.window.on_mouse_"+state['event']+"_"+name[0])):
-			eval("self.window.on_mouse_"+state['event']+"_"+name[0]+"("+str(name[1])+","+str(state)+")")			
+			eval("self.window.on_mouse_"+state['event']+"_"+name[0]+"("+str(name[1])+","+str(state)+")")
+			if debug>0: print state		
 		if hasattr(self.window, "on_mouse_"+state['event']+"_"+self.name) and callable(eval("self.window.on_mouse_"+state['event']+"_"+self.name)):
 			if self.typeof=='multicon':
 				self.index+=1
@@ -272,6 +278,7 @@ class abutton(object):
 					self.index=0
 				self.update(0)
 			eval("self.window.on_mouse_"+state['event']+"_"+self.name+"("+str(state)+")")
+			if debug>0: print state
 		
 	def on_mouse_press(self, x, y, button, modifiers):
 		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
@@ -389,11 +396,14 @@ class menu(pyglet.window.Window):
 		self.p1 = pyglet.graphics.OrderedGroup(1)
 		self.p2 = pyglet.graphics.OrderedGroup(2)
 		self.p3 = pyglet.graphics.OrderedGroup(3)
-		self.clocks=[clock.schedule(self.draw)]
+		self.p4 = pyglet.graphics.OrderedGroup(4)
+		self.clocks=[clock.schedule(self.draw),clock.schedule_interval(self.movefond,0.03)]
 		self.loc=[0,0,1,1]
 		self.images=[pyglet.image.load('picture/leveler0.png'),pyglet.image.load('picture/leveler1.png'),pyglet.image.load('picture/leveler2.png'),pyglet.image.load('picture/leveler3.png'),pyglet.image.load('picture/leveler4.png')]
 		self.colors=[[0,192,244],[235,118,118],[5,157,60],[215,33,255],[201,209,98]]
-		self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
+		#self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
+		self.labels=[pyglet.text.Label("",font_name='vademecum',font_size=380,x=0,y=0,bold=False,italic=False,batch=self.batch,group=self.p0,color=(255, 80, 80,230))]
+		self.fond=image.load("picture/fond.png")
 		self.buttons=[
 		abutton(self,'logo',185, self.height-200, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
 		abutton(self,'logo2',45, self.height-150, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
@@ -413,20 +423,14 @@ class menu(pyglet.window.Window):
 		abutton(self,'level_8',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
 		abutton(self,'level_9',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', '')
 		]
+		self.special=pyglet.sprite.Sprite(pyglet.image.load('picture/boss.png'),batch=self.batch, group=self.p4)
+		self.lock=[pyglet.sprite.Sprite(pyglet.image.load('picture/locked.png'),batch=self.batch, group=self.p4) for i in range(9)]
+		self.untitled=[pyglet.text.Label("",font_name='Vademecum',batch=self.batch, group=self.p4, font_size=23,x=0,y=0,bold=False,italic=False,color=(180, 180, 180,255)) for i in range(9)]
+		self.untitled2=[pyglet.text.Label("",font_name='Fluoxetine',batch=self.batch, group=self.p4, font_size=18,x=0,y=0,bold=False,italic=False,color=(255, 255, 255,255)) for i in range(9)]
 		self.update()
 		
-	def update(self):
-		global world
-		for l in range(len(worlds[world])):
-			ele=worlds[world][l]
-			self.levels[l].x=ele['_xx']
-			self.levels[l].y=ele['_yy']/768.0*self.height
-			self.levels[l].content=self.images[world]
-			self.levels[l].update(0)
-					
-	def draw(self,dt):
-		glClearColor(0,0,0,255)
-		self.clear()
+	def movefond(self,dt):
+		global loc
 		self.loc[0]+=self.loc[2]
 		self.loc[1]+=self.loc[3]
 		if self.loc[0]>1024:
@@ -436,14 +440,69 @@ class menu(pyglet.window.Window):
 		if self.loc[0]<0:
 			self.loc[2]=1
 		if self.loc[1]<0:
-			self.loc[3]=1
-		self.fond.anchor_x=self.loc[0]
-		self.fond.anchor_y=self.loc[1]
-		self.fond.blit_tiled(0, 0, 0, self.width, self.height)
+			self.loc[3]=1		
+		
+	def update(self):
+		global world,worlds,finished
+		for obj in worlds[world]:
+			if obj.has_key('special'):
+				break
+		self.labels[0].text=obj['element']
+		self.labels[0].color=(self.colors[world][0],self.colors[world][1],self.colors[world][2],100)
+		self.labels[0].x=(1024-self.labels[0].content_width)/2-50
+		self.labels[0].y=75*self.height/768
+		self.labels[0].text=obj['element']
+		for l in range(len(worlds[world])):
+			ele=worlds[world][l]
+			self.levels[l].active=(world,l) in finished
+			self.levels[l].x=ele['_xx']
+			self.levels[l].y=ele['_yy']/768.0*self.height
+			self.levels[l].setselected([255,120+int(ele['_xx']/1024.0*135),155+int(ele['_xx']/1024.0*100)])
+			self.levels[l].content=self.images[world]
+			self.levels[l].update(0)
+			self.untitled[l].text=ele['element']
+			self.untitled[l].x=ele['_xx']+(self.images[world].width-self.untitled[l].content_width)/2
+			self.untitled[l].y=ele['_yy']/768.0*self.height+20
+			self.untitled[l].color=(int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150),255)
+			self.untitled2[l].text=ele['nom'].decode('utf-8')
+			self.untitled2[l].x=ele['_xx']-(self.untitled2[l].content_width-self.images[world].width)/2
+			self.untitled2[l].y=ele['_yy']/768.0*self.height-15
+			if (world,l) in finished:
+				self.untitled2[l].color=(255,255,255,255)
+			else:
+				self.untitled2[l].color=(90,90,90,255)
+			self.lock[l].visible=(world,l) not in finished
+			self.lock[l].x=ele['_xx']+10
+			self.lock[l].y=ele['_yy']/768.0*self.height+50
+			if ele['nom']==obj['nom']:
+				self.special.x=ele['_xx']
+				self.special.y=ele['_yy']			
+										
+	def draw(self,dt):
+		global loc
+		glClearColor(0,0,0,255)
+		self.clear()
+		#self.fond.anchor_x=self.loc[0]
+		#self.fond.anchor_y=self.loc[1]
+		self.fond.blit(self.loc[0],self.loc[1])
+		self.fond.blit(self.loc[0]-1024,self.loc[1])
+		self.fond.blit(self.loc[0]-1024,self.loc[1]-768)
+		self.fond.blit(self.loc[0],self.loc[1]-768)		
+		#self.fond.blit_tiled(0, 0, 0, self.width, self.height)
 		self.batch.draw()
 		
 	def on_mouse_press_menu_2(self, state):
 		pyglet.app.exit()
+		
+	def on_mouse_press_menu_1(self, state):
+		global world
+		if world>0: world-=1
+		self.update()
+		
+	def on_mouse_press_menu_0(self, state):
+		global world
+		if world<len(worlds)-1: world+=1
+		self.update()
 		
 	def on_mouse_enter_menu(self, n, state):
 		self.buttons[2+n].setselected([255,0,0])
@@ -453,17 +512,24 @@ class menu(pyglet.window.Window):
 		
 	def on_mouse_enter_level(self, n, state):
 		global world
-		self.levels[n].setselected(self.colors[world])
+		self.levels[n].setselected([255,0,0])
+		self.untitled2[n].color=(255,0,0,255)
 		
 	def on_mouse_leave_level(self, n, state):
-		self.levels[n].setselected(False)
+		self.levels[n].setselected([255,120+int(self.levels[n].x/1024.0*135),155+int(self.levels[n].x/1024.0*100)])
+		self.untitled2[n].color=(255,255,255,255)
 
 	def on_mouse_press_level(self, n, state):
 		print "level "+str(n)
 
 ''' *********************************************************************************************** '''
 ''' Lancement du menu principal																					'''
-   
+
+pyglet.font.add_file('font/Fluoxetine.ttf')
+pyglet.font.add_file('font/OpenDyslexicAlta.otf')
+pyglet.font.add_file('font/Mecanihan.ttf')
+pyglet.font.add_file('font/Vademecum.ttf')
+pyglet.font.add_file('font/LiberationMono-Regular.ttf')
 menu_principal = menu()
 menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
