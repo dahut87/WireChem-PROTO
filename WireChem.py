@@ -176,6 +176,10 @@ init()
 #Bouton sensible a plusieurs évènements
 class abutton(object):
 	def update(self,dt):
+		if type(self.evalx) is str:
+			self.x=eval(self.evalx)
+		if type(self.evaly) is str:
+			self.y=eval(self.evaly)	
 		try:
 			self.vertex_list.delete()
 		except:
@@ -238,7 +242,10 @@ class abutton(object):
 		self.time=0
 		self.index=0
 		self.enter=0
-		self.x=x
+		self.window=window
+		self.evalx=x
+		self.evaly=y
+		self.x=x	
 		self.y=y
 		self.width=width
 		self.height=height
@@ -249,7 +256,6 @@ class abutton(object):
 		self.typeof=typeof
 		self.hint=hint
 		self.selected=selected
-		self.window=window
 		self.window.push_handlers(self.on_mouse_press)
 		self.window.push_handlers(self.on_mouse_motion)
 		self.window.push_handlers(self.on_mouse_drag)
@@ -409,11 +415,11 @@ class menu(pyglet.window.Window):
 		self.labels=[pyglet.text.Label("",font_name='vademecum',font_size=380,x=0,y=0,bold=False,italic=False,batch=self.batch,group=self.p0,color=(255, 80, 80,230))]
 		self.fond=image.load("picture/fond.png")
 		self.buttons=[
-		abutton(self,'logo',185, self.height-200, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
-		abutton(self,'logo2',45, self.height-150, 0, 0 , True, False, True, False, pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
+		abutton(self,'logo',185, 'self.window.height-200', 0, 0 , True, False, True, False, pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
+		abutton(self,'logo2',45, 'self.window.height-150', 0, 0 , True, False, True, False, pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
 		abutton(self,'menu_0',840, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows.png'), 'test', 'icon', '', ''),
 		abutton(self,'menu_1',920, 150, 0, 0 , True, False, True, False, pyglet.image.load('picture/arrows2.png'), 'test', 'icon', '', ''),		
-		abutton(self,'menu_2',940, self.height-100, 0, 0 , True, False, True, False, pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')
+		abutton(self,'menu_2',940, 'self.window.height-100', 0, 0 , True, False, True, False, pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')
 		]
 		self.levels=[
 		abutton(self,'level_0',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
@@ -432,6 +438,10 @@ class menu(pyglet.window.Window):
 		self.lock=[pyglet.sprite.Sprite(pyglet.image.load('picture/locked.png'),batch=self.batch, group=self.p4,x=-150,y=-150) for i in range(10)]
 		self.untitled=[pyglet.text.Label("",font_name='Vademecum',batch=self.batch, group=self.p4, font_size=23,x=-150,y=-150,bold=False,italic=False,color=(180, 180, 180,255)) for i in range(10)]
 		self.untitled2=[pyglet.text.Label("",font_name='Fluoxetine',batch=self.batch, group=self.p4, font_size=18,x=-150,y=-150,bold=False,italic=False,color=(255, 255, 255,255)) for i in range(10)]
+		self.update()
+		
+	def on_resize(self,width, height):
+		super(menu, self).on_resize(width,height)
 		self.update()
 		
 	def movefond(self,dt):
@@ -459,7 +469,9 @@ class menu(pyglet.window.Window):
 		if 'obj' in locals(): 
 			self.labels[0].text=obj['element']
 		else:
-			self.labels[0].text='xx'
+			self.labels[0].text=''
+		for l in range(len(self.buttons)):
+			self.buttons[l].update(0)
 		for l in range(10):
 			if l>=len(worlds[world]):
 				self.levels[l].x=-300
@@ -491,7 +503,7 @@ class menu(pyglet.window.Window):
 			self.lock[l].y=ele['_yy']/768.0*self.height+50
 			if 'obj' in locals() and ele['description']==obj['description']:
 				self.special.x=ele['_xx']
-				self.special.y=ele['_yy']	
+				self.special.y=ele['_yy']/768.0*self.height
 		if 'obj' not in locals():
 			self.special.x=-300				
 
@@ -526,7 +538,7 @@ class menu(pyglet.window.Window):
 					dest=(int(worlds[n[0]][n[1]]['_xx']+self.images[0].width/2),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))
 				else:
 					src=(int(ele['_xx']+self.images[0].width/2),int(ele['_yy']/768.0*self.height+self.images[0].height/2))
-					dest=(int(self.width),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+50))
+					dest=(int(1024),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+50))
 				if dest[0]-src[0]!=0:
 					angle=math.atan(float(dest[1]-src[1])/float(dest[0]-src[0]))
 				else:
@@ -556,6 +568,13 @@ class menu(pyglet.window.Window):
 					if n[0]==world:
 						src=(int(0),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))	
 						dest=(int(worlds[n[0]][n[1]]['_xx']+self.images[0].width/2),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))
+						if dest[0]-src[0]!=0:
+							angle=math.atan(float(dest[1]-src[1])/float(dest[0]-src[0]))
+						else:
+							angle=270*3.14/180.0
+						if dest[0]-src[0]<0:
+							angle=angle+180*3.14/180.0				
+						dest=(dest[0]-int(self.sizes[world][0]*math.cos(angle)),dest[1]-int(self.sizes[world][1]*math.sin(angle)))
 						if n in finished or debug==2:
 							params=(random.randint(0,8),20,self.colors[world],12)
 						else:
@@ -683,8 +702,8 @@ class menu(pyglet.window.Window):
 		if type(self.selected) is tuple:
 			thex=x
 			they=y
-		if x>self.width-20 and world+1<len(worlds):
-			world=+1
+		if x>1024-20 and world+1<len(worlds) and abs(self.selected[0]-world)<1:
+			world+=1
 			self.update()
 			
 	def on_mouse_release(self,x, y, button, modifiers):
@@ -711,8 +730,8 @@ class menu(pyglet.window.Window):
   'maxrayon': 99999,   
   'temp': 0,     
   'maxtemp': 99999,
-  '_xx': x,
-  '_yy': y,
+  '_xx': x-self.images[0].width/2,
+  '_yy': y*768/self.height-self.images[0].height/2,
   'link': [],
   'video': False,
   'world_art': [[0,0,0],[0,0,0],[0,0,0]],
