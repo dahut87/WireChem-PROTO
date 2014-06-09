@@ -171,7 +171,41 @@ world=level=0
 init()
 
 ''' *********************************************************************************************** '''
-''' Classes graphiques																		'''
+''' Classes graphiques	
+	
+																	    '''
+#Classe d'un rectangle
+class arect(object):
+    def __init__(self, window, x1, y1, x2, y2, color):
+        self.window=window
+        self.vertex_list = window.batch.add(4, pyglet.gl.GL_QUADS, None,('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),('c4B', color * 4))
+
+#Classe d'un texte editable
+class atext(object):
+	def __init__(self,window,text,x,y,width,color,font,size,align):
+		self.x=x
+		self.y=y
+		self.text=text
+		self.color=color
+		self.document = pyglet.text.document.UnformattedDocument(text)
+		self.document.set_style(0, len(self.document.text),dict(font_name=font,font_size=size,color=color,background_color=(200, 200, 200,0),align=align))      
+		font = self.document.get_font()
+		height = font.ascent - font.descent
+		self.window=window
+		self.layout = pyglet.text.layout.IncrementalTextLayout(self.document, width, height, multiline=False, batch=self.window.batch, group=self.window.p3)
+		self.caret = pyglet.text.caret.Caret(self.layout)
+		self.caret.visible = False
+		self.layout.x = self.x
+		self.layout.y = self.y
+	
+	def update(self):
+		self.layout.x = self.x
+		self.layout.y = self.y
+		self.layout.document.text=self.text
+		self.layout.document.set_style(0, len(self.layout.document.text),dict(color=self.color))
+		
+	def hit_test(self, x, y):
+		return (0 < x - self.layout.x < self.layout.width and 0 < y - self.layout.y < self.layout.height)
 
 #Bouton sensible a plusieurs évènements
 class abutton(object):
@@ -399,6 +433,8 @@ class menu(pyglet.window.Window):
 	def __init__(self, *args, **kwargs):
 		global debug,worlds,world
 		super(menu, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True, caption="Wirechem: The new chemistry game")
+		self.focus = None
+		self.text_cursor = self.get_system_mouse_cursor('text')
 		self.batch = pyglet.graphics.Batch()
 		self.p0 = pyglet.graphics.OrderedGroup(0)
 		self.p1 = pyglet.graphics.OrderedGroup(1)
@@ -434,10 +470,10 @@ class menu(pyglet.window.Window):
 		abutton(self,'level_9',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', ''),
 		abutton(self,'level_10',-250, 0, 0, 0 , True, False, True, False, self.images[level], 'test', 'icon', '', '')
 		]
-		self.special=pyglet.sprite.Sprite(pyglet.image.load('picture/boss.png'),batch=self.batch, group=self.p4,x=-150,y=-150)
-		self.lock=[pyglet.sprite.Sprite(pyglet.image.load('picture/locked.png'),batch=self.batch, group=self.p4,x=-150,y=-150) for i in range(10)]
-		self.untitled=[pyglet.text.Label("",font_name='Vademecum',batch=self.batch, group=self.p4, font_size=23,x=-150,y=-150,bold=False,italic=False,color=(180, 180, 180,255)) for i in range(10)]
-		self.untitled2=[pyglet.text.Label("",font_name='Fluoxetine',batch=self.batch, group=self.p4, font_size=18,x=-150,y=-150,bold=False,italic=False,color=(255, 255, 255,255)) for i in range(10)]
+		self.untitled2=[atext(self,"text",-300,-300,300,(255, 255, 255,255),'Fluoxetine',18,'center') for i in range(10)]
+		self.untitled=[atext(self,"text",-300,-300,60,(180, 180, 180,255),'Vademecum',23,'center') for i in range(10)]
+		self.special=pyglet.sprite.Sprite(pyglet.image.load('picture/boss.png'),batch=self.batch, group=self.p4,x=-300,y=-300)
+		self.lock=[pyglet.sprite.Sprite(pyglet.image.load('picture/locked.png'),batch=self.batch, group=self.p4,x=-300,y=-300) for i in range(10)]
 		self.update()
 		
 	def on_resize(self,width, height):
@@ -479,6 +515,8 @@ class menu(pyglet.window.Window):
 				self.untitled2[l].x=-300
 				self.lock[l].x=-300
 				self.levels[l].update(0)
+				self.untitled2[l].update()
+				self.untitled[l].update()
 				continue
 			ele=worlds[world][l]
 			self.levels[l].active=(world,l) in finished or debug==2
@@ -488,16 +526,19 @@ class menu(pyglet.window.Window):
 			self.levels[l].content=self.images[world]
 			self.levels[l].update(0)
 			self.untitled[l].text=ele['element']
-			self.untitled[l].x=ele['_xx']+(self.images[world].width-self.untitled[l].content_width)/2
+			self.untitled[l].x=ele['_xx']+(self.images[world].width-self.untitled[l].layout.content_width)/2
 			self.untitled[l].y=ele['_yy']/768.0*self.height+20
 			self.untitled[l].color=(int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150),255)
+			self.untitled[l].update()
 			self.untitled2[l].text=ele['nom'].decode('utf-8')
-			self.untitled2[l].x=ele['_xx']-(self.untitled2[l].content_width-self.images[world].width)/2
-			self.untitled2[l].y=ele['_yy']/768.0*self.height-15
+			self.untitled2[l].update()
+			self.untitled2[l].x=ele['_xx']+(self.images[world].width-self.untitled2[l].layout.content_width)/2
+			self.untitled2[l].y=ele['_yy']/768.0*self.height-20
 			if (world,l) in finished or debug==2:
 				self.untitled2[l].color=(255,255,255,255)
 			else:
 				self.untitled2[l].color=(90,90,90,255)
+			self.untitled2[l].update()
 			self.lock[l].visible=(world,l) not in finished and not debug==2
 			self.lock[l].x=ele['_xx']+10
 			self.lock[l].y=ele['_yy']/768.0*self.height+50
@@ -588,6 +629,8 @@ class menu(pyglet.window.Window):
 				self.drawLaser(int(0),int(worlds[self.selected[0]][self.selected[1]]['_yy']/768.0*self.height+self.images[0].height/2),int(thex),int(they),random.randint(0,8),20,self.colors[world],12)
 		self.batch.draw()
 		
+### Evenement générer par classe abutton ###
+		
 	def on_mouse_press_logo(self, state):
 		global debug
 		if debug==1:
@@ -604,7 +647,6 @@ class menu(pyglet.window.Window):
 	def on_mouse_press_menu_1(self, state):
 		global world
 		if world>0: world-=1
-		print len(worlds)
 		self.update()
 		
 	def on_mouse_press_menu_0(self, state):
@@ -669,11 +711,13 @@ class menu(pyglet.window.Window):
 		global world
 		self.levels[n].setselected([255,0,0])
 		self.untitled2[n].color=(255,0,0,255)
-		
+		self.untitled2[n].update()
+				
 	def on_mouse_leave_level(self, n, state):
 		self.levels[n].setselected([255,120+int(self.levels[n].x/1024.0*135),155+int(self.levels[n].x/1024.0*100)])
 		self.untitled2[n].color=(255,255,255,255)
-
+		self.untitled2[n].update()
+		
 	def on_mouse_press_level(self, n, state):
 		if debug==2:
 			self.selected=-1
@@ -695,6 +739,8 @@ class menu(pyglet.window.Window):
 							l+=1
 			return	
 			
+### Evenement de la fenetre ###
+			
 	def on_mouse_drag(self,x , y, dx, dy, buttons, modifiers):
 		global thex,they,world,worlds
 		if debug<2:
@@ -702,10 +748,14 @@ class menu(pyglet.window.Window):
 		if type(self.selected) is tuple:
 			thex=x
 			they=y
+			return
 		if x>1024-20 and world+1<len(worlds) and abs(self.selected[0]-world)<1:
 			world+=1
 			self.update()
-			
+			return
+		if self.focus:
+			self.focus.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
+            			
 	def on_mouse_release(self,x, y, button, modifiers):
 		if debug<2:
 			return			
@@ -737,7 +787,70 @@ class menu(pyglet.window.Window):
   'world_art': [[0,0,0],[0,0,0],[0,0,0]],
   'world_new': [[0,0,0],[0,0,0],[0,0,0]]})
 			self.update()
-  
+			return
+		for widget in self.untitled2+self.untitled:
+			if widget.hit_test(x, y):
+				self.setfocus(widget)
+				break
+		else:
+			self.setfocus(None)
+		if self.focus:
+			self.focus.caret.on_mouse_press(x, y, button, modifiers)
+			
+	def on_mouse_motion(self, x, y, dx, dy):
+		if debug<2:
+			return	
+		for widget in self.untitled2+self.untitled:
+			if widget.hit_test(x, y):
+				self.set_mouse_cursor(self.text_cursor)
+				break
+		else:
+			self.set_mouse_cursor(None)
+
+	def on_text(self, text):
+		if debug<2:
+			return	
+		if self.focus:
+			self.focus.caret.on_text(text)
+
+	def on_text_motion(self, motion):
+		if debug<2:
+			return	
+		if self.focus:
+			self.focus.caret.on_text_motion(motion)
+      
+	def on_text_motion_select(self, motion):
+		if debug<2:
+			return	
+		if self.focus:
+			self.focus.caret.on_text_motion_select(motion)
+
+	def on_key_press(self, symbol, modifiers):
+		if debug<2:
+			return			
+		if symbol == pyglet.window.key.TAB:
+			if modifiers & pyglet.window.key.MOD_SHIFT:
+				dir = -1
+			else:
+				dir = 1
+			if self.focus in self.untitled2:
+				i = self.untitled2.index(self.focus)
+			else:
+				i = 0
+				dir = 0
+			self.setfocus(self.untitled2[(i + dir) % len(self.untitled2)])
+		elif symbol == pyglet.window.key.ESCAPE:
+			pyglet.app.exit()
+        
+	def setfocus(self, focus):
+		if self.focus:
+			self.focus.caret.visible = False
+			self.focus.caret.mark = self.focus.caret.position = 0
+		self.focus = focus
+		if self.focus:
+			self.focus.caret.visible = True
+			self.focus.caret.mark = 0
+			self.focus.caret.position = len(self.focus.document.text)
   
 ''' *********************************************************************************************** '''
 ''' Lancement du menu principal																					'''
