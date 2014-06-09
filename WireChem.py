@@ -404,6 +404,7 @@ class menu(pyglet.window.Window):
 		self.selected=-1
 		self.images=[pyglet.image.load('picture/leveler0.png'),pyglet.image.load('picture/leveler1.png'),pyglet.image.load('picture/leveler2.png'),pyglet.image.load('picture/leveler3.png'),pyglet.image.load('picture/leveler4.png')]
 		self.colors=[[0,192,244],[235,118,118],[5,157,60],[215,33,255],[201,209,98]]
+		self.sizes=[(50,70),(45,45),(80,80),(80,80),(80,80)]
 		#self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
 		self.labels=[pyglet.text.Label("",font_name='vademecum',font_size=380,x=0,y=0,bold=False,italic=False,batch=self.batch,group=self.p0,color=(255, 80, 80,230))]
 		self.fond=image.load("picture/fond.png")
@@ -451,11 +452,11 @@ class menu(pyglet.window.Window):
 		for obj in worlds[world]:
 			if obj.has_key('special'):
 				break
-		self.labels[0].text=obj['element']
+		if 'obj' in locals(): self.labels[0].text=obj['element']
 		self.labels[0].color=(self.colors[world][0],self.colors[world][1],self.colors[world][2],100)
 		self.labels[0].x=(1024-self.labels[0].content_width)/2-50
 		self.labels[0].y=75*self.height/768
-		self.labels[0].text=obj['element']
+		if 'obj' in locals(): self.labels[0].text=obj['element']
 		for l in range(10):
 			if l>=len(worlds[world]):
 				self.levels[l].x=-150
@@ -484,7 +485,7 @@ class menu(pyglet.window.Window):
 			self.lock[l].visible=(world,l) not in finished and not debug==2
 			self.lock[l].x=ele['_xx']+10
 			self.lock[l].y=ele['_yy']/768.0*self.height+50
-			if ele['nom']==obj['nom']:
+			if 'obj' in locals() and ele['description']==obj['description']:
 				self.special.x=ele['_xx']
 				self.special.y=ele['_yy']			
 
@@ -501,23 +502,48 @@ class menu(pyglet.window.Window):
 			glLineStipple(1,65535)
 										
 	def draw(self,dt):
-		global loc,world,worlds
+		global loc,world,worlds,thex,they,debug
 		glClear(GL_COLOR_BUFFER_BIT);
 		#self.fond.anchor_x=self.loc[0]
 		#self.fond.anchor_y=self.loc[1]
-		glColor4ub(255,255,255,160)
-		self.fond.blit(self.loc[0],self.loc[1])
-		self.fond.blit(self.loc[0]-1024,self.loc[1])
-		self.fond.blit(self.loc[0]-1024,self.loc[1]-768)
-		self.fond.blit(self.loc[0],self.loc[1]-768)		
+		if debug<2:
+			glColor4ub(255,255,255,160)
+			self.fond.blit(self.loc[0],self.loc[1])
+			self.fond.blit(self.loc[0]-1024,self.loc[1])
+			self.fond.blit(self.loc[0]-1024,self.loc[1]-768)
+			self.fond.blit(self.loc[0],self.loc[1]-768)		
 		#self.fond.blit_tiled(0, 0, 0, self.width, self.height)
-		'''for ele in worlds[world]:
+		for ele in worlds[world]:
 			for n in ele['link']:
-				if n!="" and n[0]==world:
-					if n in finished:
-						self.drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*self.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+50),random.randint(0,8),20,self.colors[world],12)	
-					else:
-						self.drawLaser(ele['_xx']+50,int(ele['_yy']/768.0*self.height+50),worlds[n[0]][n[1]]['_xx']+50,int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+50),2,20,[40,40,40],0)		'''
+				if world==n[0]:
+					src=(int(ele['_xx']+self.images[0].width/2),int(ele['_yy']/768.0*self.height+self.images[0].height/2))
+					dest=(int(worlds[n[0]][n[1]]['_xx']+self.images[0].width/2),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))
+				else:
+					src=(int(ele['_xx']+self.images[0].width/2),int(ele['_yy']/768.0*self.height+self.images[0].height/2))
+					dest=(int(self.width),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+50))
+				if dest[0]-src[0]!=0:
+					angle=math.atan(float(dest[1]-src[1])/float(dest[0]-src[0]))
+				else:
+					angle=270*3.14/180.0
+				if dest[0]-src[0]<0:
+					angle=angle+180*3.14/180.0				
+				src=(src[0]+int(self.sizes[world][0]*math.cos(angle)),src[1]+int(self.sizes[world][1]*math.sin(angle)))
+				if world==n[0]:
+					dest=(dest[0]-int(self.sizes[world][0]*math.cos(angle)),dest[1]-int(self.sizes[world][1]*math.sin(angle)))
+				if n in finished:
+					params=(random.randint(0,8),20,self.colors[world],12)
+				else:
+					params=(2,20,[40,40,40],0)
+				self.drawLaser(src[0],src[1],dest[0],dest[1],params[0],params[1],params[2],params[3])	
+				if debug==2:	
+					self.drawLaser(dest[0],dest[1],dest[0]-int(20*math.cos(angle+30*3.14/180)),dest[1]-int(20*math.sin(angle+30*3.14/180)),params[0],params[1],params[2],params[3])	
+					self.drawLaser(dest[0],dest[1],dest[0]-int(20*math.cos(angle-30*3.14/180)),dest[1]-int(20*math.sin(angle-30*3.14/180)),params[0],params[1],params[2],params[3])						
+					
+		if type(self.selected) is tuple:
+			if self.selected[0]==world:		
+				self.drawLaser(int(worlds[self.selected[0]][self.selected[1]]['_xx']+self.images[0].width/2),int(worlds[self.selected[0]][self.selected[1]]['_yy']/768.0*self.height+self.images[0].height/2),int(thex),int(they),random.randint(0,8),20,self.colors[world],12)
+			else:
+				self.drawLaser(int(0),int(worlds[self.selected[0]][self.selected[1]]['_yy']/768.0*self.height+self.images[0].height/2),int(thex),int(they),random.randint(0,8),20,self.colors[world],12)
 		self.batch.draw()
 		
 	def on_mouse_press_logo(self, state):
@@ -565,29 +591,29 @@ class menu(pyglet.window.Window):
 			worlds[world][n]["_xx"]+=state['dx']
 			worlds[world][n]["_yy"]+=state['dy']
 			self.update()
-		elif  (state['buttons']==1 or state['buttons']==4) and self.selected==-1:
-			self.selected=n
+		elif  (state['buttons']==1 or state['buttons']==4) and type(self.selected) is int:
+			self.selected=(world,n)
 			
 	def on_mouse_release_level(self, n, state):
 		global worlds,world
 		if debug<2:
 			return	
-		if state['buttons']==1 and self.selected>-1 and n!=self.selected:
+		if state['buttons']==1 and type(self.selected) is tuple and n!=self.selected[1]:
 			try:
-				worlds[world][n]["link"].index((world,self.selected))==-1
+				worlds[world][n]["link"].index(self.selected)==-1
 			except:
 				try: 
-					worlds[world][self.selected]["link"].index((world,n))==-1
+					worlds[world][self.selected]["link"].index((self.selected[0],n))==-1
 				except:
-					worlds[world][n]["link"].append((world,self.selected))
+					worlds[self.selected[0]][self.selected[1]]["link"].append((world,n))
 					self.selected=-1
-		elif state['buttons']==4 and self.selected>-1 and n!=self.selected:
+		elif state['buttons']==4 and type(self.selected) is tuple and n!=self.selected:
 			try:
-				worlds[world][n]["link"].remove((world,self.selected))
+				worlds[world][n]["link"].remove(self.selected)
 			except:
 				dummy=0
 			try:
-				worlds[world][self.selected]["link"].remove((world,n))
+				worlds[self.selected[0]][self.selected[1]]["link"].remove((world,n))
 			except:
 				dummy=0
 		else:
@@ -608,17 +634,47 @@ class menu(pyglet.window.Window):
 	def on_mouse_press_level(self, n, state):
 		if debug==2:
 			self.selected=-1
-			if state['modifiers']==17:
+			if state['modifiers'] & key.MOD_CTRL:
 				del worlds[world][n]
 				self.update()
+				for ele in worlds[world]:
+					n=0
+					while n<len(ele['link']):
+						l0=ele['link'][n][0]
+						l1=ele['link'][n][1]	
+						if l0>n:
+							l0-=1
+						if l1>n:
+							l1-=1
+						if l0!=n and l1!=n:
+							ele['link'][n]=(l0,l1)
+							n+=1
+						else:
+							del ele['link'][n]				
 			return	
+			
+	def on_mouse_drag(self,x , y, dx, dy, buttons, modifiers):
+		global thex,they,world
+		if debug<2:
+			return
+		if type(self.selected) is tuple:
+			thex=x
+			they=y
+		if x>self.width-20:
+			world=+1
+			self.update()
+			
+	def on_mouse_release(self,x, y, button, modifiers):
+		if debug<2:
+			return			
+		self.selected=-1
 		
 	def on_mouse_press(self, x, y, button, modifiers):
 		if debug<2:
 			return		
-		if modifiers==18 and len(worlds[world])<10:
+		if modifiers & key.MOD_SHIFT and len(worlds[world])<10:
 			worlds[world].append({'nom': 'nouveau',
-  'description': "niveau tout neuf.",
+  'description': "niveau tout neuf. "+str(random.randint(0,255)),
   'element': 'x',
   'current': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   'victory': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -636,7 +692,6 @@ class menu(pyglet.window.Window):
   '_yy': y,
   'link': [],
   'video': False,
-  'special': False,
   'world_art': [[0,0,0],[0,0,0],[0,0,0]],
   'world_new': [[0,0,0],[0,0,0],[0,0,0]]})
 			self.update()
