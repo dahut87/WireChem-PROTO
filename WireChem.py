@@ -404,7 +404,7 @@ class menu(pyglet.window.Window):
 		self.selected=-1
 		self.images=[pyglet.image.load('picture/leveler0.png'),pyglet.image.load('picture/leveler1.png'),pyglet.image.load('picture/leveler2.png'),pyglet.image.load('picture/leveler3.png'),pyglet.image.load('picture/leveler4.png')]
 		self.colors=[[0,192,244],[235,118,118],[5,157,60],[215,33,255],[201,209,98]]
-		self.sizes=[(50,70),(45,45),(80,80),(80,80),(80,80)]
+		self.sizes=[(50,70),(50,50),(30,70),(50,60),(28,68)]
 		#self.fond=pyglet.image.TileableTexture.create_for_image(image.load("picture/fond.png"))
 		self.labels=[pyglet.text.Label("",font_name='vademecum',font_size=380,x=0,y=0,bold=False,italic=False,batch=self.batch,group=self.p0,color=(255, 80, 80,230))]
 		self.fond=image.load("picture/fond.png")
@@ -456,13 +456,17 @@ class menu(pyglet.window.Window):
 		self.labels[0].color=(self.colors[world][0],self.colors[world][1],self.colors[world][2],100)
 		self.labels[0].x=(1024-self.labels[0].content_width)/2-50
 		self.labels[0].y=75*self.height/768
-		if 'obj' in locals(): self.labels[0].text=obj['element']
+		if 'obj' in locals(): 
+			self.labels[0].text=obj['element']
+		else:
+			self.labels[0].text='xx'
 		for l in range(10):
 			if l>=len(worlds[world]):
-				self.levels[l].x=-150
-				self.untitled[l].x=-150
-				self.untitled2[l].x=-150
-				self.lock[l].x=-150
+				self.levels[l].x=-300
+				self.untitled[l].x=-300
+				self.untitled2[l].x=-300
+				self.lock[l].x=-300
+				self.levels[l].update(0)
 				continue
 			ele=worlds[world][l]
 			self.levels[l].active=(world,l) in finished or debug==2
@@ -487,7 +491,9 @@ class menu(pyglet.window.Window):
 			self.lock[l].y=ele['_yy']/768.0*self.height+50
 			if 'obj' in locals() and ele['description']==obj['description']:
 				self.special.x=ele['_xx']
-				self.special.y=ele['_yy']			
+				self.special.y=ele['_yy']	
+		if 'obj' not in locals():
+			self.special.x=-300				
 
 	def drawLaser(self,x1,y1,x2,y2,width,power,color,randomize):
 		while(width > 0):
@@ -530,15 +536,32 @@ class menu(pyglet.window.Window):
 				src=(src[0]+int(self.sizes[world][0]*math.cos(angle)),src[1]+int(self.sizes[world][1]*math.sin(angle)))
 				if world==n[0]:
 					dest=(dest[0]-int(self.sizes[world][0]*math.cos(angle)),dest[1]-int(self.sizes[world][1]*math.sin(angle)))
-				if n in finished:
+				if n in finished or debug==2:
 					params=(random.randint(0,8),20,self.colors[world],12)
 				else:
 					params=(2,20,[40,40,40],0)
 				self.drawLaser(src[0],src[1],dest[0],dest[1],params[0],params[1],params[2],params[3])	
-				if debug==2:	
+				if debug==2 and world==n[0]:
+					if dest[0]-src[0]!=0:
+						angle=math.atan(float(dest[1]-src[1])/float(dest[0]-src[0]))
+					else:
+						angle=270*3.14/180.0
+					if dest[0]-src[0]<0:
+						angle=angle+180*3.14/180.0	
 					self.drawLaser(dest[0],dest[1],dest[0]-int(20*math.cos(angle+30*3.14/180)),dest[1]-int(20*math.sin(angle+30*3.14/180)),params[0],params[1],params[2],params[3])	
-					self.drawLaser(dest[0],dest[1],dest[0]-int(20*math.cos(angle-30*3.14/180)),dest[1]-int(20*math.sin(angle-30*3.14/180)),params[0],params[1],params[2],params[3])						
-					
+					self.drawLaser(dest[0],dest[1],dest[0]-int(20*math.cos(angle-30*3.14/180)),dest[1]-int(20*math.sin(angle-30*3.14/180)),params[0],params[1],params[2],params[3])	
+		if world>0:
+			for ele in worlds[world-1]:
+				for n in ele['link']:
+					if n[0]==world:
+						src=(int(0),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))	
+						dest=(int(worlds[n[0]][n[1]]['_xx']+self.images[0].width/2),int(worlds[n[0]][n[1]]['_yy']/768.0*self.height+self.images[0].height/2))
+						if n in finished or debug==2:
+							params=(random.randint(0,8),20,self.colors[world],12)
+						else:
+							params=(2,20,[40,40,40],0)
+						self.drawLaser(src[0],src[1],dest[0],dest[1],params[0],params[1],params[2],params[3])						
+						
 		if type(self.selected) is tuple:
 			if self.selected[0]==world:		
 				self.drawLaser(int(worlds[self.selected[0]][self.selected[1]]['_xx']+self.images[0].width/2),int(worlds[self.selected[0]][self.selected[1]]['_yy']/768.0*self.height+self.images[0].height/2),int(thex),int(they),random.randint(0,8),20,self.colors[world],12)
@@ -562,6 +585,7 @@ class menu(pyglet.window.Window):
 	def on_mouse_press_menu_1(self, state):
 		global world
 		if world>0: world-=1
+		print len(worlds)
 		self.update()
 		
 	def on_mouse_press_menu_0(self, state):
@@ -638,29 +662,28 @@ class menu(pyglet.window.Window):
 				del worlds[world][n]
 				self.update()
 				for ele in worlds[world]:
-					n=0
-					while n<len(ele['link']):
-						l0=ele['link'][n][0]
-						l1=ele['link'][n][1]	
-						if l0>n:
-							l0-=1
-						if l1>n:
-							l1-=1
-						if l0!=n and l1!=n:
-							ele['link'][n]=(l0,l1)
-							n+=1
+					l=0
+					while l<len(ele['link']):
+						element=ele['link'][l][1]	
+						if ele['link'][l][0]==world:
+							if element>n: element-=1
+							if element!=n:
+								ele['link'][l]=(ele['link'][l][0],element)
+								l+=1
+							else:
+								del ele['link'][l]
 						else:
-							del ele['link'][n]				
+							l+=1
 			return	
 			
 	def on_mouse_drag(self,x , y, dx, dy, buttons, modifiers):
-		global thex,they,world
+		global thex,they,world,worlds
 		if debug<2:
 			return
 		if type(self.selected) is tuple:
 			thex=x
 			they=y
-		if x>self.width-20:
+		if x>self.width-20 and world+1<len(worlds):
 			world=+1
 			self.update()
 			
@@ -705,6 +728,11 @@ pyglet.font.add_file('font/OpenDyslexicAlta.otf')
 pyglet.font.add_file('font/Mecanihan.ttf')
 pyglet.font.add_file('font/Vademecum.ttf')
 pyglet.font.add_file('font/LiberationMono-Regular.ttf')
+ambiance = pyglet.media.Player()
+ambiance.queue(pyglet.resource.media("music/ambiance1.mp3"))
+ambiance.volume=0.4
+ambiance.eos_action='loop'
+ambiance.play()
 menu_principal = menu()
 menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
