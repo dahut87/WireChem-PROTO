@@ -189,12 +189,12 @@ class atext(object):
 		self.text=text
 		self.color=color
 		self.document = pyglet.text.document.UnformattedDocument(text)
-		self.document.set_style(0, len(self.document.text),dict(font_name=font,font_size=size,color=color,background_color=(200, 200, 200,0)))      
+		self.document.set_style(0, len(self.document.text),dict(font_name=font,font_size=size,color=color,align="center",background_color=(200, 200, 200,0)))      
 		font = self.document.get_font()
 		height = font.ascent - font.descent
 		self.window=window
-		self.layout = pyglet.text.layout.IncrementalTextLayout(self.document, width, height, multiline=False, batch=self.window.batch, group=self.window.p3)
-		self.layout.register_event_type('self.on_layout_update')
+		self.layout = pyglet.text.layout.IncrementalTextLayout(self.document, width, height, multiline=True, batch=self.window.batch, group=self.window.p3)
+		self.layout.document.register_event_type('self.on_insert_text')
 		self.caret = pyglet.text.caret.Caret(self.layout)
 		self.caret.visible = False
 		self.layout.x = self.x
@@ -208,10 +208,10 @@ class atext(object):
 		self.layout.document.set_style(0, len(self.layout.document.text),dict(color=self.color))
 		self.layout.end_update()
 		
-	def on_layout_update(self):
-		print "**************************"
+	def on_insert_text(self,start, text):
+		print "*********************"
 		if self.loaded!='':
-			eval(self.loaded+"="+self.text)
+			exec(self.loaded+"='"+self.text+"p'")
 		
 	def hit_test(self, x, y):
 		return (0 < x - self.layout.x < self.layout.width and 0 < y - self.layout.y < self.layout.height)
@@ -317,7 +317,7 @@ class abutton(object):
 		name=self.name.split('_')
 		if len(name)>1 and hasattr(self.window, "on_mouse_"+state['event']+"_"+name[0]) and callable(eval("self.window.on_mouse_"+state['event']+"_"+name[0])):
 			eval("self.window.on_mouse_"+state['event']+"_"+name[0]+"("+str(name[1])+","+str(state)+")")
-			if debug>0: print state,self.name
+			#if debug>0: print state,self.name
 		if hasattr(self.window, "on_mouse_"+state['event']+"_"+self.name) and callable(eval("self.window.on_mouse_"+state['event']+"_"+self.name)):
 			if self.typeof=='multicon':
 				self.index+=1
@@ -325,7 +325,7 @@ class abutton(object):
 					self.index=0
 				self.update(0)
 			eval("self.window.on_mouse_"+state['event']+"_"+self.name+"("+str(state)+")")
-			if debug>0: print state,self.name
+			#if debug>0: print state,self.name
 		
 	def on_mouse_press(self, x, y, button, modifiers):
 		if x>self.x and y>self.y and x<self.x+self.width and y<self.y+self.height and self.isactive() and self.isvisible():
@@ -443,7 +443,7 @@ class menu(pyglet.window.Window):
 		global debug,worlds,world
 		super(menu, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True, caption="Wirechem: The new chemistry game")
 		self.focus = None
-		self.cursors = [pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/pointer.png'), 16, 8),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/text.png'), 16, 8),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/move.png'), 16, 8),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/create.png'), 16, 8),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/cross.png'), 16, 8),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/delete.png'), 16, 8)]
+		self.cursors = [pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/pointer.png'), 15, 46),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/text.png'), 24, 30),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/move.png'), 24, 24),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/create.png'), 12, 17),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/cross.png'), 24, 33),pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/delete.png'), 24, 32)]
 		self.set_mouse_cursor(self.cursors[0])
 		self.batch = pyglet.graphics.Batch()
 		self.p0 = pyglet.graphics.OrderedGroup(0)
@@ -537,13 +537,13 @@ class menu(pyglet.window.Window):
 			self.levels[l].update(0)
 			self.untitled[l].text=ele['element']
 			self.untitled[l].update()
-			self.untitled[l].x=ele['_xx']+(self.images[world].width-self.untitled[l].layout.content_width)/2
-			self.untitled[l].y=ele['_yy']/768.0*self.height+20
+			self.untitled[l].x=ele['_xx']+(self.images[world].width-60)/2
+			self.untitled[l].y=ele['_yy']/768.0*self.height+18
 			self.untitled[l].color=(int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150), int(ele['_xx']/1024.0*150),255)
 			self.untitled[l].update()	
 			self.untitled2[l].text=ele['nom'].decode('utf-8')
-			self.untitled2[l].x=ele['_xx']+(self.images[world].width-self.untitled2[l].layout.content_width)/2
-			self.untitled2[l].y=ele['_yy']/768.0*self.height-20
+			self.untitled2[l].x=ele['_xx']+(self.images[world].width-300)/2
+			self.untitled2[l].y=ele['_yy']/768.0*self.height-25
 			self.untitled2[l].loaded='worlds['+str(world)+']['+str(l)+']["nom"]'
 			if (world,l) in finished or debug==2:
 				self.untitled2[l].color=(255,255,255,255)
@@ -762,7 +762,6 @@ class menu(pyglet.window.Window):
 		if type(self.selected) is tuple:
 			thex=x
 			they=y
-			return
 		if x>1024-20 and world+1<len(worlds) and abs(self.selected[0]-world)<1:
 			world+=1
 			self.update()
