@@ -37,16 +37,11 @@ achats et récapituler la situation.
 en évidence avec un icone biohazard. Il est impossible d'enregistrer et
 le temps est limité.
   
-#### STRUCTURE/PROGRAMMATION
-  
-* Modifier la méthode d'accès aux variables "dat" & "art".
-* Optimiser le code pour rendre l'usage d'OpenGL plus efficient en
-utilisant les vertex list et les batch graphic.
-* Repenser le mode simulation de façon orienté objet.
-* Ajouter un makefile pour automatiser la construction du programme.
-* Creer un gestionnaire de zones sensibles pour gérer le menu de 
-selection des labos et les bulles d'aide.
-  
+#### DEVELOPPEMENT
+
+* Finir la version avec_class qui comporte les batchs, des classes, et
+la gestion objet. Modifier le tutoriel en l'orientant objet.
+
 #### STATISTIQUES
 
 * Gérer le stockage des statistiques de victoire dans la base de donnée
@@ -60,15 +55,10 @@ selection des labos et les bulles d'aide.
 #### CONCEPTION
   
 * Finir la conception du labo N°2.
-* Créer le tutoriel pour chaque niveau du monde hydrogène.
   
 #### FONCTIONNALITES
   
-* Ajouter un mode création de niveau qui faciliterait l'ajout 
- et la configuration.
 * Finir la fenêtre des préférences du jeu.
-* Changer la forme du curseur lors de certaines actions.
-* Utiliser la molette de la souris dans le jeu.
 * Mettre en évidence les raccourcis clavier dans les bulles d'aide.
  
 #### BOGUES
@@ -86,8 +76,4 @@ selection des labos et les bulles d'aide.
 * Améliorer la qualités de l'accompagnement sonore & le diversifier.
 * Ajouter des bruitages de jeu pour rendre les simulations plus immers-
   ives.
-  
-#### DOCUMENTATION/COMMUNICATION
-
-* Améliorer les textes des documentations.
   

@@ -189,26 +189,32 @@ init()
 																	    '''
 #Classe d'un rectangle
 class arect(object):
-    def __init__(self, window, x1, y1, x2, y2, color):
+    def __init__(self, window, x1, y1, x2, y2, atype, color, level):
         self.window = window
-        self.vertex_list = window.batch.add(4, pyglet.gl.GL_QUADS, None, ('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),
+        if atype==1 or atype==2:
+            self.vertex_list = window.batch.add(4, pyglet.gl.GL_QUADS, level, ('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),
                                             ('c4B', color * 4))
+        if atype==0 or atype==2:
+            self.vertex_list2 = window.batch.add(4, pyglet.gl.GL_LINE_LOOP, level, ('v2i', [x1, y1, x2, y1, x2, y2, x1, y2]),
+                                            ('c3B', [color[0],color[1],color[2]] * 4))
 
 
 #Classe d'un texte editable
 class atext(object):
-    def __init__(self, window, text, x, y, width, color, font, size):
+    def __init__(self, window, text, x, y, width, height, font, size):
         self.x = x
         self.y = y
         self.loaded = ''
         self.text = text
-        self.color = color
-        self.document = pyglet.text.document.UnformattedDocument(text)
+        self.color = (180, 180, 180, 255)
+        self.height=height
+        self.document = pyglet.text.document.FormattedDocument(text)
         self.document.set_style(0, len(self.document.text),
-                                dict(font_name=font, font_size=size, color=color, align="center",
+                                dict(font_name=font, font_size=size, color=self.color, align="center",
                                      background_color=(200, 200, 200, 0)))
-        font = self.document.get_font()
-        height = font.ascent - font.descent
+        if height==0:
+            font = self.document.get_font(0)
+            height = font.ascent - font.descent
         self.window = window
         self.layout = pyglet.text.layout.IncrementalTextLayout(self.document, width, height, multiline=True,
                                                                batch=self.window.batch, group=self.window.p3)
@@ -492,6 +498,18 @@ class menu(pyglet.window.Window):
         self.clocks = [clock.schedule(self.draw), clock.schedule_interval(self.movefond, 0.03)]
         self.loc = [0, 0, 1, 1]
         self.selected = -1
+        self.icons=[abutton(self, 'icon_1', 740, 110, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/cout.png'), 'test', 'icon', '', ''),
+                    abutton(self, 'icon_2', 740, 65, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/cycle.png'), 'test', 'icon', '', ''),
+                    abutton(self, 'icon_3', 940, 110, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/tech.png'), 'test', 'icon', '', ''),
+                    abutton(self, 'icon_4', 940, 65, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/rayon.png'), 'test', 'icon', '', ''),
+                    abutton(self, 'icon_5', 850, 110, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/temp.png'), 'test', 'icon', '', ''),
+                    abutton(self, 'icon_6', 850, 65, 0, 0, True, False, False, False,
+                    pyglet.image.load('picture/nrj.png'), 'test', 'icon', '', '')]
         self.images = [pyglet.image.load('picture/leveler0.png'), pyglet.image.load('picture/leveler1.png'),
                        pyglet.image.load('picture/leveler2.png'), pyglet.image.load('picture/leveler3.png'),
                        pyglet.image.load('picture/leveler4.png')]
@@ -501,6 +519,8 @@ class menu(pyglet.window.Window):
         self.labels = [pyglet.text.Label("", font_name='vademecum', font_size=380, x=0, y=0, bold=False, italic=False,
                                          batch=self.batch, group=self.p0, color=(255, 80, 80, 230))]
         self.fond = image.load("picture/fond.png")
+        self.rects = [arect(self,740,148,1016,8,1,[40,40,40,255],self.p1),
+	                  arect(self,8,8,1017,149,2,[90,90,90,170],self.p0)]
         self.buttons = [
             abutton(self, 'logo', 185, 'self.window.height-200', 0, 0, True, False, True, False,
                     pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
@@ -513,6 +533,13 @@ class menu(pyglet.window.Window):
             abutton(self, 'menu_2', 940, 'self.window.height-100', 0, 0, True, False, True, False,
                     pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')
         ]
+        self.infos = [atext(self, "c un test", 12, 8, 730, 140, 'OpenDyslexicAlta', 15)]
+        self.infos[0].layout.begin_update()
+        self.infos[0].color=(255,255,255,255)
+        self.infos[0].layout.document.set_style(0, len(self.infos[0].layout.document.text), dict(align="left"))
+        self.infos[0].layout.end_update()
+        self.infos[0].text=" "
+        self.infos[0].update()
         self.levels = [
             abutton(self, 'level_0', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
                     ''),
@@ -537,9 +564,9 @@ class menu(pyglet.window.Window):
             abutton(self, 'level_10', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
                     '')
         ]
-        self.untitled2 = [atext(self, "text", -300, -300, 300, (255, 255, 255, 255), 'Fluoxetine', 18) for i in
+        self.untitled2 = [atext(self, "text", -300, -300, 300, 0, 'Fluoxetine', 18) for i in
                           range(10)]
-        self.untitled = [atext(self, "text", -300, -300, 60, (180, 180, 180, 255), 'Vademecum', 23) for i in range(10)]
+        self.untitled = [atext(self, "text", -300, -300, 60, 0, 'Vademecum', 23) for i in range(10)]
         self.special = pyglet.sprite.Sprite(pyglet.image.load('picture/boss.png'), batch=self.batch, group=self.p4,
                                             x=-300, y=-300)
         self.lock = [
@@ -725,10 +752,12 @@ class menu(pyglet.window.Window):
         global debug
         if debug == 1:
             debug = 2
+            ambiance.pause()
             self.buttons[0].setselected([255, 0, 0])
         elif debug == 2:
             debug = 1
             self.buttons[0].setselected(False)
+            ambiance.play()
         self.update()
 
     def on_mouse_press_menu_2(self, state):
@@ -801,16 +830,27 @@ class menu(pyglet.window.Window):
         self.buttons[2 + n].setselected(False)
 
     def on_mouse_enter_level(self, n, state):
-        global world
+        global world,worlds
         self.levels[n].setselected([255, 0, 0])
         self.untitled2[n].color = (255, 0, 0, 255)
         self.untitled2[n].update()
+        self.infos[0].text=worlds[world][n]['description'].decode('utf-8')
+        self.infos[0].update()
+        if worlds[world][n]['cout']>0: self.icons[0].show()
+        if worlds[world][n]['maxcycle']<90000: self.icons[1].show()
+        if worlds[world][n]['tech']>0: self.icons[2].show()
+        if worlds[world][n]['maxrayon']<90000: self.icons[3].show()
+        if worlds[world][n]['maxtemp']<90000: self.icons[4].show()
+        if worlds[world][n]['maxnrj']<90000: self.icons[5].show()
 
     def on_mouse_leave_level(self, n, state):
         self.levels[n].setselected(
             [255, 120 + int(self.levels[n].x / 1024.0 * 135), 155 + int(self.levels[n].x / 1024.0 * 100)])
         self.untitled2[n].color = (255, 255, 255, 255)
         self.untitled2[n].update()
+        self.infos[0].text=" "
+        self.infos[0].update()
+        for theicon in self.icons: theicon.hide()
 
     def on_mouse_press_level(self, n, state):
         if debug == 2:
@@ -966,9 +1006,9 @@ ambiance.play()
 menu_principal = menu()
 menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
-glEnable(GL_STENCIL_TEST);
-glEnable(GL_LINE_SMOOTH);
-glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+#glEnable(GL_STENCIL_TEST);
+#glEnable(GL_LINE_SMOOTH);
+#glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
 glEnable(GL_LINE_STIPPLE)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 pyglet.app.run()   
