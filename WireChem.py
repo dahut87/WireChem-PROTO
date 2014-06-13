@@ -41,6 +41,11 @@ def sync():
     global Uworlds, finished
     write(gethome() + "/dbdata", ["Uworlds", "finished"])
 
+# Enregistre les données système
+def rebase():
+    global worlds
+    write("dbdata", ["worlds"])
+
 
 #Vérifie l'existence de la base de donnée utilisateur
 def verifyhome():
@@ -235,7 +240,7 @@ class atext(object):
 
     def on_layout_update(self):
         if self.loaded != '':
-            exec (self.loaded + "='" + self.layout.document.text + "'")
+            exec (self.loaded + '="' + self.layout.document.text + '"')
             self.text=self.layout.document.text
 
     def hit_test(self, x, y):
@@ -352,7 +357,7 @@ class abutton(object):
         if len(name) > 1 and hasattr(self.window, "on_mouse_" + state['event'] + "_" + name[0]) and callable(
                 eval("self.window.on_mouse_" + state['event'] + "_" + name[0])):
             eval("self.window.on_mouse_" + state['event'] + "_" + name[0] + "(" + str(name[1]) + "," + str(state) + ")")
-        #if debug>0: print state,self.name
+            if debug==1: print state,self.name
         if hasattr(self.window, "on_mouse_" + state['event'] + "_" + self.name) and callable(
                 eval("self.window.on_mouse_" + state['event'] + "_" + self.name)):
             if self.typeof == 'multicon':
@@ -361,7 +366,7 @@ class abutton(object):
                     self.index = 0
                 self.update(0)
             eval("self.window.on_mouse_" + state['event'] + "_" + self.name + "(" + str(state) + ")")
-        #if debug>0: print state,self.name
+            if debug==1: print state,self.name
 
     def on_mouse_press(self, x, y, button, modifiers):
         if x > self.x and y > self.y and x < self.x + self.width and y < self.y + self.height and self.isactive() and self.isvisible():
@@ -755,23 +760,40 @@ class menu(pyglet.window.Window):
             ambiance.pause()
             self.buttons[0].setselected([255, 0, 0])
         elif debug == 2:
+            self.infos[0].loaded=""
+            self.infos[0].text=" "
+            self.infos[0].update()
             debug = 1
             self.buttons[0].setselected(False)
             ambiance.play()
         self.update()
+
+    def on_mouse_double_logo2(self, state):
+        global debug
+        if debug == 2:
+            rebase()
+            self.on_mouse_press_logo(self)
 
     def on_mouse_press_menu_2(self, state):
         pyglet.app.exit()
 
     def on_mouse_press_menu_1(self, state):
         global world
-        if world > 0: world -= 1
-        self.update()
+        if world > 0:
+            world -= 1
+            self.update()
+            sounds.next()
+            sounds.queue(pyglet.resource.media("sound/lightning3.wav"))
+            sounds.play()
 
     def on_mouse_press_menu_0(self, state):
         global world
-        if world < len(worlds) - 1: world += 1
-        self.update()
+        if world < len(worlds) - 1:
+            world += 1
+            self.update()
+            sounds.next()
+            sounds.queue(pyglet.resource.media("sound/lightning1.wav"))
+            sounds.play()
 
     def on_mouse_enter_menu(self, n, state):
         self.buttons[2 + n].setselected([255, 0, 0])
@@ -831,10 +853,21 @@ class menu(pyglet.window.Window):
 
     def on_mouse_enter_level(self, n, state):
         global world,worlds
+        sounds.next()
+        sounds.queue(pyglet.resource.media("sound/pickup1.wav"))
+        sounds.play()
+        if debug == 2:
+            for theicon in self.icons: theicon.hide()
+            for theicon in self.untitled2:
+                theicon.color = (255, 255, 255, 255)
+                theicon.update()
+            for i in range(len(self.levels)):
+                self.levels[i].setselected([255, 120 + int(self.levels[i].x / 1024.0 * 135), 155 + int(self.levels[i].x / 1024.0 * 100)])
         self.levels[n].setselected([255, 0, 0])
         self.untitled2[n].color = (255, 0, 0, 255)
         self.untitled2[n].update()
         self.infos[0].text=worlds[world][n]['description'].decode('utf-8')
+        self.infos[0].loaded='worlds[' + str(world) + '][' + str(n) + ']["description"]'
         self.infos[0].update()
         if worlds[world][n]['cout']>0: self.icons[0].show()
         if worlds[world][n]['maxcycle']<90000: self.icons[1].show()
@@ -843,11 +876,15 @@ class menu(pyglet.window.Window):
         if worlds[world][n]['maxtemp']<90000: self.icons[4].show()
         if worlds[world][n]['maxnrj']<90000: self.icons[5].show()
 
+
     def on_mouse_leave_level(self, n, state):
+        if debug == 2:
+            return
         self.levels[n].setselected(
             [255, 120 + int(self.levels[n].x / 1024.0 * 135), 155 + int(self.levels[n].x / 1024.0 * 100)])
         self.untitled2[n].color = (255, 255, 255, 255)
         self.untitled2[n].update()
+        self.infos[0].loaded=""
         self.infos[0].text=" "
         self.infos[0].update()
         for theicon in self.icons: theicon.hide()
@@ -921,7 +958,7 @@ class menu(pyglet.window.Window):
                                   'world_new': [[0, 0, 0], [0, 0, 0], [0, 0, 0]]})
             self.update()
             return
-        for widget in self.untitled2 + self.untitled:
+        for widget in self.untitled2 + self.untitled + self.infos:
             if widget.hit_test(x, y):
                 self.setfocus(widget)
                 break
@@ -933,7 +970,7 @@ class menu(pyglet.window.Window):
     def on_mouse_motion(self, x, y, dx, dy):
         if debug < 2:
             return
-        for widget in self.untitled2 + self.untitled:
+        for widget in self.untitled2 + self.untitled + self.infos:
             if widget.hit_test(x, y):
                 self.set_mouse_cursor(self.cursors[1])
                 break
@@ -970,7 +1007,7 @@ class menu(pyglet.window.Window):
                 dir = -1
             else:
                 dir = 1
-            if self.focus in self.untitled2:
+            if self.focus in self.untitled2 + self.untitled + self.infos:
                 i = self.untitled2.index(self.focus)
             else:
                 i = 0
@@ -1000,9 +1037,11 @@ pyglet.font.add_file('font/Vademecum.ttf')
 pyglet.font.add_file('font/LiberationMono-Regular.ttf')
 ambiance = pyglet.media.Player()
 ambiance.queue(pyglet.resource.media("music/ambiance1.mp3"))
-ambiance.volume = 0.4
+ambiance.volume = 0.1
 ambiance.eos_action = 'loop'
 ambiance.play()
+sounds = pyglet.media.Player()
+sounds.volume = 0.6
 menu_principal = menu()
 menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
