@@ -161,30 +161,22 @@ class io(object):
 
 
 ''' *********************************************************************************************** '''
-''' Fonction d'initialisation  																				'''
-
-#initialisation du jeu
-def init():
-    global worlds, debug, level,inc
-    inout=io()
-    inout.verifyhome()
-    inout.read("dbdata")
-    inout.read(inout.gethome() + "/dbdata")
-    inout.reference(worlds, ['world', 'level'])
-    inout.reference(Uworlds, ['world', 'level'])
-    if len(sys.argv) > 1 and sys.argv[1] == 'debug':
-        debug = 1
-    else:
-        debug = 0
-    inc=1
-
-''' *********************************************************************************************** '''
 ''' initialisation																		'''
-
+global worlds, debug, level,inc
 debug = 0
 worlds = {}
 world = level = 0
-init()
+inout=io()
+inout.verifyhome()
+inout.read("dbdata")
+inout.read(inout.gethome() + "/dbdata")
+inout.reference(worlds, ['world', 'level'])
+inout.reference(Uworlds, ['world', 'level'])
+if len(sys.argv) > 1 and sys.argv[1] == 'debug':
+    debug = 1
+else:
+    debug = 0
+inc=1
 
 ''' *********************************************************************************************** '''
 ''' Classes graphiques	
@@ -818,7 +810,7 @@ class menu(pyglet.window.Window):
     def on_mouse_double_logo2(self, state):
         global debug
         if debug == 2:
-            rebase()
+            inout.rebase()
             self.on_mouse_press_logo(self)
 
     def on_mouse_press_menu_2(self, state):
@@ -983,6 +975,7 @@ class menu(pyglet.window.Window):
         for theicon in self.icons: theicon.hide()
 
     def on_mouse_press_level(self, n, state):
+        global level
         if debug == 2:
             self.selected = -1
             if state['modifiers'] & key.MOD_CTRL:
@@ -1002,6 +995,13 @@ class menu(pyglet.window.Window):
                         else:
                             l += 1
             return
+        else:
+            level=n
+            super(menu,self).close()
+            thegame=game()
+            thegame.set_minimum_size(1024, 768)
+            pyglet.app.run()
+
 
         ### Evenement de la fenetre ###
 
