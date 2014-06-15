@@ -165,7 +165,7 @@ class io(object):
 
 #initialisation du jeu
 def init():
-    global worlds, debug, level
+    global worlds, debug, level,inc
     inout=io()
     inout.verifyhome()
     inout.read("dbdata")
@@ -176,7 +176,7 @@ def init():
         debug = 1
     else:
         debug = 0
-
+    inc=1
 
 ''' *********************************************************************************************** '''
 ''' initialisation																		'''
@@ -233,7 +233,8 @@ class atext(object):
         self.layout.x = self.x
         self.layout.y = self.y
         self.layout.document.text = self.text
-        self.layout.document.set_style(0, len(self.layout.document.text), dict(color=self.color))
+        if len(self.layout.document.text)>0:
+            self.layout.document.set_style(0, len(self.layout.document.text), dict(color=self.color))
         self.layout.end_update()
 
     def on_layout_update(self):
@@ -250,13 +251,25 @@ class abutton(object):
     def update(self, dt):
         if not self.hilite and dt>0:
             return
+        try:
+            self.vertex_list.delete()
+        except:
+            foo = 0
+        try:
+            self.vertex_list2.delete()
+        except:
+            foo = 0
+        try:
+            self.vertex_list3.delete()
+        except:
+            foo = 0
         if type(self.evalx) is str:
             self.x = eval(self.evalx)
         if type(self.evaly) is str:
             self.y = eval(self.evaly)
 
-        if self.isvisible():
-            if self.typeof == 'color':
+        if self.typeof == 'color':
+            if self.isvisible():
                 if not self.isactive():
                     color = (self.content[0], self.content[1], self.content[2], 127)
                 else:
@@ -266,26 +279,42 @@ class abutton(object):
                                                                   self.x + self.width, self.y + self.height, self.x,
                                                                   self.y + self.height)),
                                                          ('c4B', color * 4))
-            elif self.typeof == 'function':
-                self.vertex_list = eval(self.content)
+        elif self.typeof == 'function':
+            self.vertex_list = eval(self.content)
+        else:
+            if self.typeof == 'multicon':
+                self.sprite.image = self.content[self.index]
             else:
-                if self.typeof == 'multicon':
-                    self.sprite.image = self.content[self.index]
+                self.sprite.image = self.content
+            self.sprite.visible=self.isvisible()
+            self.sprite.x=self.x
+            self.sprite.y=self.y
+            if self.width == 0:
+                self.width = self.sprite.image.width
+            if self.height == 0:
+                self.height = self.sprite.image.height
+            if self.width / float(self.height) < self.sprite.image.width / float(self.sprite.image.height):
+                self.sprite.scale = float(self.width) / self.sprite.image.width
+            else:
+                self.sprite.scale = float(self.height) / self.sprite.image.height
+            if not self.isactive():
+                self.sprite.color = (60, 60, 60)
+            else:
+                self.sprite.color = (255, 255, 255)
+            if self.typeof == 'text':
+                if self.isvisible():
+                   self.layout.x=self.sprite.x+self.sprite.image.width
                 else:
-                    self.sprite.image = self.content
-                self.sprite.x=self.x
-                self.sprite.y=self.y
-                if self.width == 0 or self.height == 0:
-                    self.width = self.sprite.image.width
-                    self.height = self.sprite.image.height
-                if self.width / float(self.height) < self.sprite.image.width / float(self.sprite.image.height):
-                    self.sprite.scale = float(self.width) / self.sprite.image.width
-                else:
-                    self.sprite.scale = float(self.height) / self.sprite.image.height
-                if not self.isactive():
-                    self.sprite.color = (60, 60, 60)
-                else:
-                    self.sprite.color = (255, 255, 255)
+                    self.layout.x=-300
+                self.layout.width=self.width-self.sprite.image.width
+                self.layout.y=self.sprite.y+(self.height-self.sprite.image.height)/2
+                self.layout.height=self.height
+                if len(self.text)>0:
+                    self.layout.document.text=self.text
+                if len(self.layout.document.text)>0:
+                    self.layout.document.set_style(0, len(self.layout.document.text),
+                                dict(font_name="Mechanihan", font_size=20, color=(180, 180, 180,255), align="left",
+                                     background_color=(200, 200, 200, 0)))
         if type(self.selected) is tuple:
             color = (self.selected[0], self.selected[1], self.selected[2], 255)
             self.vertex_list2 = self.window.batch.add(4, pyglet.gl.GL_LINE_LOOP, self.window.p2,
@@ -304,7 +333,7 @@ class abutton(object):
                                                       ('c4B', color * 4))
 
     def __init__(self, window, name, x, y, width, height, active, hilite, visible, selected, content, hint, typeof,
-                 text, text2):
+                 text):
         self.name = name
         self.time = 0
         self.index = 0
@@ -322,6 +351,7 @@ class abutton(object):
         self.content = content
         self.typeof = typeof
         self.hint = hint
+        self.text = text
         self.selected = selected
         self.window.push_handlers(self.on_mouse_press)
         self.window.push_handlers(self.on_mouse_motion)
@@ -331,8 +361,10 @@ class abutton(object):
         self.updateclock = clock.schedule_interval(self.update, 1)
         if self.typeof=='multicon':
             self.sprite = pyglet.sprite.Sprite(self.content[self.index],x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
-        elif self.typeof=='icon':
+        if self.typeof=='icon' or self.typeof=='text':
             self.sprite = pyglet.sprite.Sprite(self.content,x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
+        if self.typeof=='text':
+            self.layout = pyglet.text.layout.IncrementalTextLayout(pyglet.text.document.FormattedDocument(text), 10, 10, multiline=True, batch=self.window.batch, group=self.window.p1)
         self.update(0)
 
     def delete(self):
@@ -524,18 +556,18 @@ class menu(pyglet.window.Window):
         self.clocks = [clock.schedule(self.draw), clock.schedule_interval(self.movefond, 0.03)]
         self.loc = [0, 0, 1, 1]
         self.selected = -1
-        self.icons=[abutton(self, 'icon_1', 740, 110, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/cout.png'), 'test', 'icon', '', ''),
-                    abutton(self, 'icon_2', 740, 65, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/cycle.png'), 'test', 'icon', '', ''),
-                    abutton(self, 'icon_3', 940, 110, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/tech.png'), 'test', 'icon', '', ''),
-                    abutton(self, 'icon_4', 940, 65, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/rayon.png'), 'test', 'icon', '', ''),
-                    abutton(self, 'icon_5', 850, 110, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/temp.png'), 'test', 'icon', '', ''),
-                    abutton(self, 'icon_6', 850, 65, 0, 0, True, False, False, False,
-                    pyglet.image.load('picture/nrj.png'), 'test', 'icon', '', '')]
+        self.icons=[abutton(self, 'icon_0', 740, 110, 120, 0, True, False, False, False,
+                    pyglet.image.load('picture/cout.png'), 'test', 'text', ' '),
+                    abutton(self, 'icon_1', 740, 65, 120, 0, True, False, False, False,
+                    pyglet.image.load('picture/cycle.png'), 'test', 'text', ' '),
+                    abutton(self, 'icon_2', 940, 110, 70, 0, True, False, False, False,
+                    pyglet.image.load('picture/tech.png'), 'test', 'text', ' '),
+                    abutton(self, 'icon_3', 940, 65, 70, 0, True, False, False, False,
+                    pyglet.image.load('picture/rayon.png'), 'test', 'text', ' '),
+                    abutton(self, 'icon_4', 850, 110, 70, 0, True, False, False, False,
+                    pyglet.image.load('picture/temp.png'), 'test', 'text', ' '),
+                    abutton(self, 'icon_5', 850, 65, 70, 0, True, False, False, False,
+                    pyglet.image.load('picture/nrj.png'), 'test', 'text', ' ')]
         self.images = [pyglet.image.load('picture/leveler0.png'), pyglet.image.load('picture/leveler1.png'),
                        pyglet.image.load('picture/leveler2.png'), pyglet.image.load('picture/leveler3.png'),
                        pyglet.image.load('picture/leveler4.png')]
@@ -549,15 +581,15 @@ class menu(pyglet.window.Window):
 	                  arect(self,8,8,1017,149,2,[90,90,90,170],self.p0)]
         self.buttons = [
             abutton(self, 'logo', 185, 'self.window.height-200', 0, 0, True, False, True, False,
-                    pyglet.image.load('picture/logo.png'), 'test', 'icon', '', ''),
+                    pyglet.image.load('picture/logo.png'), 'test', 'icon', ''),
             abutton(self, 'logo2', 45, 'self.window.height-150', 0, 0, True, False, True, False,
-                    pyglet.image.load('picture/logo2.png'), 'test', 'icon', '', ''),
+                    pyglet.image.load('picture/logo2.png'), 'test', 'icon', ''),
             abutton(self, 'menu_0', 840, 150, 0, 0, True, False, True, False, pyglet.image.load('picture/arrows.png'),
-                    'test', 'icon', '', ''),
+                    'test', 'icon', ''),
             abutton(self, 'menu_1', 920, 150, 0, 0, True, False, True, False, pyglet.image.load('picture/arrows2.png'),
-                    'test', 'icon', '', ''),
+                    'test', 'icon', ''),
             abutton(self, 'menu_2', 940, 'self.window.height-100', 0, 0, True, False, True, False,
-                    pyglet.image.load('picture/exit2.png'), 'test', 'icon', '', '')
+                    pyglet.image.load('picture/exit2.png'), 'test', 'icon', '')
         ]
         self.infos = [atext(self, "c un test", 12, 8, 730, 140, 'OpenDyslexicAlta', 15)]
         self.infos[0].layout.begin_update()
@@ -567,28 +599,17 @@ class menu(pyglet.window.Window):
         self.infos[0].text=" "
         self.infos[0].update()
         self.levels = [
-            abutton(self, 'level_0', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_1', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_2', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_3', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_4', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_5', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_6', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_7', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_8', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_9', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    ''),
-            abutton(self, 'level_10', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '',
-                    '')
+            abutton(self, 'level_0', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_1', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_2', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_3', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_4', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_5', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_6', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_7', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_8', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_9', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', ''),
+            abutton(self, 'level_10', -250, 0, 0, 0, True, False, True, False, self.images[level], 'test', 'icon', '')
         ]
         self.untitled2 = [atext(self, "text", -300, -300, 300, 0, 'Fluoxetine', 18) for i in
                           range(10)]
@@ -878,10 +899,11 @@ class menu(pyglet.window.Window):
         self.buttons[2 + n].setselected(False)
 
     def on_mouse_enter_level(self, n, state):
-        global world,worlds
+        global world,worlds,level
         sounds.next()
         sounds.queue(pyglet.resource.media("sound/pickup1.wav"))
         sounds.play()
+        level=n
         if debug == 2:
             for theicon in self.icons: theicon.hide()
             for theicon in self.untitled2:
@@ -895,13 +917,58 @@ class menu(pyglet.window.Window):
         self.infos[0].text=worlds[world][n]['description'].decode('utf-8')
         self.infos[0].loaded='worlds[' + str(world) + '][' + str(n) + ']["description"]'
         self.infos[0].update()
-        if worlds[world][n]['cout']>0: self.icons[0].show()
-        if worlds[world][n]['maxcycle']<90000: self.icons[1].show()
-        if worlds[world][n]['tech']>0: self.icons[2].show()
-        if worlds[world][n]['maxrayon']<90000: self.icons[3].show()
-        if worlds[world][n]['maxtemp']<90000: self.icons[4].show()
-        if worlds[world][n]['maxnrj']<90000: self.icons[5].show()
+        var=['cout','maxcycle','tech','maxrayon','maxtemp','maxnrj']
+        condition=[worlds[world][n]['cout']>0,worlds[world][n]['maxcycle']<90000,worlds[world][n]['tech']>0,worlds[world][n]['maxrayon']<90000,worlds[world][n]['maxtemp']<90000,worlds[world][n]['maxnrj']<90000]
+        for i in range(len(condition)):
+            if debug==2 or condition[i]:
+                if worlds[world][n][var[i]]<90000:
+                    self.icons[i].text=str(worlds[world][n][var[i]])
+                else:
+                    self.icons[i].text="illimite"
+                self.icons[i].show()
+            else:
+                self.icons[i].hide()
 
+    def on_mouse_double_icon(self, n, state):
+        global world,worlds,level,inc
+        var=['cout','maxcycle','tech','maxrayon','maxtemp','maxnrj']
+        if var[n]=='tech':
+            return
+        if worlds[world][level][var[n]]<90000:
+            worlds[world][level][var[n]]=90001
+            self.icons[n].text="illimite"
+        else:
+            worlds[world][level][var[n]]=0
+            self.icons[n].text=str(0)
+        self.icons[n].update(0)
+
+
+    def on_mouse_press_icon(self, n, state):
+        global inc
+        if inc==1:
+            inc=10
+        elif inc==10:
+            inc=100
+        elif inc==100:
+            inc=1000
+        else:
+            inc=1
+        print inc
+
+    def on_mouse_scroll_icon(self, n, state):
+        global world,worlds,level,inc
+        var=['cout','maxcycle','tech','maxrayon','maxtemp','maxnrj']
+        add=state['dy']*inc
+        if worlds[world][level][var[n]]<90000:
+            print add
+            worlds[world][level][var[n]]=worlds[world][level][var[n]]+add
+            if var[n]=='tech':
+                if worlds[world][level]['tech']<-1: worlds[world][level]['tech']=-1
+                if worlds[world][level]['tech']>9: worlds[world][level]['tech']=9
+            else:
+                if worlds[world][level][var[n]]<0: worlds[world][level][var[n]]=0
+            self.icons[n].text=str(worlds[world][level][var[n]])
+            self.icons[n].update(0)
 
     def on_mouse_leave_level(self, n, state):
         if debug == 2:
@@ -1033,12 +1100,13 @@ class menu(pyglet.window.Window):
                 dir = -1
             else:
                 dir = 1
-            if self.focus in self.untitled2 + self.untitled + self.infos:
-                i = self.untitled2.index(self.focus)
+            all=(self.untitled2 + self.untitled + self.infos)
+            if self.focus in all:
+                i = all.index(self.focus)
             else:
                 i = 0
                 dir = 0
-            self.setfocus(self.untitled2[(i + dir) % len(self.untitled2)])
+            self.setfocus(all[(i + dir) % len(all)])
         elif symbol == pyglet.window.key.ESCAPE:
             pyglet.app.exit()
 
@@ -1075,15 +1143,15 @@ ambiance.play()
 sounds = pyglet.media.Player()
 sounds.volume = 0.6
 video_intro=video()
+pyglet.app.run()
+menu_principal = menu()
+menu_principal.set_minimum_size(1024, 768)
 glEnable(GL_BLEND);
 #glEnable(GL_STENCIL_TEST);
 #glEnable(GL_LINE_SMOOTH);
 #glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
 glEnable(GL_LINE_STIPPLE)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-pyglet.app.run()
-menu_principal = menu()
-menu_principal.set_minimum_size(1024, 768)
 pyglet.app.run()
 
 
