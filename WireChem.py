@@ -34,109 +34,106 @@ from pyglet import image
 
 
 ''' *********************************************************************************************** '''
-''' Fonctions de chargement  																		'''
+''' Fonctions de chargement
+
+																							'''
+class io(object):
 
 # Enregistre les données utilisateurs
-def sync():
-    global Uworlds, finished
-    write(gethome() + "/dbdata", ["Uworlds", "finished"])
+    def sync(self):
+        global Uworlds, finished
+        self.write(self.gethome() + "/dbdata", ["Uworlds", "finished"])
 
 # Enregistre les données système
-def rebase():
-    global worlds
-    write("dbdata", ["worlds"])
+    def rebase(self):
+        global worlds
+        self.write("dbdata", ["worlds"])
 
 
 #Vérifie l'existence de la base de donnée utilisateur
-def verifyhome():
-    global Uworlds, finished
-    if not os.path.exists(gethome()):
-        os.makedirs(gethome())
-    if not os.path.exists(gethome() + "/dbdata"):
-        Uworlds = [[{0: 0}]]
-        finished = [(0, 0)]
-        sync()
+    def verifyhome(self):
+        global Uworlds, finished
+        if not os.path.exists(self.gethome()):
+            os.makedirs(self.gethome())
+        if not os.path.exists(self.gethome() + "/dbdata"):
+            Uworlds = [[{0: 0}]]
+            finished = [(0, 0)]
+            self.sync()
 
 
 #Trouve le chemin vers le repertoire utilisateur
-def gethome():
-    home = expanduser("~") + "/.wirechem"
-    return home
+    def gethome(self):
+        home = expanduser("~") + "/.wirechem"
+        return home
 
 
 #Ecrit les variables spécifiés dans la base selectionnée (utilisateur ou système)
-def write(afile, var):
-    d = shelve.open(afile, writeback=True)
-    for k in var:
-        d[k] = copy.deepcopy(globals()[k])
-    d.sync()
-    d.close()
+    def write(self, afile, var):
+        d = shelve.open(afile, writeback=True)
+        for k in var:
+            d[k] = copy.deepcopy(globals()[k])
+        d.sync()
+        d.close()
 
 
 #Lit une base de donnée
-def read(afile):
-    d = shelve.open(afile, writeback=True)
-    for k in d.keys():
-        globals()[k] = copy.deepcopy(d[k])
-    d.close()
+    def read(self, afile):
+        d = shelve.open(afile, writeback=True)
+        for k in d.keys():
+            globals()[k] = copy.deepcopy(d[k])
+        d.close()
 
 
 #Charge le dictionnaire sous forme de variables
-def load(d):
-    for k in d.keys():
-        if k[0] != "_":
-            globals()[k] = copy.deepcopy(d[k])
+    def load(d):
+        for k in d.keys():
+            if k[0] != "_":
+                globals()[k] = copy.deepcopy(d[k])
 
 
 #Référence les variables
-def reference(var, noms):
-    if len(noms) == 2:
-        for y in range(len(var)):
+    def reference(self, var, noms):
+        if len(noms) == 2:
+            for y in range(len(var)):
+                for x in range(len(var[y])):
+                    var[y][x][noms[0]] = y
+                    var[y][x][noms[1]] = x
+        else:
             for x in range(len(var[y])):
-                var[y][x][noms[0]] = y
-                var[y][x][noms[1]] = x
-    else:
-        for x in range(len(var[y])):
-            var[x][y][noms[0]] = x
+                var[x][y][noms[0]] = x
 
 
 #duplique les références
-def duplicateref(d):
-    for k in d.keys():
-        d[d[k]['nom']] = d[k]
+    def duplicateref(self, d):
+        for k in d.keys():
+            d[d[k]['nom']] = d[k]
 
-
-''' *********************************************************************************************** '''
-''' Sauvegarde/Restauration '''
-
-
-def readlevel(w, l, user):
-    global tuto, worlds, cout, selected, sizex, sizey, stat, tech
-    tuto = ''
-    if user:
-        if w < len(Uworlds) and l < len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
-            load(Uworlds[w][l])
+    def readlevel(self, w, l, user):
+        global tuto, worlds, cout, selected, sizex, sizey, stat, tech
+        tuto = ''
+        if user:
+            if w < len(Uworlds) and l < len(Uworlds[w]) and Uworlds[w][l].has_key("element"):
+                self.load(Uworlds[w][l])
+            else:
+                self.load(worlds[w][l])
         else:
-            load(worlds[w][l])
-    else:
-        load(worlds[w][l])
-    menus[0][18]['icon'] = copy.deepcopy(art['null'])
-    sizex = len(world_new)
-    sizey = len(world_new[0])
-    resize();
-    stat = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    over = 0
-    infos()
+            self.load(worlds[w][l])
+        sizex = len(world_new)
+        sizey = len(world_new[0])
+        resize();
+        stat = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        over = 0
+        infos()
 
 
-def savelevel(w, l):
-    global tuto, users, worlds, Uworlds, nom, descriptif, video, link, tech, cout, victory, current, cycle, nrj, rayon, temp, maxcycle, maxnrj, maxrayon, maxtemp, world_new, world_art
-    while len(Uworlds) <= w:
-        Uworlds.append(0)
-        Uworlds[w] = []
-    while len(Uworlds[w]) <= l:
-        Uworlds[w].append({})
-        Uworlds[w][l] = {'nom': nom,
+    def savelevel(self, w, l):
+        global tuto, users, worlds, Uworlds, nom, descriptif, video, link, tech, cout, victory, current, cycle, nrj, rayon, temp, maxcycle, maxnrj, maxrayon, maxtemp, world_new, world_art
+        while len(Uworlds) <= w:
+            Uworlds.append(0)
+            Uworlds[w] = []
+        while len(Uworlds[w]) <= l:
+            Uworlds[w].append({})
+            Uworlds[w][l] = {'nom': nom,
                          'element': element,
                          'users': users,
                          'tuto': tuto,
@@ -169,11 +166,12 @@ def savelevel(w, l):
 #initialisation du jeu
 def init():
     global worlds, debug, level
-    verifyhome()
-    read("dbdata")
-    read(gethome() + "/dbdata")
-    reference(worlds, ['world', 'level'])
-    reference(Uworlds, ['world', 'level'])
+    inout=io()
+    inout.verifyhome()
+    inout.read("dbdata")
+    inout.read(inout.gethome() + "/dbdata")
+    inout.reference(worlds, ['world', 'level'])
+    inout.reference(Uworlds, ['world', 'level'])
     if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         debug = 1
     else:
@@ -250,26 +248,13 @@ class atext(object):
 #Bouton sensible a plusieurs évènements
 class abutton(object):
     def update(self, dt):
+        if not self.hilite and dt>0:
+            return
         if type(self.evalx) is str:
             self.x = eval(self.evalx)
         if type(self.evaly) is str:
             self.y = eval(self.evaly)
-        try:
-            self.vertex_list.delete()
-        except:
-            foo = 0
-        try:
-            self.vertex_list2.delete()
-        except:
-            foo = 0
-        try:
-            self.vertex_list3.delete()
-        except:
-            foo = 0
-        try:
-            self.sprite.delete()
-        except:
-            foo = 0
+
         if self.isvisible():
             if self.typeof == 'color':
                 if not self.isactive():
@@ -285,18 +270,18 @@ class abutton(object):
                 self.vertex_list = eval(self.content)
             else:
                 if self.typeof == 'multicon':
-                    image = self.content[self.index]
+                    self.sprite.image = self.content[self.index]
                 else:
-                    image = self.content
+                    self.sprite.image = self.content
+                self.sprite.x=self.x
+                self.sprite.y=self.y
                 if self.width == 0 or self.height == 0:
-                    self.width = image.width
-                    self.height = image.height
-                self.sprite = pyglet.sprite.Sprite(image, x=self.x, y=self.y, batch=self.window.batch,
-                                                   group=self.window.p1)
-                if self.width / float(self.height) < image.width / float(image.height):
-                    self.sprite.scale = float(self.width) / image.width
+                    self.width = self.sprite.image.width
+                    self.height = self.sprite.image.height
+                if self.width / float(self.height) < self.sprite.image.width / float(self.sprite.image.height):
+                    self.sprite.scale = float(self.width) / self.sprite.image.width
                 else:
-                    self.sprite.scale = float(self.height) / image.height
+                    self.sprite.scale = float(self.height) / self.sprite.image.height
                 if not self.isactive():
                     self.sprite.color = (60, 60, 60)
                 else:
@@ -344,12 +329,29 @@ class abutton(object):
         self.window.push_handlers(self.on_mouse_release)
         self.window.push_handlers(self.on_mouse_scroll)
         self.updateclock = clock.schedule_interval(self.update, 1)
+        if self.typeof=='multicon':
+            self.sprite = pyglet.sprite.Sprite(self.content[self.index],x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
+        elif self.typeof=='icon':
+            self.sprite = pyglet.sprite.Sprite(self.content,x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
         self.update(0)
 
     def delete(self):
-        self.vertex_list.delete()
-        del self
-        self = None
+        try:
+            self.vertex_list.delete()
+        except:
+            foo = 0
+        try:
+            self.vertex_list2.delete()
+        except:
+            foo = 0
+        try:
+            self.vertex_list3.delete()
+        except:
+            foo = 0
+        try:
+            self.sprite.delete()
+        except:
+            foo = 0
 
     def launch(self, state):
         global debug
@@ -476,6 +478,31 @@ class game(pyglet.window.Window):
         glClearColor(0, 0, 0, 255)
         self.clear()
 
+''' *********************************************************************************************** '''
+''' Gestion lancement de la video																						 '''
+
+#Classe du menu principal
+class video(pyglet.window.Window):
+    def __init__(self, *args, **kwargs):
+        super(video, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True,
+                                   caption="Wirechem: The new chemistry game")
+        self.player = pyglet.media.Player()
+        self.player.queue(pyglet.resource.media("movie/intro.mp4"))
+        self.player.play()
+        self.clocks = clock.schedule(self.draw)
+
+    def draw(self,dt):
+	if self.player.source and self.player.source.video_format:
+		glColor3ub(255,255,255)
+		self.player.get_texture().blit(0,0,width=self.width,height=self.height)
+
+    def on_key_press(self, symbol, modifiers):
+        self.player.next()
+        super(video, self).close()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        self.player.next()
+        super(video, self).close()
 
 ''' *********************************************************************************************** '''
 ''' Gestion du menu principal																						 '''
@@ -487,13 +514,7 @@ class menu(pyglet.window.Window):
         super(menu, self).__init__(width=1024, height=768, resizable=True, fullscreen=False, visible=True,
                                    caption="Wirechem: The new chemistry game")
         self.focus = None
-        self.cursors = [pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/pointer.png'), 15, 46),
-                        pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/text.png'), 24, 30),
-                        pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/move.png'), 24, 24),
-                        pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/create.png'), 12, 17),
-                        pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/cross.png'), 24, 33),
-                        pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/delete.png'), 24, 32)]
-        self.set_mouse_cursor(self.cursors[0])
+        self.set_mouse_cursor(cursors[0])
         self.batch = pyglet.graphics.Batch()
         self.p0 = pyglet.graphics.OrderedGroup(0)
         self.p1 = pyglet.graphics.OrderedGroup(1)
@@ -577,11 +598,14 @@ class menu(pyglet.window.Window):
         self.lock = [
             pyglet.sprite.Sprite(pyglet.image.load('picture/locked.png'), batch=self.batch, group=self.p4, x=-300,
                                  y=-300) for i in range(10)]
-        self.update()
+        self.update(0)
 
     def on_resize(self, width, height):
         super(menu, self).on_resize(width, height)
-        self.update()
+        try:
+            self.update(0)
+        except:
+            dummy=0
 
     def movefond(self, dt):
         global loc
@@ -596,7 +620,7 @@ class menu(pyglet.window.Window):
         if self.loc[1] < 0:
             self.loc[3] = 1
 
-    def update(self):
+    def update(self,alevel):
         global world, worlds, finished
         for obj in worlds[world]:
             if obj.has_key('special'):
@@ -610,8 +634,10 @@ class menu(pyglet.window.Window):
         else:
             self.labels[0].text = ''
         for l in range(len(self.buttons)):
+            if alevel!=0 and alevel!=l: continue
             self.buttons[l].update(0)
         for l in range(10):
+            if alevel!=0 and alevel!=l: continue
             if l >= len(worlds[world]):
                 self.levels[l].x = -300
                 self.untitled[l].x = -300
@@ -766,7 +792,7 @@ class menu(pyglet.window.Window):
             debug = 1
             self.buttons[0].setselected(False)
             ambiance.play()
-        self.update()
+        self.update(0)
 
     def on_mouse_double_logo2(self, state):
         global debug
@@ -781,7 +807,7 @@ class menu(pyglet.window.Window):
         global world
         if world > 0:
             world -= 1
-            self.update()
+            self.update(0)
             sounds.next()
             sounds.queue(pyglet.resource.media("sound/lightning3.wav"))
             sounds.play()
@@ -790,7 +816,7 @@ class menu(pyglet.window.Window):
         global world
         if world < len(worlds) - 1:
             world += 1
-            self.update()
+            self.update(0)
             sounds.next()
             sounds.queue(pyglet.resource.media("sound/lightning1.wav"))
             sounds.play()
@@ -807,7 +833,7 @@ class menu(pyglet.window.Window):
             except:
                 dummy = 0
         worlds[world][n]["special"] = True
-        self.update()
+        self.update(n)
 
     def on_mouse_drag_level(self, n, state):
         global worlds, world
@@ -816,11 +842,11 @@ class menu(pyglet.window.Window):
         if state['buttons'] == 2:
             worlds[world][n]["_xx"] += state['dx']
             worlds[world][n]["_yy"] += state['dy']
-            self.set_mouse_cursor(self.cursors[2])
-            self.update()
+            self.set_mouse_cursor(cursors[2])
+            self.update(n)
         elif (state['buttons'] == 1 or state['buttons'] == 4) and type(self.selected) is int:
             self.selected = (world, n)
-            self.set_mouse_cursor(self.cursors[3])
+            self.set_mouse_cursor(cursors[3])
 
     def on_mouse_release_level(self, n, state):
         global worlds, world
@@ -846,7 +872,7 @@ class menu(pyglet.window.Window):
                 dummy = 0
         else:
             self.selected = -1
-            self.set_mouse_cursor(self.cursors[0])
+            self.set_mouse_cursor(cursors[0])
 
     def on_mouse_leave_menu(self, n, state):
         self.buttons[2 + n].setselected(False)
@@ -894,7 +920,7 @@ class menu(pyglet.window.Window):
             self.selected = -1
             if state['modifiers'] & key.MOD_CTRL:
                 del worlds[world][n]
-                self.update()
+                self.update(0)
                 for ele in worlds[world]:
                     l = 0
                     while l < len(ele['link']):
@@ -921,7 +947,7 @@ class menu(pyglet.window.Window):
             they = y
         if x > 1024 - 20 and world + 1 < len(worlds) and abs(self.selected[0] - world) < 1:
             world += 1
-            self.update()
+            self.update(0)
             return
         if self.focus:
             self.focus.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
@@ -956,7 +982,7 @@ class menu(pyglet.window.Window):
                                   'video': False,
                                   'world_art': [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
                                   'world_new': [[0, 0, 0], [0, 0, 0], [0, 0, 0]]})
-            self.update()
+            self.update(len(worlds[world])-1)
             return
         for widget in self.untitled2 + self.untitled + self.infos:
             if widget.hit_test(x, y):
@@ -972,10 +998,10 @@ class menu(pyglet.window.Window):
             return
         for widget in self.untitled2 + self.untitled + self.infos:
             if widget.hit_test(x, y):
-                self.set_mouse_cursor(self.cursors[1])
+                self.set_mouse_cursor(cursors[1])
                 break
         else:
-            self.set_mouse_cursor(self.cursors[0])
+            self.set_mouse_cursor(cursors[0])
 
     def on_text(self, text):
         if debug < 2:
@@ -999,9 +1025,9 @@ class menu(pyglet.window.Window):
         if debug < 2:
             return
         if modifiers & key.MOD_SHIFT:
-            self.set_mouse_cursor(self.cursors[4])
+            self.set_mouse_cursor(cursors[4])
         elif modifiers & key.MOD_CTRL:
-            self.set_mouse_cursor(self.cursors[5])
+            self.set_mouse_cursor(cursors[5])
         if symbol == pyglet.window.key.TAB:
             if modifiers & pyglet.window.key.MOD_SHIFT:
                 dir = -1
@@ -1030,6 +1056,12 @@ class menu(pyglet.window.Window):
 ''' *********************************************************************************************** '''
 ''' Lancement du menu principal																					'''
 
+cursors = [pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/pointer.png'), 15, 46),
+           pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/text.png'), 24, 30),
+           pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/move.png'), 24, 24),
+           pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/create.png'), 12, 17),
+           pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/cross.png'), 24, 33),
+           pyglet.window.ImageMouseCursor(pyglet.image.load('cursor/delete.png'), 24, 32)]
 pyglet.font.add_file('font/Fluoxetine.ttf')
 pyglet.font.add_file('font/OpenDyslexicAlta.otf')
 pyglet.font.add_file('font/Mecanihan.ttf')
@@ -1042,16 +1074,17 @@ ambiance.eos_action = 'loop'
 ambiance.play()
 sounds = pyglet.media.Player()
 sounds.volume = 0.6
-menu_principal = menu()
-menu_principal.set_minimum_size(1024, 768)
+video_intro=video()
 glEnable(GL_BLEND);
 #glEnable(GL_STENCIL_TEST);
 #glEnable(GL_LINE_SMOOTH);
 #glHint(GL_LINE_SMOOTH_HINT, GL_FASTEST);
 glEnable(GL_LINE_STIPPLE)
 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-pyglet.app.run()   
-
+pyglet.app.run()
+menu_principal = menu()
+menu_principal.set_minimum_size(1024, 768)
+pyglet.app.run()
 
 
 
