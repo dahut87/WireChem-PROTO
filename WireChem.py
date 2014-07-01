@@ -238,7 +238,8 @@ class atext(object):
         return (0 < x - self.layout.x < self.layout.width and 0 < y - self.layout.y < self.layout.height)
 
 
-#Bouton sensible a plusieurs évènements
+#Bouton sensible a plusieurs évènements, types: function, multicon, icon, color,
+#                                                                             et text in,left,top,bottom,right
 class abutton(object):
     def update(self, dt):
         if not self.hilite and dt>0:
@@ -260,7 +261,7 @@ class abutton(object):
         if type(self.evaly) is str:
             self.y = eval(self.evaly)
 
-        if self.typeof == 'color':
+        if self.typeof.split("_")[0] == 'color':
             if self.isvisible():
                 if not self.isactive():
                     color = (self.content[0], self.content[1], self.content[2], 127)
@@ -271,16 +272,14 @@ class abutton(object):
                                                                   self.x + self.width, self.y + self.height, self.x,
                                                                   self.y + self.height)),
                                                          ('c4B', color * 4))
-        elif self.typeof == 'function':
+        elif self.typeof.split("_")[0] == 'function':
             self.vertex_list = eval(self.content)
         else:
-            if self.typeof == 'multicon':
+            if self.typeof.split("_")[0] == 'multicon':
                 self.sprite.image = self.content[self.index]
             else:
                 self.sprite.image = self.content
             self.sprite.visible=self.isvisible()
-            self.sprite.x=self.x
-            self.sprite.y=self.y
             if self.width == 0:
                 self.width = self.sprite.image.width
             if self.height == 0:
@@ -289,24 +288,72 @@ class abutton(object):
                 self.sprite.scale = float(self.width) / self.sprite.image.width
             else:
                 self.sprite.scale = float(self.height) / self.sprite.image.height
+            self.sprite.x=self.x
+            self.sprite.y=self.y
             if not self.isactive():
                 self.sprite.color = (60, 60, 60)
             else:
                 self.sprite.color = (255, 255, 255)
-            if self.typeof == 'text':
-                if self.isvisible():
-                   self.layout.x=self.sprite.x+self.sprite.image.width
-                else:
+            if self.text != '':
+                if len(self.typeof.split("_"))<3:
+                    self.sprite.scale=1
+                align="center"
+                self.layout.begin_update()
+                if not self.isvisible():
                     self.layout.x=-300
-                self.layout.width=self.width-self.sprite.image.width
-                self.layout.y=self.sprite.y+(self.height-self.sprite.image.height)/2
-                self.layout.height=self.height
+                elif len(self.typeof.split("_"))==1 or self.typeof.split("_")[1]=="right":
+                    self.sprite.x=self.x
+                    self.sprite.y=self.y+(self.height-self.sprite.height)/2
+                    self.layout.x=self.sprite.x+self.sprite.width
+                    self.layout.width=self.width-self.sprite.width
+                    self.layout.y=self.y
+                    self.layout.height=self.height
+                    self.layout.content_valign='center'
+                    align="left"
+                elif self.typeof.split("_")[1]=="left":
+                    self.sprite.x=self.x+self.width-self.sprite.width
+                    self.sprite.y=self.y+(self.height-self.sprite.height)/2
+                    self.layout.x=self.x
+                    self.layout.width=self.width-self.sprite.width
+                    self.layout.y=self.y
+                    self.layout.height=self.height
+                    self.layout.content_valign='center'
+                    align="right"
+                elif self.typeof.split("_")[1]=="bottom":
+                    self.sprite.x=self.x+(self.width-self.sprite.width)/2
+                    self.sprite.y=self.y+self.height-self.sprite.height
+                    self.layout.x=self.x
+                    self.layout.width=self.width
+                    self.layout.y=self.y
+                    self.layout.height=self.height-self.sprite.height
+                    self.layout.content_valign='top'
+                elif self.typeof.split("_")[1]=="in":
+                    self.sprite.x=self.x+(self.width-self.sprite.width)/2
+                    self.sprite.y=self.y+(self.height-self.sprite.height)/2
+                    self.layout.x=self.x
+                    self.layout.y=self.y
+                    self.layout.width=self.width
+                    self.layout.height=self.height
+                    self.layout.content_valign='center'
+                else:
+                    self.sprite.x=self.x+(self.width-self.sprite.width)/2
+                    self.sprite.y=self.y
+                    self.layout.x=self.x
+                    self.layout.width=self.width
+                    self.layout.y=self.y+self.sprite.height
+                    self.layout.height=self.height-self.sprite.height
+                    self.layout.content_valign='bottom'
                 if len(self.text)>0:
                     self.layout.document.text=self.text
                 if len(self.layout.document.text)>0:
+                    if type(self.selected) is not list:
+                        color=(180, 180, 180,255)
+                    else:
+                        color=(self.selected[0], self.selected[1], self.selected[2], 255)
                     self.layout.document.set_style(0, len(self.layout.document.text),
-                                dict(font_name="Mechanihan", font_size=20, color=(180, 180, 180,255), align="left",
+                                dict(font_name="Mechanihan", font_size=20, color=color, align=align,
                                      background_color=(200, 200, 200, 0)))
+                self.layout.end_update()
         if type(self.selected) is tuple:
             color = (self.selected[0], self.selected[1], self.selected[2], 255)
             self.vertex_list2 = self.window.batch.add(4, pyglet.gl.GL_LINE_LOOP, self.window.p2,
@@ -351,12 +398,10 @@ class abutton(object):
         self.window.push_handlers(self.on_mouse_release)
         self.window.push_handlers(self.on_mouse_scroll)
         self.updateclock = clock.schedule_interval(self.update, 1)
-        if self.typeof=='multicon':
-            self.sprite = pyglet.sprite.Sprite(self.content[self.index],x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
-        if self.typeof=='icon' or self.typeof=='text':
-            self.sprite = pyglet.sprite.Sprite(self.content,x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
-        if self.typeof=='text':
-            self.layout = pyglet.text.layout.IncrementalTextLayout(pyglet.text.document.FormattedDocument(text), 10, 10, multiline=True, batch=self.window.batch, group=self.window.p1)
+        if self.typeof.split("_")[0]=='multicon' or self.typeof.split("_")[0]=='icon':
+            self.sprite = pyglet.sprite.Sprite(pyglet.image.Texture.create(1,1),x=-300,y=-300, batch=self.window.batch, group=self.window.p1)
+        if self.text!='':
+            self.layout = pyglet.text.layout.IncrementalTextLayout(pyglet.text.document.FormattedDocument(text), 10, 10, multiline=True, batch=self.window.batch, group=self.window.p2)
         self.update(0)
 
     def delete(self):
@@ -516,9 +561,9 @@ class video(pyglet.window.Window):
         self.clocks = clock.schedule(self.draw)
 
     def draw(self,dt):
-	if self.player.source and self.player.source.video_format:
-		glColor3ub(255,255,255)
-		self.player.get_texture().blit(0,0,width=self.width,height=self.height)
+        if self.player.source and self.player.source.video_format:
+            glColor3ub(255,255,255)
+            self.player.get_texture().blit(0,0,width=self.width,height=self.height)
 
     def on_key_press(self, symbol, modifiers):
         self.player.next()
@@ -549,17 +594,17 @@ class menu(pyglet.window.Window):
         self.loc = [0, 0, 1, 1]
         self.selected = -1
         self.icons=[abutton(self, 'icon_0', 740, 110, 120, 0, True, False, False, False,
-                    pyglet.image.load('picture/cout.png'), 'test', 'text', ' '),
+                    pyglet.image.load('picture/cout.png'), 'test', 'icon_left', ' '),
                     abutton(self, 'icon_1', 740, 65, 120, 0, True, False, False, False,
-                    pyglet.image.load('picture/cycle.png'), 'test', 'text', ' '),
+                    pyglet.image.load('picture/cycle.png'), 'test', 'icon', ' '),
                     abutton(self, 'icon_2', 940, 110, 70, 0, True, False, False, False,
-                    pyglet.image.load('picture/tech.png'), 'test', 'text', ' '),
+                    pyglet.image.load('picture/tech.png'), 'test', 'icon', ' '),
                     abutton(self, 'icon_3', 940, 65, 70, 0, True, False, False, False,
-                    pyglet.image.load('picture/rayon.png'), 'test', 'text', ' '),
+                    pyglet.image.load('picture/rayon.png'), 'test', 'icon', ' '),
                     abutton(self, 'icon_4', 850, 110, 70, 0, True, False, False, False,
-                    pyglet.image.load('picture/temp.png'), 'test', 'text', ' '),
+                    pyglet.image.load('picture/temp.png'), 'test', 'icon', ' '),
                     abutton(self, 'icon_5', 850, 65, 70, 0, True, False, False, False,
-                    pyglet.image.load('picture/nrj.png'), 'test', 'text', ' ')]
+                    pyglet.image.load('picture/nrj.png'), 'test', 'icon', ' ')]
         self.images = [pyglet.image.load('picture/leveler0.png'), pyglet.image.load('picture/leveler1.png'),
                        pyglet.image.load('picture/leveler2.png'), pyglet.image.load('picture/leveler3.png'),
                        pyglet.image.load('picture/leveler4.png')]
@@ -945,7 +990,6 @@ class menu(pyglet.window.Window):
             inc=1000
         else:
             inc=1
-        print inc
 
     def on_mouse_scroll_icon(self, n, state):
         global world,worlds,level,inc
