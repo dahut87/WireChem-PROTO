@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ "$1" == "" ]; then
+	cd /srv/WireChem
+	python WireChem.py
+else
+	git clone -b $1 git://github.com/dahut87/WireChem.git /srv/_version_$1
+	cd /srv/_version_$1
+	python WireChem.py
+fi

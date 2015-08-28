@@ -1,0 +1,10 @@
+#!/bin/bash
+export DISPLAY=":0"
+su -c "startx" wirechem &
+while true
+do
+        launch=`ps ax|grep init.py|grep python`
+        if [ "$launch" == "" ]; then
+             su -c "python /srv/init.py" wirechem
+        fi
+done

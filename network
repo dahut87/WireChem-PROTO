@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export XAUTHORITY="/home/wirechem/.Xauthority"
+export DISPLAY=":0" 
+sudo network-config
